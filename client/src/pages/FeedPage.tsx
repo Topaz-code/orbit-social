@@ -9,7 +9,7 @@ import { useQuery } from '@tanstack/react-query';
 import { api } from '../lib/api.js';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { Avatar } from '../components/ui/avatar.js';
-import { Sparkles, TrendingUp, Users } from 'lucide-react';
+import { TrendingUp, Users } from 'lucide-react';
 import { User, Post } from '../types/index.js';
 
 export const FeedPage: React.FC = () => {
@@ -70,17 +70,6 @@ export const FeedPage: React.FC = () => {
 
       {/* Right Sidebar Column (Trending & Suggested) */}
       <div className="hidden lg:block lg:col-span-4 space-y-6 sticky top-20">
-        {/* Chronological Promise Banner */}
-        <div className="rounded-2xl border border-indigo-100 dark:border-indigo-950/60 bg-gradient-to-br from-indigo-50/50 to-purple-50/30 dark:from-indigo-950/40 dark:to-purple-950/20 p-4 shadow-xs">
-          <div className="flex items-center gap-2 text-indigo-600 dark:text-indigo-400 font-bold text-xs mb-1">
-            <Sparkles className="h-4 w-4" />
-            <span>Strictly Chronological</span>
-          </div>
-          <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-            No machine-learning ranking models. You see what your friends share, precisely in the order they post it.
-          </p>
-        </div>
-
         {/* Trending Hashtags */}
         <div className="rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-xs">
           <div className="flex items-center gap-2 mb-3 text-slate-900 dark:text-slate-100 font-bold text-sm">
