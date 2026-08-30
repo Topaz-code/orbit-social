@@ -47,7 +47,12 @@ export const RegisterForm: React.FC = () => {
       await registerUser(data);
       navigate('/');
     } catch (err: any) {
-      setServerError(err.response?.data?.message || 'Registration failed');
+      if (err.response?.data?.errors && Array.isArray(err.response.data.errors)) {
+        const errorText = err.response.data.errors.map((e: any) => e.message).join(', ');
+        setServerError(errorText || err.response.data.message || 'Registration failed');
+      } else {
+        setServerError(err.response?.data?.message || err.message || 'Registration failed');
+      }
     }
   };
 
