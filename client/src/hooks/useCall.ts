@@ -181,16 +181,26 @@ export function useCall() {
         duration: 0,
       });
 
-      // 4. Dial with WebRTC
+      // 4. Dial with WebRTC — delay 600ms to give callee time to receive
+      //    INCOMING_CALL via MQTT and subscribe to the signal topic before
+      //    the SDP_OFFER arrives. Without this the offer fires before the
+      //    callee has subscribed and the call never connects.
       const webrtc = getOrCreateWebRTC(callId);
       webrtc.setLocalStream(stream);
-      await webrtc.createOffer();
+      setTimeout(async () => {
+        try {
+          await webrtc.createOffer();
+        } catch (err) {
+          console.error('[Call] createOffer failed:', err);
+        }
+      }, 600);
     } catch (error: any) {
       console.error('Failed to start call:', error);
       alert(error.message || 'Could not access microphone/camera');
       endCall();
     }
   };
+
 
   // Accept incoming call
   const acceptCall = async () => {
