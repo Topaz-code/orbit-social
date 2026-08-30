@@ -1,0 +1,40 @@
+{
+  "name": "orbit",
+  "version": "1.0.0",
+  "description": "A privacy-focused, full-featured social media platform designed for teens to break free from algorithmic manipulation.",
+  "private": true,
+  "workspaces": [
+    "server",
+    "client"
+  ],
+  "scripts": {
+    "dev": "concurrently -n \"server,client\" -c \"blue,green\" \"npm run dev:server\" \"npm run dev:client\"",
+    "dev:server": "npm run dev --prefix server",
+    "dev:client": "npm run dev --prefix client",
+    "build": "npm run build --prefix server && npm run build --prefix client",
+    "start": "npm run start --prefix server",
+    "db:setup": "npm run db:setup --prefix server",
+    "db:seed": "npm run db:seed --prefix server",
+    "db:studio": "npm run db:studio --prefix server",
+    "install:all": "npm install && npm install --prefix server && npm install --prefix client"
+  },
+  "keywords": [
+    "privacy",
+    "social-media",
+    "self-hosted",
+    "chronological-feed",
+    "mqtt",
+    "webrtc",
+    "peerjs",
+    "sqlite",
+    "prisma",
+    "react",
+    "vite",
+    "tailwind"
+  ],
+  "author": "Orbit Team",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

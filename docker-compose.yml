@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  orbit:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: orbit-app
+    restart: unless-stopped
+    ports:
+      - "5000:5000"   # Express REST API + PeerJS
+      - "8883:8883"   # MQTT WebSocket
+      - "1883:1883"   # MQTT TCP
+      - "5173:5173"   # Frontend
+    environment:
+      - NODE_ENV=production
+      - PORT=5000
+      - DATABASE_URL=file:/app/server/prisma/orbit.db
+      - JWT_SECRET=orbit_production_jwt_secret_key_change_me
+      - JWT_REFRESH_SECRET=orbit_production_refresh_secret_key_change_me
+      - MQTT_PORT=1883
+      - MQTT_WS_PORT=8883
+      - CLIENT_URL=http://localhost:5173
+    volumes:
+      - orbit_data:/app/server/prisma
+      - orbit_uploads:/app/server/uploads
+
+volumes:
+  orbit_data:
+  orbit_uploads:

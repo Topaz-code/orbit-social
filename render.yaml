@@ -1,0 +1,55 @@
+services:
+  # 1. Orbit Backend API & Embedded MQTT/PeerJS Server
+  - type: web
+    name: orbit-api
+    runtime: node
+    plan: starter
+    rootDir: server
+    buildCommand: npm install && npx prisma db push && npx tsx prisma/seed.ts && npm run build
+    startCommand: npm start
+    healthCheckPath: /api/health
+    disk:
+      name: orbit-storage
+      mountPath: /data
+      sizeGB: 1
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        value: file:/data/orbit.db
+      - key: PORT
+        value: 10000
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+      - key: CLIENT_URL
+        fromService:
+          name: orbit-web
+          type: web
+          property: host
+
+  # 2. Orbit Frontend React Client (Static Site)
+  - type: web
+    name: orbit-web
+    runtime: static
+    rootDir: client
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: VITE_API_URL
+        fromService:
+          name: orbit-api
+          type: web
+          property: host
+          value: https://${host}/api
+      - key: VITE_MQTT_URL
+        fromService:
+          name: orbit-api
+          type: web
+          property: host
+          value: wss://${host}

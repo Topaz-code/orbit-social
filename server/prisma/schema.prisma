@@ -1,0 +1,259 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                   String   @id @default(uuid())
+  username             String   @unique
+  phone                String?  @unique
+  email                String   @unique
+  password_hash        String
+  display_name         String
+  bio                  String?  @default("")
+  avatar_url           String?  @default("")
+  cover_url            String?  @default("")
+  created_at           DateTime @default(now())
+  last_seen            DateTime @default(now())
+  is_online            Boolean  @default(false)
+  privacy_settings     String   @default("{\"posts\":\"everyone\",\"messages\":\"everyone\",\"phone\":\"friends\",\"onlineStatus\":\"everyone\",\"stories\":\"everyone\"}")
+  security_question    String?  @default("What is your pet's name?")
+  security_answer_hash String?  @default("")
+
+  // Relations
+  posts                 Post[]
+  comments              Comment[]
+  likes                 Like[]
+  stories               Story[]
+  conversations_created Conversation[]       @relation("ConversationCreator")
+  conversation_members  ConversationMember[]
+  messages              Message[]
+  groups_created        Group[]              @relation("GroupCreator")
+  group_members         GroupMember[]
+  friendships_requested Friendship[]         @relation("FriendshipRequester")
+  friendships_received  Friendship[]         @relation("FriendshipAddressee")
+  notifications         Notification[]
+  calls_initiated       Call[]               @relation("CallInitiator")
+  calls_received        Call[]               @relation("CallReceiver")
+
+  @@map("users")
+}
+
+model Post {
+  id             String   @id @default(uuid())
+  user_id        String
+  content_text   String
+  media_url      String?  @default("")
+  media_type     String?  @default("")
+  media_gallery  String?  @default("[]") // JSON string array of URLs
+  link_url       String?  @default("")
+  link_preview   String?  @default("{}") // JSON string {title, description, image, domain}
+  likes_count    Int      @default(0)
+  comments_count Int      @default(0)
+  shares_count   Int      @default(0)
+  visibility     String   @default("public") // public, friends, private
+  group_id       String?
+  created_at     DateTime @default(now())
+  updated_at     DateTime @updatedAt
+
+  // Relations
+  user     User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  group    Group?    @relation(fields: [group_id], references: [id], onDelete: Cascade)
+  comments Comment[]
+  likes    Like[]
+
+  @@map("posts")
+}
+
+model Comment {
+  id                String   @id @default(uuid())
+  post_id           String
+  user_id           String
+  parent_comment_id String?
+  content           String
+  created_at        DateTime @default(now())
+
+  // Relations
+  post           Post      @relation(fields: [post_id], references: [id], onDelete: Cascade)
+  user           User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  parent_comment Comment?  @relation("CommentReplies", fields: [parent_comment_id], references: [id], onDelete: Cascade)
+  replies        Comment[] @relation("CommentReplies")
+
+  @@map("comments")
+}
+
+model Like {
+  id         String   @id @default(uuid())
+  user_id    String
+  post_id    String
+  created_at DateTime @default(now())
+
+  // Relations
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  post Post @relation(fields: [post_id], references: [id], onDelete: Cascade)
+
+  @@unique([user_id, post_id])
+  @@map("likes")
+}
+
+model Story {
+  id           String   @id @default(uuid())
+  user_id      String
+  media_url    String
+  media_type   String   @default("image") // image, video
+  caption      String?  @default("")
+  text_overlay String?  @default("{}") // JSON string {text, color, position}
+  viewers      String   @default("[]") // JSON string array of user IDs
+  expires_at   DateTime
+  created_at   DateTime @default(now())
+
+  // Relations
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@map("stories")
+}
+
+model Conversation {
+  id          String   @id @default(uuid())
+  type        String   @default("direct") // direct, group
+  name        String?  @default("")
+  avatar_url  String?  @default("")
+  created_by  String
+  max_members Int      @default(10)
+  group_id    String?
+  created_at  DateTime @default(now())
+  updated_at  DateTime @default(now())
+
+  // Relations
+  creator  User                 @relation("ConversationCreator", fields: [created_by], references: [id], onDelete: Cascade)
+  group    Group?               @relation(fields: [group_id], references: [id], onDelete: Cascade)
+  members  ConversationMember[]
+  messages Message[]
+
+  @@map("conversations")
+}
+
+model ConversationMember {
+  id              String   @id @default(uuid())
+  conversation_id String
+  user_id         String
+  role            String   @default("member") // admin, member
+  joined_at       DateTime @default(now())
+  last_read_at    DateTime @default(now())
+
+  // Relations
+  conversation Conversation @relation(fields: [conversation_id], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@unique([conversation_id, user_id])
+  @@map("conversation_members")
+}
+
+model Message {
+  id              String   @id @default(uuid())
+  conversation_id String
+  sender_id       String
+  content         String?  @default("")
+  media_url       String?  @default("")
+  media_type      String?  @default("text") // text, image, video, file, voice
+  reply_to_id     String?
+  is_read         Boolean  @default(false)
+  created_at      DateTime @default(now())
+
+  // Relations
+  conversation Conversation @relation(fields: [conversation_id], references: [id], onDelete: Cascade)
+  sender       User         @relation(fields: [sender_id], references: [id], onDelete: Cascade)
+  reply_to     Message?     @relation("MessageReplies", fields: [reply_to_id], references: [id], onDelete: SetNull)
+  replies      Message[]    @relation("MessageReplies")
+
+  @@map("messages")
+}
+
+model Group {
+  id          String   @id @default(uuid())
+  name        String
+  description String?  @default("")
+  avatar_url  String?  @default("")
+  cover_url   String?  @default("")
+  created_by  String
+  max_members Int      @default(10)
+  privacy     String   @default("public") // public, private
+  invite_code String?  @unique @default(uuid())
+  created_at  DateTime @default(now())
+
+  // Relations
+  creator       User           @relation("GroupCreator", fields: [created_by], references: [id], onDelete: Cascade)
+  members       GroupMember[]
+  posts         Post[]
+  conversations Conversation[]
+
+  @@map("groups")
+}
+
+model GroupMember {
+  id        String   @id @default(uuid())
+  group_id  String
+  user_id   String
+  role      String   @default("member") // admin, moderator, member
+  joined_at DateTime @default(now())
+
+  // Relations
+  group Group @relation(fields: [group_id], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@unique([group_id, user_id])
+  @@map("group_members")
+}
+
+model Friendship {
+  id           String   @id @default(uuid())
+  requester_id String
+  addressee_id String
+  status       String   @default("pending") // pending, accepted, blocked
+  created_at   DateTime @default(now())
+
+  // Relations
+  requester User @relation("FriendshipRequester", fields: [requester_id], references: [id], onDelete: Cascade)
+  addressee User @relation("FriendshipAddressee", fields: [addressee_id], references: [id], onDelete: Cascade)
+
+  @@unique([requester_id, addressee_id])
+  @@map("friendships")
+}
+
+model Notification {
+  id             String   @id @default(uuid())
+  user_id        String
+  type           String
+  reference_id   String?  @default("")
+  reference_type String?  @default("")
+  content        String
+  is_read        Boolean  @default(false)
+  created_at     DateTime @default(now())
+
+  // Relations
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
+}
+
+model Call {
+  id              String    @id @default(uuid())
+  caller_id       String
+  receiver_id     String
+  conversation_id String?   @default("")
+  type            String    @default("voice") // voice, video
+  status          String    @default("missed") // ongoing, completed, missed, rejected
+  started_at      DateTime  @default(now())
+  ended_at        DateTime?
+  duration        Int       @default(0) // in seconds
+
+  // Relations
+  caller   User @relation("CallInitiator", fields: [caller_id], references: [id], onDelete: Cascade)
+  receiver User @relation("CallReceiver", fields: [receiver_id], references: [id], onDelete: Cascade)
+
+  @@map("calls")
+}
