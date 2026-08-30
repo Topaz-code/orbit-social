@@ -294,4 +294,60 @@ export const usersService = {
     });
     return { success: true, message: 'Account permanently deleted' };
   },
+
+  async getDiscoverUsers(currentUserId?: string) {
+    const users = await prisma.user.findMany({
+      where: currentUserId ? { id: { not: currentUserId } } : undefined,
+      take: 60,
+      orderBy: { created_at: 'desc' },
+      select: {
+        id: true,
+        username: true,
+        display_name: true,
+        avatar_url: true,
+        bio: true,
+        is_online: true,
+        last_seen: true,
+        created_at: true,
+      },
+    });
+
+    let friendships: any[] = [];
+    if (currentUserId) {
+      friendships = await prisma.friendship.findMany({
+        where: {
+          OR: [
+            { requester_id: currentUserId },
+            { addressee_id: currentUserId },
+          ],
+        },
+      });
+    }
+
+    const friendshipMap = new Map<string, { status: string; isRequester: boolean; id: string }>();
+    for (const f of friendships) {
+      const otherId = f.requester_id === currentUserId ? f.addressee_id : f.requester_id;
+      friendshipMap.set(otherId, {
+        id: f.id,
+        status: f.status,
+        isRequester: f.requester_id === currentUserId,
+      });
+    }
+
+    return users.map((u) => {
+      const rel = friendshipMap.get(u.id);
+      let friendshipStatus: 'none' | 'friends' | 'pending_sent' | 'pending_received' = 'none';
+      if (rel) {
+        if (rel.status === 'accepted') friendshipStatus = 'friends';
+        else if (rel.status === 'pending') {
+          friendshipStatus = rel.isRequester ? 'pending_sent' : 'pending_received';
+        }
+      }
+      return {
+        ...u,
+        friendship_id: rel?.id,
+        friendship_status: friendshipStatus,
+      };
+    });
+  },
 };
