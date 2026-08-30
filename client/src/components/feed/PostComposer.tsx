@@ -96,7 +96,7 @@ export const PostComposer: React.FC<PostComposerProps> = ({
 
   return (
     <div
-      className={`rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-white dark:bg-slate-900 p-4 shadow-sm mb-6 ${
+      className={`rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-white dark:bg-slate-900 p-3.5 sm:p-4 shadow-sm mb-4 sm:mb-6 ${
         className || ''
       }`}
     >
@@ -108,15 +108,15 @@ export const PostComposer: React.FC<PostComposerProps> = ({
           </button>
         </div>
       )}
-      <div className="flex gap-3">
-        <Avatar src={user.avatar_url} fallback={user.display_name} size="md" />
+      <div className="flex gap-2.5 sm:gap-3">
+        <Avatar src={user.avatar_url} fallback={user.display_name} size="md" className="shrink-0 mt-0.5" />
 
         <div className="flex-1 min-w-0">
           <Textarea
-            placeholder="What's on your mind? (No algorithms, just pure thoughts)"
+            placeholder="What's on your mind?"
             value={contentText}
             onChange={(e) => setContentText(e.target.value)}
-            className="border-none bg-transparent p-0 text-sm focus-visible:ring-0 resize-none min-h-[70px]"
+            className="border-none bg-transparent p-0 text-sm focus-visible:ring-0 resize-none min-h-[60px] sm:min-h-[70px] placeholder:text-slate-400 dark:placeholder:text-slate-500"
           />
 
           {/* Media Previews */}
@@ -140,7 +140,7 @@ export const PostComposer: React.FC<PostComposerProps> = ({
           {/* Link Input Bar */}
           {showLinkInput && (
             <div className="flex items-center gap-2 my-2 bg-slate-50 dark:bg-slate-800 p-2 rounded-xl">
-              <Link2 className="h-4 w-4 text-indigo-500" />
+              <Link2 className="h-4 w-4 text-indigo-500 shrink-0" />
               <input
                 type="url"
                 placeholder="Paste link URL (https://...)"
@@ -161,9 +161,9 @@ export const PostComposer: React.FC<PostComposerProps> = ({
             </div>
           )}
 
-          {/* Action Row */}
-          <div className="flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-slate-100 dark:border-slate-800 mt-2">
-            <div className="flex items-center gap-1">
+          {/* Action Row — Mobile Single Row Toolbar */}
+          <div className="flex items-center justify-between gap-1.5 sm:gap-2 pt-2.5 border-t border-slate-100 dark:border-slate-800/80 mt-1">
+            <div className="flex items-center gap-1 min-w-0">
               <input
                 type="file"
                 ref={fileInputRef}
@@ -177,31 +177,33 @@ export const PostComposer: React.FC<PostComposerProps> = ({
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isUploading}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-indigo-600 transition-colors"
+                title="Add photo or video"
+                className="flex items-center gap-1.5 p-1.5 sm:px-2.5 sm:py-1.5 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-indigo-600 transition-colors"
               >
-                {isUploading ? <Loader2 className="h-4 w-4 animate-spin text-indigo-600" /> : <Image className="h-4 w-4 text-emerald-500" />}
-                <span className="hidden sm:inline">Photo/Video</span>
+                {isUploading ? <Loader2 className="h-4 w-4 animate-spin text-indigo-600" /> : <Image className="h-4 w-4 text-emerald-500 shrink-0" />}
+                <span className="hidden sm:inline">Photo</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => setShowLinkInput(!showLinkInput)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-indigo-600 transition-colors"
+                title="Attach link"
+                className="flex items-center gap-1.5 p-1.5 sm:px-2.5 sm:py-1.5 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-indigo-600 transition-colors"
               >
-                <Link2 className="h-4 w-4 text-indigo-500" />
+                <Link2 className="h-4 w-4 text-indigo-500 shrink-0" />
                 <span className="hidden sm:inline">Link</span>
               </button>
 
               {/* Visibility Selector */}
-              <div className="flex items-center rounded-lg bg-slate-100 dark:bg-slate-800 px-2 py-1 ml-1 text-xs">
+              <div className="flex items-center rounded-xl bg-slate-100 dark:bg-slate-800 px-2 py-1 text-xs">
                 <select
                   value={visibility}
                   onChange={(e) => setVisibility(e.target.value as any)}
-                  className="bg-transparent text-xs font-medium text-slate-700 dark:text-slate-300 focus:outline-none cursor-pointer"
+                  className="bg-transparent text-xs font-medium text-slate-700 dark:text-slate-300 focus:outline-none cursor-pointer pr-0.5"
                 >
                   <option value="public">Public</option>
-                  <option value="friends">Friends Only</option>
-                  <option value="private">Only Me</option>
+                  <option value="friends">Friends</option>
+                  <option value="private">Private</option>
                 </select>
               </div>
             </div>
@@ -211,7 +213,7 @@ export const PostComposer: React.FC<PostComposerProps> = ({
               isLoading={isSubmitting || isUploading}
               disabled={(!contentText.trim() && mediaUrls.length === 0) || isUploading}
               size="sm"
-              className="px-5"
+              className="px-4 py-1.5 h-8 rounded-xl font-semibold shrink-0 text-xs shadow-xs"
             >
               Post
             </Button>
