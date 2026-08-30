@@ -4,24 +4,15 @@ import bcrypt from 'bcryptjs';
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log('🌱 Starting Orbit database seed...');
+  console.log('🌱 Checking Orbit database...');
 
-  // 1. Clean existing records in dependency order
-  await prisma.notification.deleteMany({});
-  await prisma.call.deleteMany({});
-  await prisma.message.deleteMany({});
-  await prisma.conversationMember.deleteMany({});
-  await prisma.conversation.deleteMany({});
-  await prisma.groupMember.deleteMany({});
-  await prisma.comment.deleteMany({});
-  await prisma.like.deleteMany({});
-  await prisma.story.deleteMany({});
-  await prisma.post.deleteMany({});
-  await prisma.group.deleteMany({});
-  await prisma.friendship.deleteMany({});
-  await prisma.user.deleteMany({});
+  const userCount = await prisma.user.count();
+  if (userCount > 0) {
+    console.log(`ℹ️ Database already contains ${userCount} users. Skipping seed to preserve real accounts.`);
+    return;
+  }
 
-  console.log('🧹 Cleaned existing database tables.');
+  console.log('🌱 Starting initial database seed...');
 
   // 2. Hash shared demo password
   const password_hash = await bcrypt.hash('orbit123', 10);
