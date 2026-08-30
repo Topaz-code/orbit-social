@@ -79,7 +79,7 @@ export const RegisterForm: React.FC = () => {
             </label>
             <Input
               type="text"
-              placeholder="e.g. Jordan Lee"
+              placeholder="Your name"
               icon={<Sparkles className="h-4 w-4" />}
               error={errors.display_name?.message}
               {...register('display_name')}
@@ -92,7 +92,7 @@ export const RegisterForm: React.FC = () => {
             </label>
             <Input
               type="text"
-              placeholder="e.g. jordanlee"
+              placeholder="Choose a username"
               icon={<User className="h-4 w-4" />}
               error={errors.username?.message}
               {...register('username')}

@@ -65,6 +65,15 @@ export const authController = {
     }
   },
 
+  async changePassword(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+      const result = await authService.changePassword(req.user!.userId, req.body);
+      res.json(result);
+    } catch (error: any) {
+      res.status(400).json({ success: false, message: error.message });
+    }
+  },
+
   async getSecurityQuestion(req: Request, res: Response, next: NextFunction) {
     try {
       const identifier = req.query.identifier as string;

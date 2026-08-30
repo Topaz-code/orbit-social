@@ -55,5 +55,6 @@ router.post('/refresh', validateBody(refreshSchema), authController.refresh);
 router.get('/me', authenticateToken, authController.getMe);
 router.post('/reset-password', passwordResetLimiter, validateBody(resetPasswordSchema), authController.resetPassword);
 router.get('/security-question', passwordResetLimiter, authController.getSecurityQuestion);
+router.post('/change-password', authenticateToken, authController.changePassword);
 
 export default router;

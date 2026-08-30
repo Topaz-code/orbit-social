@@ -40,20 +40,30 @@ export const authService = {
     const security_answer_hash = data.security_answer ? await hashPassword(data.security_answer.toLowerCase().trim()) : '';
     const defaultAvatar = data.avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(data.username)}`;
 
-    const user = await prisma.user.create({
-      data: {
-        username: data.username.toLowerCase(),
-        display_name: data.display_name,
-        email: data.email.toLowerCase(),
-        phone: data.phone || null,
-        password_hash,
-        bio: data.bio || '',
-        avatar_url: defaultAvatar,
-        cover_url: 'https://images.unsplash.com/photo-1534447677768-be436bb09401?w=1200&auto=format&fit=crop&q=80',
-        security_question: data.security_question || "What is your pet's name?",
-        security_answer_hash,
-      },
-    });
+    let user;
+    try {
+      user = await prisma.user.create({
+        data: {
+          username: data.username.toLowerCase(),
+          display_name: data.display_name,
+          email: data.email.toLowerCase(),
+          phone: data.phone || null,
+          password_hash,
+          bio: data.bio || '',
+          avatar_url: defaultAvatar,
+          cover_url: 'https://images.unsplash.com/photo-1534447677768-be436bb09401?w=1200&auto=format&fit=crop&q=80',
+          security_question: data.security_question || "What is your pet's name?",
+          security_answer_hash,
+        },
+      });
+    } catch (err: any) {
+      // Prisma unique constraint violation
+      if (err?.code === 'P2002') {
+        const field = err?.meta?.target?.[0] || 'field';
+        throw new Error(`An account with this ${field} already exists`);
+      }
+      throw new Error('Failed to create account. Please try again.');
+    }
 
     const tokenPayload = { userId: user.id, username: user.username, email: user.email };
     const accessToken = generateAccessToken(tokenPayload);
@@ -190,6 +200,18 @@ export const authService = {
     });
 
     return { success: true, message: 'Password reset successfully' };
+  },
+
+  async changePassword(userId: string, data: { current_password: string; new_password: string }) {
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new Error('User not found');
+
+    const isValid = await comparePassword(data.current_password, user.password_hash);
+    if (!isValid) throw new Error('Current password is incorrect');
+
+    const password_hash = await hashPassword(data.new_password);
+    await prisma.user.update({ where: { id: user.id }, data: { password_hash } });
+    return { success: true, message: 'Password changed successfully' };
   },
 
   async getSecurityQuestion(identifier: string) {

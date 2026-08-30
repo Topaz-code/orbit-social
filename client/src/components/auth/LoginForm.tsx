@@ -37,8 +37,8 @@ export const LoginForm: React.FC = () => {
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      identifier: 'alexchen',
-      password: 'orbit123',
+      identifier: '',
+      password: '',
       rememberMe: true,
     },
   });
@@ -127,7 +127,7 @@ export const LoginForm: React.FC = () => {
               </label>
               <Input
                 type="text"
-                placeholder="e.g. alexchen"
+                placeholder="Username or email"
                 icon={<User className="h-4 w-4" />}
                 error={errors.identifier?.message}
                 {...register('identifier')}
@@ -186,7 +186,7 @@ export const LoginForm: React.FC = () => {
                   </label>
                   <Input
                     type="text"
-                    placeholder="e.g. alexchen"
+                    placeholder="Username or email"
                     value={resetIdentifier}
                     onChange={(e) => setResetIdentifier(e.target.value)}
                     icon={<User className="h-4 w-4" />}
@@ -214,7 +214,7 @@ export const LoginForm: React.FC = () => {
                   </label>
                   <Input
                     type="text"
-                    placeholder="Enter security answer (demo: shadow)"
+                    placeholder="Your answer"
                     value={securityAnswer}
                     onChange={(e) => setSecurityAnswer(e.target.value)}
                     icon={<KeyRound className="h-4 w-4" />}
@@ -255,26 +255,6 @@ export const LoginForm: React.FC = () => {
           </div>
         )}
 
-        {/* Demo Accounts Quick Login Bar */}
-        <div className="mt-6 border-t border-slate-100 dark:border-slate-800 pt-4">
-          <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider text-center mb-2.5">
-            Quick Demo Logins (Password: orbit123)
-          </p>
-          <div className="grid grid-cols-4 gap-1.5">
-            {['alexchen', 'sarahj', 'emilyw', 'davidm'].map((u) => (
-              <button
-                key={u}
-                type="button"
-                onClick={() => {
-                  login({ identifier: u, password: 'orbit123' }).then(() => navigate('/'));
-                }}
-                className="py-1.5 px-2 rounded-lg bg-slate-100 dark:bg-slate-800/80 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 text-[11px] font-medium text-slate-700 dark:text-slate-300 hover:text-indigo-600 transition-colors truncate"
-              >
-                @{u}
-              </button>
-            ))}
-          </div>
-        </div>
       </CardContent>
 
       <CardFooter className="flex justify-center border-t border-slate-100 dark:border-slate-800 pt-4">
