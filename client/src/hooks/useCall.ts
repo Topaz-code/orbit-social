@@ -24,6 +24,8 @@ export function useCall() {
   } = useCallStore();
 
   const currentCallRef = useRef<any>(null);
+  const pendingStreamRef = useRef<MediaStream | null>(null);
+  const isAnsweringRef = useRef<boolean>(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Initialize duration timer when activeCall status is connected
@@ -46,22 +48,32 @@ export function useCall() {
     if (!user) return;
     const peer = getPeerInstance(user.id);
 
-    peer.on('call', async (mediaConnection) => {
+    const handleIncomingPeerCall = (mediaConnection: any) => {
       currentCallRef.current = mediaConnection;
 
-      // When remote side closes
+      mediaConnection.on('stream', (remoteMediaStream: MediaStream) => {
+        setRemoteStream(remoteMediaStream);
+      });
+
       mediaConnection.on('close', () => {
         handleEndCall();
       });
 
-      mediaConnection.on('error', (err) => {
+      mediaConnection.on('error', (err: any) => {
         console.error('[PeerJS] Media connection error:', err);
         handleEndCall();
       });
-    });
+
+      // If user already clicked accept, answer immediately with acquired stream
+      if (pendingStreamRef.current && isAnsweringRef.current) {
+        mediaConnection.answer(pendingStreamRef.current);
+      }
+    };
+
+    peer.on('call', handleIncomingPeerCall);
 
     return () => {
-      // Cleanup
+      peer.off('call', handleIncomingPeerCall);
     };
   }, [user?.id]);
 
@@ -154,6 +166,7 @@ export function useCall() {
     if (!incomingCall || !user) return;
 
     try {
+      isAnsweringRef.current = true;
       const constraints = {
         audio: true,
         video: incomingCall.type === 'video' ? { width: 1280, height: 720 } : false,
@@ -161,6 +174,7 @@ export function useCall() {
 
       const stream = await navigator.mediaDevices.getUserMedia(constraints);
       setLocalStream(stream);
+      pendingStreamRef.current = stream;
 
       if (currentCallRef.current) {
         currentCallRef.current.answer(stream);
@@ -195,6 +209,8 @@ export function useCall() {
 
   // Reject incoming call
   const rejectCall = () => {
+    isAnsweringRef.current = false;
+    pendingStreamRef.current = null;
     if (incomingCall) {
       api.put(`/calls/${incomingCall.callId}`, { status: 'rejected' }).catch(() => {});
       mqttClient.publish(`orbit/call/${incomingCall.callId}/signal`, {
@@ -208,6 +224,9 @@ export function useCall() {
 
   // End active call
   const handleEndCall = useCallback(() => {
+    isAnsweringRef.current = false;
+    pendingStreamRef.current = null;
+
     if (activeCall) {
       api.put(`/calls/${activeCall.callId}`, {
         status: 'completed',
