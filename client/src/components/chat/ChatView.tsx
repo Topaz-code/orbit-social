@@ -111,9 +111,9 @@ export const ChatView: React.FC<ChatViewProps> = ({ conversation, onBack }) => {
             <div className="h-12 w-12 rounded-full bg-indigo-50 dark:bg-indigo-950/40 flex items-center justify-center text-indigo-500 mb-2">
               🪐
             </div>
-            <p className="font-semibold text-slate-700 dark:text-slate-300">End-to-End Chat</p>
+            <p className="font-semibold text-slate-700 dark:text-slate-300">Direct Chat</p>
             <p className="max-w-xs mt-1">
-              Messages are sent directly over local MQTT real-time broker with no tracking.
+              Messages are delivered in real-time with zero ad tracking or profiling.
             </p>
           </div>
         ) : (

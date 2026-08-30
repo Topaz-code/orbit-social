@@ -56,7 +56,7 @@ export const MessagesPage: React.FC = () => {
 
             <div className="flex items-center gap-4 text-xs font-semibold text-slate-500">
               <span className="flex items-center gap-1.5 bg-white dark:bg-slate-800 px-3 py-1.5 rounded-full border border-slate-200 dark:border-slate-700">
-                <ShieldCheck className="h-4 w-4 text-emerald-500" /> End-to-End Local
+                <ShieldCheck className="h-4 w-4 text-emerald-500" /> TLS Encrypted
               </span>
               <span className="flex items-center gap-1.5 bg-white dark:bg-slate-800 px-3 py-1.5 rounded-full border border-slate-200 dark:border-slate-700">
                 <Lock className="h-4 w-4 text-indigo-500" /> Zero Telemetry

@@ -11,13 +11,13 @@ const features = [
   },
   {
     icon: Lock,
-    title: 'End-to-end encrypted',
-    desc: 'Messages only you and your contacts can read.',
+    title: 'Encrypted in transit',
+    desc: 'HTTPS & secure WebSockets with zero ad-tracking or profiling.',
   },
   {
     icon: Zap,
     title: 'Your data stays yours',
-    desc: 'No tracking, no profiling, no selling your attention.',
+    desc: 'Private by design — never sold, analyzed, or shared with third parties.',
   },
 ];
 
