@@ -66,6 +66,9 @@ model Post {
   comments Comment[]
   likes    Like[]
 
+  @@index([user_id])
+  @@index([created_at])
+  @@index([group_id])
   @@map("posts")
 }
 
@@ -83,6 +86,9 @@ model Comment {
   parent_comment Comment?  @relation("CommentReplies", fields: [parent_comment_id], references: [id], onDelete: Cascade)
   replies        Comment[] @relation("CommentReplies")
 
+  @@index([post_id])
+  @@index([user_id])
+  @@index([created_at])
   @@map("comments")
 }
 
@@ -97,6 +103,8 @@ model Like {
   post Post @relation(fields: [post_id], references: [id], onDelete: Cascade)
 
   @@unique([user_id, post_id])
+  @@index([post_id])
+  @@index([user_id])
   @@map("likes")
 }
 
@@ -114,6 +122,8 @@ model Story {
   // Relations
   user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
+  @@index([user_id])
+  @@index([expires_at])
   @@map("stories")
 }
 
@@ -134,6 +144,8 @@ model Conversation {
   members  ConversationMember[]
   messages Message[]
 
+  @@index([created_by])
+  @@index([updated_at])
   @@map("conversations")
 }
 
@@ -150,6 +162,8 @@ model ConversationMember {
   user         User         @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
   @@unique([conversation_id, user_id])
+  @@index([user_id])
+  @@index([conversation_id])
   @@map("conversation_members")
 }
 
@@ -170,6 +184,9 @@ model Message {
   reply_to     Message?     @relation("MessageReplies", fields: [reply_to_id], references: [id], onDelete: SetNull)
   replies      Message[]    @relation("MessageReplies")
 
+  @@index([conversation_id])
+  @@index([sender_id])
+  @@index([created_at])
   @@map("messages")
 }
 
@@ -191,6 +208,7 @@ model Group {
   posts         Post[]
   conversations Conversation[]
 
+  @@index([created_by])
   @@map("groups")
 }
 
@@ -206,6 +224,8 @@ model GroupMember {
   user  User  @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
   @@unique([group_id, user_id])
+  @@index([user_id])
+  @@index([group_id])
   @@map("group_members")
 }
 
@@ -221,6 +241,9 @@ model Friendship {
   addressee User @relation("FriendshipAddressee", fields: [addressee_id], references: [id], onDelete: Cascade)
 
   @@unique([requester_id, addressee_id])
+  @@index([requester_id])
+  @@index([addressee_id])
+  @@index([status])
   @@map("friendships")
 }
 
@@ -237,6 +260,9 @@ model Notification {
   // Relations
   user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
+  @@index([user_id])
+  @@index([is_read])
+  @@index([created_at])
   @@map("notifications")
 }
 
@@ -255,5 +281,8 @@ model Call {
   caller   User @relation("CallInitiator", fields: [caller_id], references: [id], onDelete: Cascade)
   receiver User @relation("CallReceiver", fields: [receiver_id], references: [id], onDelete: Cascade)
 
+  @@index([caller_id])
+  @@index([receiver_id])
+  @@index([status])
   @@map("calls")
 }

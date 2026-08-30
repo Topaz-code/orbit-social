@@ -7,12 +7,13 @@ import { FeedSkeleton } from '../components/feed/FeedSkeleton.js';
 import { EmptyState } from '../components/shared/EmptyState.js';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../lib/api.js';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { Avatar } from '../components/ui/avatar.js';
 import { Sparkles, TrendingUp, Users } from 'lucide-react';
 import { User, Post } from '../types/index.js';
 
 export const FeedPage: React.FC = () => {
+  const navigate = useNavigate();
   const { posts, isLoading, toggleLike, deletePost, refetch } = usePosts(false);
 
   // Trending Topics Query
@@ -28,8 +29,8 @@ export const FeedPage: React.FC = () => {
   const { data: suggestedFriends = [] } = useQuery({
     queryKey: ['suggested-friends'],
     queryFn: async () => {
-      const res = await api.get('/search?q=&type=people');
-      return (res.data?.data?.people?.slice(0, 4) || []) as User[];
+      const res = await api.get('/users/discover');
+      return (res.data?.data?.slice(0, 4) || []) as User[];
     },
   });
 
@@ -51,7 +52,7 @@ export const FeedPage: React.FC = () => {
             title="Your orbit is quiet"
             description="Connect with friends or join groups to see posts in your chronological feed!"
             actionLabel="Discover People"
-            onAction={() => (window.location.href = '/explore')}
+            onAction={() => navigate('/explore?tab=people')}
           />
         ) : (
           <div className="space-y-4">
