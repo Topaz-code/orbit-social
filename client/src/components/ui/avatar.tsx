@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { cn } from '../../lib/utils.js';
+import { cn, getMediaUrl } from '../../lib/utils.js';
 
 interface AvatarProps extends React.HTMLAttributes<HTMLDivElement> {
   src?: string;
@@ -44,6 +44,8 @@ export const Avatar: React.FC<AvatarProps> = ({
 
   const fallbackLetter = (fallback || alt || 'O').slice(0, 2).toUpperCase();
 
+  const resolvedSrc = getMediaUrl(src);
+
   return (
     <div className={cn('relative inline-flex flex-shrink-0 select-none', className)} {...props}>
       <div
@@ -52,9 +54,9 @@ export const Avatar: React.FC<AvatarProps> = ({
           sizeClasses[size]
         )}
       >
-        {src && !imageError ? (
+        {resolvedSrc && !imageError ? (
           <img
-            src={src}
+            src={resolvedSrc}
             alt={alt}
             onError={() => setImageError(true)}
             className="h-full w-full object-cover"

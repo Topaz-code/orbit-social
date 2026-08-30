@@ -14,7 +14,7 @@ import {
   UserX,
   Shield,
 } from 'lucide-react';
-import { formatRelativeTime } from '../../lib/utils.js';
+import { formatRelativeTime, getMediaUrl } from '../../lib/utils.js';
 import { useChat } from '../../hooks/useChat.js';
 import { useCall } from '../../hooks/useCall.js';
 import { useNavigate } from 'react-router-dom';
@@ -55,7 +55,7 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
       <div className="relative h-48 sm:h-64 w-full bg-slate-900 overflow-hidden group">
         <img
           src={
-            user.cover_url ||
+            getMediaUrl(user.cover_url) ||
             'https://images.unsplash.com/photo-1534447677768-be436bb09401?w=1200&auto=format&fit=crop&q=80'
           }
           alt="Cover"

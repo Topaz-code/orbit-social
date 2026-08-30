@@ -41,9 +41,27 @@ export function formatCallDuration(seconds: number): string {
 
 export function getMediaUrl(pathOrUrl: string | undefined): string {
   if (!pathOrUrl) return '';
-  if (pathOrUrl.startsWith('http://') || pathOrUrl.startsWith('https://') || pathOrUrl.startsWith('blob:')) {
+  if (
+    pathOrUrl.startsWith('http://') ||
+    pathOrUrl.startsWith('https://') ||
+    pathOrUrl.startsWith('blob:') ||
+    pathOrUrl.startsWith('data:')
+  ) {
     return pathOrUrl;
   }
+
+  const apiUrl = import.meta.env.VITE_API_URL || '/api';
+  if (apiUrl.startsWith('http://') || apiUrl.startsWith('https://')) {
+    try {
+      const url = new URL(apiUrl);
+      const serverOrigin = url.origin;
+      const cleanPath = pathOrUrl.startsWith('/') ? pathOrUrl : `/${pathOrUrl}`;
+      return `${serverOrigin}${cleanPath}`;
+    } catch {
+      // Fallback
+    }
+  }
+
   return pathOrUrl;
 }
 
