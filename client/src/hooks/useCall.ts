@@ -1,7 +1,7 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { useCallStore } from '../stores/callStore.js';
 import { useAuthStore } from '../stores/authStore.js';
-import { getPeerInstance } from '../lib/peer.js';
+import { WebRTCManager } from '../lib/webrtc.js';
 import { api } from '../lib/api.js';
 import { mqttClient } from '../lib/mqtt.js';
 
@@ -23,10 +23,67 @@ export function useCall() {
     endCall,
   } = useCallStore();
 
-  const currentCallRef = useRef<any>(null);
-  const pendingStreamRef = useRef<MediaStream | null>(null);
-  const isAnsweringRef = useRef<boolean>(false);
+  const webrtcRef = useRef<WebRTCManager | null>(null);
+  const localStreamRef = useRef<MediaStream | null>(null);
+  const pendingOfferRef = useRef<RTCSessionDescriptionInit | null>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Keep localStreamRef in sync
+  useEffect(() => {
+    localStreamRef.current = localStream;
+  }, [localStream]);
+
+  // End call handler
+  const handleEndCall = useCallback(() => {
+    if (activeCall) {
+      api.put(`/calls/${activeCall.callId}`, {
+        status: 'completed',
+        duration: activeCall.duration,
+      }).catch(() => {});
+
+      mqttClient.publish(`orbit/call/${activeCall.callId}/signal`, {
+        type: 'CALL_STATUS_CHANGED',
+        callId: activeCall.callId,
+        status: 'completed',
+        duration: activeCall.duration,
+      });
+    }
+
+    if (webrtcRef.current) {
+      webrtcRef.current.close();
+      webrtcRef.current = null;
+    }
+    pendingOfferRef.current = null;
+
+    endCall();
+  }, [activeCall, endCall]);
+
+  const getOrCreateWebRTC = useCallback((callId: string) => {
+    if (webrtcRef.current) return webrtcRef.current;
+
+    const webrtc = new WebRTCManager({
+      onRemoteStream: (stream) => {
+        setRemoteStream(stream);
+        useCallStore.setState((state) => ({
+          activeCall: state.activeCall ? { ...state.activeCall, status: 'connected' } : null,
+        }));
+      },
+      onConnectionStateChange: (state) => {
+        if (state === 'failed' || state === 'disconnected' || state === 'closed') {
+          handleEndCall();
+        }
+      },
+      onSendSignal: (signalData) => {
+        mqttClient.publish(`orbit/call/${callId}/signal`, signalData);
+      },
+      onError: (err) => {
+        console.error('[WebRTC] Error:', err);
+      },
+    });
+
+    webrtcRef.current = webrtc;
+    return webrtc;
+  }, [handleEndCall, setRemoteStream]);
 
   // Initialize duration timer when activeCall status is connected
   useEffect(() => {
@@ -41,41 +98,46 @@ export function useCall() {
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
-  }, [activeCall?.status]);
+  }, [activeCall?.status, incrementDuration]);
 
-  // PeerJS listener for incoming media calls
+  // MQTT Signal Handler
   useEffect(() => {
-    if (!user) return;
-    const peer = getPeerInstance(user.id);
+    const currentCallId = activeCall?.callId || incomingCall?.callId;
+    if (!currentCallId) return;
 
-    const handleIncomingPeerCall = (mediaConnection: any) => {
-      currentCallRef.current = mediaConnection;
+    const topic = `orbit/call/${currentCallId}/signal`;
+    const handleSignal = async (_: string, payload: any) => {
+      if (!payload) return;
 
-      mediaConnection.on('stream', (remoteMediaStream: MediaStream) => {
-        setRemoteStream(remoteMediaStream);
-      });
+      if (payload.type === 'CALL_STATUS_CHANGED') {
+        if (payload.status === 'rejected' || payload.status === 'completed') {
+          handleEndCall();
+        }
+        return;
+      }
 
-      mediaConnection.on('close', () => {
-        handleEndCall();
-      });
+      const webrtc = getOrCreateWebRTC(currentCallId);
 
-      mediaConnection.on('error', (err: any) => {
-        console.error('[PeerJS] Media connection error:', err);
-        handleEndCall();
-      });
-
-      // If user already clicked accept, answer immediately with acquired stream
-      if (pendingStreamRef.current && isAnsweringRef.current) {
-        mediaConnection.answer(pendingStreamRef.current);
+      if (payload.type === 'SDP_OFFER') {
+        if (localStreamRef.current) {
+          webrtc.setLocalStream(localStreamRef.current);
+          await webrtc.handleOffer(payload.sdp);
+        } else {
+          pendingOfferRef.current = payload.sdp;
+        }
+      } else if (payload.type === 'SDP_ANSWER') {
+        await webrtc.handleAnswer(payload.sdp);
+      } else if (payload.type === 'ICE_CANDIDATE') {
+        await webrtc.handleCandidate(payload.candidate);
       }
     };
 
-    peer.on('call', handleIncomingPeerCall);
+    mqttClient.subscribe(topic, handleSignal);
 
     return () => {
-      peer.off('call', handleIncomingPeerCall);
+      mqttClient.unsubscribe(topic);
     };
-  }, [user?.id]);
+  }, [activeCall?.callId, incomingCall?.callId, getOrCreateWebRTC, handleEndCall]);
 
   // Start outgoing call
   const startCall = async (
@@ -89,11 +151,12 @@ export function useCall() {
       // 1. Get user media stream
       const constraints = {
         audio: true,
-        video: type === 'video' ? { width: 1280, height: 720 } : false,
+        video: type === 'video' ? { width: { ideal: 1280 }, height: { ideal: 720 } } : false,
       };
 
       const stream = await navigator.mediaDevices.getUserMedia(constraints);
       setLocalStream(stream);
+      localStreamRef.current = stream;
 
       // 2. Initiate Call Record in DB & push MQTT incoming alert
       const res = await api.post('/calls', {
@@ -118,42 +181,10 @@ export function useCall() {
         duration: 0,
       });
 
-      // 4. Dial with PeerJS
-      const peer = getPeerInstance(user.id);
-      const call = peer.call(targetUser.id, stream);
-      currentCallRef.current = call;
-
-      call.on('stream', (remoteMediaStream) => {
-        setRemoteStream(remoteMediaStream);
-        setActiveCall({
-          callId,
-          type,
-          isIncoming: false,
-          isCaller: true,
-          remoteUser: targetUser,
-          status: 'connected',
-          isMuted: false,
-          isVideoOff: false,
-          isSpeakerOn: true,
-          duration: 0,
-        });
-      });
-
-      call.on('close', () => {
-        handleEndCall();
-      });
-
-      call.on('error', (err) => {
-        console.error('[PeerJS] Outgoing call error:', err);
-        handleEndCall();
-      });
-
-      // Subscribe to signal updates
-      mqttClient.subscribe(`orbit/call/${callId}/signal`, (topic, payload) => {
-        if (payload?.type === 'CALL_STATUS_CHANGED' && payload.status === 'rejected') {
-          handleEndCall();
-        }
-      });
+      // 4. Dial with WebRTC
+      const webrtc = getOrCreateWebRTC(callId);
+      webrtc.setLocalStream(stream);
+      await webrtc.createOffer();
     } catch (error: any) {
       console.error('Failed to start call:', error);
       alert(error.message || 'Could not access microphone/camera');
@@ -166,22 +197,21 @@ export function useCall() {
     if (!incomingCall || !user) return;
 
     try {
-      isAnsweringRef.current = true;
       const constraints = {
         audio: true,
-        video: incomingCall.type === 'video' ? { width: 1280, height: 720 } : false,
+        video: incomingCall.type === 'video' ? { width: { ideal: 1280 }, height: { ideal: 720 } } : false,
       };
 
       const stream = await navigator.mediaDevices.getUserMedia(constraints);
       setLocalStream(stream);
-      pendingStreamRef.current = stream;
+      localStreamRef.current = stream;
 
-      if (currentCallRef.current) {
-        currentCallRef.current.answer(stream);
+      const webrtc = getOrCreateWebRTC(incomingCall.callId);
+      webrtc.setLocalStream(stream);
 
-        currentCallRef.current.on('stream', (remoteMediaStream: MediaStream) => {
-          setRemoteStream(remoteMediaStream);
-        });
+      if (pendingOfferRef.current) {
+        await webrtc.handleOffer(pendingOfferRef.current);
+        pendingOfferRef.current = null;
       }
 
       setActiveCall({
@@ -209,8 +239,6 @@ export function useCall() {
 
   // Reject incoming call
   const rejectCall = () => {
-    isAnsweringRef.current = false;
-    pendingStreamRef.current = null;
     if (incomingCall) {
       api.put(`/calls/${incomingCall.callId}`, { status: 'rejected' }).catch(() => {});
       mqttClient.publish(`orbit/call/${incomingCall.callId}/signal`, {
@@ -221,33 +249,6 @@ export function useCall() {
       setIncomingCall(null);
     }
   };
-
-  // End active call
-  const handleEndCall = useCallback(() => {
-    isAnsweringRef.current = false;
-    pendingStreamRef.current = null;
-
-    if (activeCall) {
-      api.put(`/calls/${activeCall.callId}`, {
-        status: 'completed',
-        duration: activeCall.duration,
-      }).catch(() => {});
-
-      mqttClient.publish(`orbit/call/${activeCall.callId}/signal`, {
-        type: 'CALL_STATUS_CHANGED',
-        callId: activeCall.callId,
-        status: 'completed',
-        duration: activeCall.duration,
-      });
-    }
-
-    if (currentCallRef.current) {
-      currentCallRef.current.close();
-      currentCallRef.current = null;
-    }
-
-    endCall();
-  }, [activeCall, endCall]);
 
   return {
     activeCall,

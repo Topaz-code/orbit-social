@@ -113,7 +113,7 @@ peerServer.on('disconnect', (client) => {
 });
 
 // 8. Health & Audit Integrity Check
-app.get('/api/health', (req, res) => {
+app.get(['/health', '/api/health'], (req, res) => {
   res.json({
     status: 'ok',
     service: 'Orbit API Server',
