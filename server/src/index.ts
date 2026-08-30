@@ -162,8 +162,8 @@ async function bootstrap() {
     // Connect SQLite Database
     await connectDatabase();
 
-    // Start Embedded Aedes MQTT Broker (TCP 1883 & WebSocket 8883)
-    initMQTTBroker();
+    // Start Embedded Aedes MQTT Broker (attached to HTTP server on /mqtt)
+    initMQTTBroker(server);
 
     // Start Story Auto-Cleanup Cron
     startStoryCleanupCron();

@@ -1,5 +1,5 @@
 import Peer from 'peerjs';
-import { PEERJS_HOST, PEERJS_PORT, PEERJS_PATH, ICE_SERVERS } from './constants.js';
+import { PEERJS_HOST, PEERJS_PORT, PEERJS_SECURE, PEERJS_PATH, ICE_SERVERS } from './constants.js';
 
 let peerInstance: Peer | null = null;
 
@@ -15,6 +15,7 @@ export function getPeerInstance(userId: string): Peer {
   peerInstance = new Peer(userId, {
     host: PEERJS_HOST,
     port: PEERJS_PORT,
+    secure: PEERJS_SECURE,
     path: PEERJS_PATH,
     config: {
       iceServers: ICE_SERVERS,
