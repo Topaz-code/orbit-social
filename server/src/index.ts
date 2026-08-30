@@ -46,12 +46,13 @@ app.use((req, res, next) => {
 // 2. Configure CORS
 app.use(
   cors({
-    origin: [CLIENT_URL, 'http://localhost:5173', 'http://localhost:3000', 'http://127.0.0.1:5173'],
+    origin: true, // Allow any incoming origin (including onrender.com and custom domains)
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   })
 );
+app.options('*', cors());
 
 // 3. Request body parsing with strict size limits
 app.use(express.json({ limit: '10mb' }));
