@@ -29,7 +29,7 @@ export const MobileNav: React.FC = () => {
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-30 flex lg:hidden h-16 items-center justify-around border-t border-slate-200/80 dark:border-slate-800/80 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl px-2">
+    <nav className="fixed bottom-0 left-0 right-0 z-40 flex lg:hidden h-16 items-center justify-around border-t border-slate-200/80 dark:border-slate-800/80 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl px-2 pb-[env(safe-area-inset-bottom)] shadow-xl">
       {navItems.map((item) => (
         <NavLink
           key={item.to}

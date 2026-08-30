@@ -5,8 +5,15 @@ import { Notification } from '../types/index.js';
 
 export function useNotifications() {
   const queryClient = useQueryClient();
-  const { notifications, unreadCount, setNotifications, markAsRead, markAllAsRead } =
-    useNotificationStore();
+  const {
+    notifications,
+    unreadCount,
+    setNotifications,
+    markAsRead,
+    markAllAsRead,
+    removeNotification,
+    clearAll,
+  } = useNotificationStore();
 
   const { isLoading, refetch } = useQuery({
     queryKey: ['notifications'],
@@ -24,6 +31,7 @@ export function useNotifications() {
     markAsRead(id);
     try {
       await api.put(`/notifications/${id}/read`);
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
     } catch {
       // Ignored
     }
@@ -39,12 +47,34 @@ export function useNotifications() {
     }
   };
 
+  const deleteSingleNotification = async (id: string) => {
+    removeNotification(id);
+    try {
+      await api.delete(`/notifications/${id}`);
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+    } catch {
+      // Ignored
+    }
+  };
+
+  const clearAllNotifications = async () => {
+    clearAll();
+    try {
+      await api.delete('/notifications/clear-all');
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+    } catch {
+      // Ignored
+    }
+  };
+
   return {
     notifications,
     unreadCount,
     isLoading,
     markSingleRead,
     markAllRead,
+    deleteSingleNotification,
+    clearAllNotifications,
     refetch,
   };
 }

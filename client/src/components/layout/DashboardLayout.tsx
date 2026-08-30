@@ -36,13 +36,13 @@ export const DashboardLayout: React.FC = () => {
       <Sidebar onOpenNewPost={() => setIsNewPostOpen(true)} />
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0 pb-20 lg:pb-0">
+      <div className="flex-1 flex flex-col min-w-0">
         <Header
           onOpenNewPost={() => setIsNewPostOpen(true)}
           onOpenNewStory={() => setIsNewStoryOpen(true)}
         />
 
-        <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6">
+        <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 pb-28 sm:pb-32 lg:pb-8">
           <Outlet />
         </main>
       </div>
