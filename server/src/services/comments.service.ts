@@ -72,10 +72,12 @@ export const commentsService = {
     });
 
     // Increment post comments count
-    await prisma.post.update({
+    const updatedPost = await prisma.post.update({
       where: { id: postId },
       data: { comments_count: { increment: 1 } },
     });
+
+    mqttService.broadcastPostUpdate(postId, { comments_count: updatedPost.comments_count });
 
     // Send notification if commenting on someone else's post
     if (post.user_id !== userId) {

@@ -68,6 +68,15 @@ export const mqttService = {
     });
   },
 
+  // Post Updates (Likes, Comments)
+  broadcastPostUpdate(postId: string, data: any) {
+    publishMQTT('orbit/feed/update', {
+      type: 'POST_UPDATED',
+      postId,
+      data,
+    });
+  },
+
   // Story Updates
   broadcastNewStory(story: any) {
     publishMQTT('orbit/story/new', {

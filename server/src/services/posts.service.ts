@@ -340,6 +340,8 @@ export const postsService = {
         mqttService.sendNotification(post.user_id, notification);
       }
 
+      mqttService.broadcastPostUpdate(postId, { likes_count: updatedPost.likes_count });
+
       return { liked: true, likes_count: updatedPost.likes_count };
     }
 
@@ -365,6 +367,8 @@ export const postsService = {
         where: { id: postId },
         data: { likes_count: { decrement: 1 } },
       });
+
+      mqttService.broadcastPostUpdate(postId, { likes_count: Math.max(0, updatedPost.likes_count) });
 
       return { liked: false, likes_count: Math.max(0, updatedPost.likes_count) };
     }
