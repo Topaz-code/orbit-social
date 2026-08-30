@@ -24,6 +24,7 @@ interface ProfileHeaderProps {
   isSelf: boolean;
   onOpenEdit?: () => void;
   onSendFriendRequest?: () => void;
+  onAcceptFriendRequest?: () => void;
   onRemoveFriend?: () => void;
   friendshipStatus?: string;
   onUpdateAvatar?: () => void;
@@ -35,6 +36,7 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
   isSelf,
   onOpenEdit,
   onSendFriendRequest,
+  onAcceptFriendRequest,
   onRemoveFriend,
   friendshipStatus,
   onUpdateAvatar,
@@ -73,25 +75,27 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
         )}
       </div>
 
-      {/* Main Profile Info Row */}
-      <div className="px-6 pb-6 pt-0 relative">
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between -mt-16 sm:-mt-20 gap-4 mb-4">
-          {/* Avatar Container with Edit Camera Badge */}
-          <div className="relative inline-block group">
-            <Avatar
-              src={user.avatar_url}
-              fallback={user.display_name}
-              size="xl"
-              isOnline={user.is_online}
-              showStatus={true}
-              className="ring-4 ring-white dark:ring-slate-900 shadow-xl"
-            />
-            {isSelf && onUpdateAvatar && (
+      {/* Profile Bar */}
+      <div className="px-4 sm:px-8 pb-6 pt-0 relative">
+        <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-4 -mt-16 sm:-mt-20 mb-6">
+          {/* Avatar Container */}
+          <div className="relative group">
+            <div className="rounded-full ring-4 ring-white dark:ring-slate-900 shadow-xl overflow-hidden bg-white dark:bg-slate-900">
+              <Avatar
+                src={user.avatar_url}
+                fallback={user.display_name}
+                size="xl"
+                isOnline={user.is_online}
+                showStatus={true}
+              />
+            </div>
+
+            {/* Change Avatar Button (Self Only) */}
+            {isSelf && (
               <button
-                type="button"
                 onClick={onUpdateAvatar}
-                className="absolute bottom-1 right-1 flex h-8 w-8 items-center justify-center rounded-full bg-indigo-600 text-white ring-2 ring-white dark:ring-slate-900 hover:bg-indigo-700 shadow-md transition-colors"
-                title="Change Avatar"
+                className="absolute bottom-1 right-1 p-2 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg transition-transform hover:scale-105"
+                title="Change Profile Photo"
               >
                 <Camera className="h-4 w-4" />
               </button>
@@ -114,6 +118,11 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
                 ) : friendshipStatus === 'pending_sent' ? (
                   <Button variant="secondary" size="sm" disabled>
                     Request Sent
+                  </Button>
+                ) : friendshipStatus === 'pending_received' ? (
+                  <Button size="sm" onClick={onAcceptFriendRequest} className="bg-emerald-600 hover:bg-emerald-700 text-white">
+                    <UserCheck className="h-4 w-4 mr-1.5" />
+                    <span>Accept Request</span>
                   </Button>
                 ) : (
                   <Button size="sm" onClick={onSendFriendRequest}>

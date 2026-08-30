@@ -81,11 +81,17 @@ export const ProfilePage: React.FC = () => {
     enabled: !!targetUserId,
   });
 
-  // 5. Friend Request Mutations
   const sendFriendRequest = async () => {
     if (!targetUserId) return;
     await api.post(`/friends/request/${targetUserId}`);
     refetchProfile();
+  };
+
+  const acceptFriendRequest = async () => {
+    if (profile?.friendship_id) {
+      await api.put(`/friends/accept/${profile.friendship_id}`);
+      refetchProfile();
+    }
   };
 
   const removeFriend = async () => {
@@ -189,6 +195,7 @@ export const ProfilePage: React.FC = () => {
         isSelf={isSelf}
         onOpenEdit={() => setIsEditOpen(true)}
         onSendFriendRequest={sendFriendRequest}
+        onAcceptFriendRequest={acceptFriendRequest}
         onRemoveFriend={removeFriend}
         friendshipStatus={profile.friendship_status}
         onUpdateAvatar={() => avatarInputRef.current?.click()}

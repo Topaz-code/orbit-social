@@ -1,7 +1,12 @@
 export const APP_NAME = 'Orbit';
 export const APP_TAGLINE = 'Break free. Stay connected.';
 
-export const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
+const isProductionRender =
+  typeof window !== 'undefined' && window.location.hostname.includes('onrender.com');
+
+export const API_BASE_URL =
+  import.meta.env.VITE_API_URL ||
+  (isProductionRender ? 'https://orbit-api-m5ah.onrender.com/api' : '/api');
 
 // Dynamically determine WebSocket / PeerJS endpoint
 function getBackendEndpoint() {
@@ -21,6 +26,15 @@ function getBackendEndpoint() {
     } catch {
       // Fallback
     }
+  }
+
+  if (isProductionRender) {
+    return {
+      hostname: 'orbit-api-m5ah.onrender.com',
+      port: 443,
+      isSecure: true,
+      wsProtocol: 'wss:',
+    };
   }
 
   const hostname = typeof window !== 'undefined' ? window.location.hostname : 'localhost';

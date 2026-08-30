@@ -60,16 +60,26 @@ export function initMQTTBroker(httpServer?: http.Server): { tcpServer?: net.Serv
     if (topic.startsWith('orbit/user/')) {
       const parts = topic.split('/');
       const targetUserId = parts[2];
-      // Allow user to subscribe only to their own notifications/calls/status
+      const subType = parts[3];
+      // Allow user to subscribe to their own notifications/calls
       if (targetUserId === userId) {
+        return callback(null, sub);
+      }
+      // Status/presence topics can be subscribed to by any authenticated user
+      if (subType === 'status') {
         return callback(null, sub);
       }
       // Deny subscription to another user's private notification channel
       return callback(new Error('Unauthorized MQTT subscription'), null);
     }
 
+    // Call signaling topics (orbit/call/{userId}/incoming, orbit/call/{callId}/signal)
+    if (topic.startsWith('orbit/call/')) {
+      return callback(null, sub);
+    }
+
     // Public feeds / stories
-    if (topic === 'orbit/feed' || topic === 'orbit/stories') {
+    if (topic === 'orbit/feed' || topic === 'orbit/stories' || topic === 'orbit/feed/new' || topic === 'orbit/story/new') {
       return callback(null, sub);
     }
 
@@ -90,7 +100,7 @@ export function initMQTTBroker(httpServer?: http.Server): { tcpServer?: net.Serv
     const userId = (client as any).userId || clientUserMap.get(client.id) || client.id;
     const topic = packet.topic;
 
-    // Prevent clients from spoofing global feeds or other users' channels directly
+    // Prevent clients from spoofing other users' notification channels directly
     if (topic.startsWith('orbit/user/') && !topic.startsWith(`orbit/user/${userId}`)) {
       return callback(new Error('Unauthorized MQTT publish spoofing attempt'));
     }
@@ -128,8 +138,8 @@ export function initMQTTBroker(httpServer?: http.Server): { tcpServer?: net.Serv
     });
   }
 
-  // 6. Presence tracking hooks
-  aedes.on('client', (client) => {
+  // 6. Presence tracking hooks (clientReady & clientDisconnect)
+  const handleUserOnline = (client: Client) => {
     const userId = (client as any).userId || clientUserMap.get(client.id) || client.id;
     if (userId && !userId.startsWith('server-') && !userId.startsWith('internal-')) {
       prisma.user.updateMany({
@@ -143,7 +153,10 @@ export function initMQTTBroker(httpServer?: http.Server): { tcpServer?: net.Serv
         lastSeen: new Date().toISOString(),
       });
     }
-  });
+  };
+
+  aedes.on('client', handleUserOnline);
+  aedes.on('clientReady', handleUserOnline);
 
   aedes.on('clientDisconnect', (client) => {
     const userId = (client as any).userId || clientUserMap.get(client.id) || client.id;
