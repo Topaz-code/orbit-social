@@ -17,10 +17,11 @@ export function useMQTT() {
   useEffect(() => {
     if (!user) return;
 
-    // Connect client
-    mqttClient.connect(user.id);
+    // Note: MQTT connection is established by authStore.setAuth/initializeAuth
+    // This hook only registers topic subscriptions.
 
     // 1. Listen for user personal notifications
+
     const unsubsNotif = mqttClient.subscribe(
       `orbit/user/${user.id}/notifications`,
       (topic, payload) => {

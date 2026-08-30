@@ -120,11 +120,34 @@ export function initMQTTBroker(httpServer?: http.Server): { tcpServer?: net.Serv
 
   // 5. Attach WebSocket Server to main HTTP Server (path: /mqtt)
   if (httpServer) {
-    const wss = new WebSocketServer({ server: httpServer, path: '/mqtt' });
+    const wss = new WebSocketServer({ noServer: true });
+
+    // Explicitly handle upgrade events for /mqtt path
+    // This is required on Render and other reverse proxies where
+    // attaching to the http server directly may not route sub-paths correctly
+    httpServer.on('upgrade', (req, socket, head) => {
+      const url = req.url || '';
+      if (url === '/mqtt' || url.startsWith('/mqtt?') || url.startsWith('/mqtt/')) {
+        wss.handleUpgrade(req, socket as any, head, (ws) => {
+          wss.emit('connection', ws, req);
+        });
+      } else {
+        // Let other upgrade handlers (e.g. PeerJS) handle their own paths
+        // by not destroying the socket here
+      }
+    });
+
     wss.on('connection', (socket, req) => {
       const stream = createWebSocketStream(socket);
+      stream.on('error', (err) => {
+        // Silently absorb broken pipe / ECONNRESET errors from dropped clients
+        if ((err as any).code !== 'ECONNRESET') {
+          console.warn('[MQTT] WebSocket stream error:', err.message);
+        }
+      });
       aedes.handle(stream as any);
     });
+
     console.log(`🌐 Aedes MQTT WebSocket Broker attached to HTTP server at /mqtt`);
   } else {
     wsServer = http.createServer();
@@ -137,6 +160,7 @@ export function initMQTTBroker(httpServer?: http.Server): { tcpServer?: net.Serv
       console.log(`🌐 Aedes MQTT WebSocket Broker listening on port ${MQTT_WS_PORT}`);
     });
   }
+
 
   // 6. Presence tracking hooks (clientReady & clientDisconnect)
   const handleUserOnline = (client: Client) => {

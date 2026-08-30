@@ -29,6 +29,8 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
   const [replyText, setReplyText] = useState('');
   const [isPaused, setIsPaused] = useState(false);
   const [replySent, setReplySent] = useState(false);
+  const isSubmittingRef = useRef(false);
+
 
   const currentGroup = storyGroups[groupIndex];
   const currentStory = currentGroup?.stories[storyIndex];
@@ -91,6 +93,9 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
   const handleSendReply = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!replyText.trim() || !currentGroup || currentGroup.is_self) return;
+    // Guard against double/triple submit (user tapping send rapidly)
+    if (isSubmittingRef.current) return;
+    isSubmittingRef.current = true;
 
     try {
       const conv = await startConversation(currentGroup.user.id);
@@ -106,8 +111,11 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
       }
     } catch (err) {
       console.error('Failed to send story reply:', err);
+    } finally {
+      isSubmittingRef.current = false;
     }
   };
+
 
   const handleDelete = async () => {
     if (currentStory && confirm('Are you sure you want to delete this story?')) {
