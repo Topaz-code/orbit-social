@@ -7,17 +7,17 @@ const features = [
   {
     icon: Shield,
     title: 'No algorithms',
-    desc: 'Your feed is yours — chronological, unmanipulated.',
+    desc: 'Your feed is chronological and unmanipulated.',
   },
   {
     icon: Lock,
     title: 'Encrypted in transit',
-    desc: 'HTTPS & secure WebSockets with zero ad-tracking or profiling.',
+    desc: 'HTTPS and secure WebSockets with zero ad-tracking.',
   },
   {
     icon: Zap,
     title: 'Your data stays yours',
-    desc: 'Private by design — never sold, analyzed, or shared with third parties.',
+    desc: 'Never sold, analyzed, or shared with third parties.',
   },
 ];
 
@@ -73,7 +73,7 @@ export const LoginPage: React.FC = () => {
             </span>
           </p>
           <p className="mt-3 text-sm text-slate-400 leading-relaxed max-w-xs">
-            A social platform that respects you — no dark patterns, no engagement traps, just the people you care about.
+            A social platform that respects you: no dark patterns, no engagement traps, just the people you care about.
           </p>
         </div>
 
@@ -93,7 +93,7 @@ export const LoginPage: React.FC = () => {
         </div>
 
         {/* Footer tagline */}
-        <p className="relative z-10 text-xs text-slate-700">Orbit — built for privacy.</p>
+        <p className="relative z-10 text-xs text-slate-700">Orbit: built for privacy.</p>
       </div>
 
       {/* ── Right Form Panel ───────────────────────────────── */}
