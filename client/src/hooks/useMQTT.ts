@@ -50,10 +50,16 @@ export function useMQTT() {
       `orbit/call/${user.id}/incoming`,
       (topic, payload) => {
         if (payload?.type === 'INCOMING_CALL' && payload.data) {
-          setIncomingCall(payload.data);
+          const callData = payload.data;
+          // CRITICAL: Subscribe to the signal topic IMMEDIATELY before React
+          // re-renders — this prevents the SDP_OFFER from arriving before our
+          // subscription is set up (the race condition that killed calls)
+          mqttClient.subscribe(`orbit/call/${callData.callId}/signal`);
+          setIncomingCall(callData);
         }
       }
     );
+
 
     // 3. Listen for global feed creations
     const unsubsNewPost = mqttClient.subscribe('orbit/feed/new', (topic, payload) => {
@@ -88,13 +94,25 @@ export function useMQTT() {
       }
     });
 
+    // 5. Listen for user presence updates globally
+    const unsubsPresence = mqttClient.subscribe('orbit/presence/global', (topic, payload) => {
+      if (payload?.userId) {
+        updateUserPresence(payload.userId, payload.isOnline, payload.lastSeen);
+        queryClient.invalidateQueries({ queryKey: ['friends'] });
+        queryClient.invalidateQueries({ queryKey: ['profile'] });
+        queryClient.invalidateQueries({ queryKey: ['users'] });
+      }
+    });
+
     return () => {
       unsubsNotif();
       unsubsCall();
       unsubsNewPost();
       unsubsPostUpdate();
+      unsubsPresence();
     };
-  }, [user?.id, queryClient]);
+  }, [user?.id, queryClient, updateUserPresence]);
+
 
   return {
     publish: (topic: string, message: any) => mqttClient.publish(topic, message),

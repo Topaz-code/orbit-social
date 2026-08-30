@@ -21,14 +21,30 @@ export const DashboardLayout: React.FC = () => {
   const [isNewPostOpen, setIsNewPostOpen] = useState(false);
   const [isNewStoryOpen, setIsNewStoryOpen] = useState(false);
 
-  // Keep-alive heartbeat so Render backend doesn't sleep while tab is active
+  // Heartbeat & active presence ping so friend accounts see immediate online status
   useEffect(() => {
-    const ping = () => {
+    // Mark online immediately
+    api.post('/users/presence').catch(() => {});
+
+    // Periodic heartbeat every 60 seconds
+    const interval = setInterval(() => {
+      api.post('/users/presence').catch(() => {});
       api.get('/health').catch(() => {});
+    }, 60 * 1000);
+
+    const handleUnload = () => {
+      // Best-effort offline notification on tab close
+      navigator.sendBeacon?.('/api/users/presence');
     };
-    const interval = setInterval(ping, 5 * 60 * 1000); // every 5 minutes
-    return () => clearInterval(interval);
+
+    window.addEventListener('beforeunload', handleUnload);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('beforeunload', handleUnload);
+    };
   }, []);
+
 
   return (
     <div className="flex min-h-screen bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100">
@@ -42,17 +58,18 @@ export const DashboardLayout: React.FC = () => {
           onOpenNewStory={() => setIsNewStoryOpen(true)}
         />
 
-        <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 pb-28 sm:pb-32 lg:pb-8">
+        {/* Mobile Navigation bar at Top */}
+        <MobileNav />
+
+        <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 pb-12 lg:pb-8">
           <Outlet />
         </main>
       </div>
 
-      {/* Mobile Bottom Navigation */}
-      <MobileNav />
-
       {/* Global Modals for Quick Post & Story */}
       <PostComposerModal open={isNewPostOpen} onOpenChange={setIsNewPostOpen} />
       <StoryUploadModal open={isNewStoryOpen} onOpenChange={setIsNewStoryOpen} />
+
 
       {/* WebRTC Calls Overlay Modals */}
       {incomingCall && (

@@ -102,4 +102,25 @@ export const usersController = {
       res.status(500).json({ success: false, message: error.message });
     }
   },
+
+  async setPresenceOnline(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+      const currentUserId = req.user!.userId;
+      await usersService.setPresence(currentUserId, true);
+      res.json({ success: true, message: 'Presence marked online' });
+    } catch (error: any) {
+      res.status(500).json({ success: false, message: error.message });
+    }
+  },
+
+  async setPresenceOffline(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+      const currentUserId = req.user!.userId;
+      await usersService.setPresence(currentUserId, false);
+      res.json({ success: true, message: 'Presence marked offline' });
+    } catch (error: any) {
+      res.status(500).json({ success: false, message: error.message });
+    }
+  },
 };
+

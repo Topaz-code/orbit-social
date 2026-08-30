@@ -10,6 +10,9 @@ router.get('/export/me', authenticateToken, usersController.exportData);
 router.delete('/delete/me', authenticateToken, usersController.deleteAccount);
 router.get('/discover', optionalAuthenticate, usersController.getDiscoverUsers);
 router.get('/suggested', authenticateToken, usersController.getSuggestedFriends);
+// Presence ping — client POSTs here on mount to mark online, DELETEs on unload to mark offline
+router.post('/presence', authenticateToken, usersController.setPresenceOnline);
+router.delete('/presence', authenticateToken, usersController.setPresenceOffline);
 router.get('/:id', optionalAuthenticate, usersController.getUserProfile);
 router.put('/:id', authenticateToken, validateBody(updateProfileSchema), usersController.updateUserProfile);
 router.get('/:id/posts', optionalAuthenticate, usersController.getUserPosts);
@@ -17,3 +20,4 @@ router.get('/:id/friends', optionalAuthenticate, usersController.getUserFriends)
 router.get('/:id/media', optionalAuthenticate, usersController.getUserMedia);
 
 export default router;
+

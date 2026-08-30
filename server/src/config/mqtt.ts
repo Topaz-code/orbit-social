@@ -171,11 +171,13 @@ export function initMQTTBroker(httpServer?: http.Server): { tcpServer?: net.Serv
         data: { is_online: true, last_seen: new Date() },
       }).catch(() => {});
 
-      publishMQTT(`orbit/user/${userId}/status`, {
+      const statusPayload = {
         userId,
         isOnline: true,
         lastSeen: new Date().toISOString(),
-      });
+      };
+      publishMQTT(`orbit/user/${userId}/status`, statusPayload);
+      publishMQTT('orbit/presence/global', statusPayload);
     }
   };
 
@@ -191,15 +193,18 @@ export function initMQTTBroker(httpServer?: http.Server): { tcpServer?: net.Serv
         data: { is_online: false, last_seen: lastSeen },
       }).catch(() => {});
 
-      publishMQTT(`orbit/user/${userId}/status`, {
+      const statusPayload = {
         userId,
         isOnline: false,
         lastSeen: lastSeen.toISOString(),
-      });
+      };
+      publishMQTT(`orbit/user/${userId}/status`, statusPayload);
+      publishMQTT('orbit/presence/global', statusPayload);
 
       clientUserMap.delete(client.id);
     }
   });
+
 
   return { tcpServer, wsServer };
 }

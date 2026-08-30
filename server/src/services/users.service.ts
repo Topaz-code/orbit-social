@@ -1,5 +1,7 @@
 import { prisma } from '../config/database.js';
 import { sanitizeUser, parseJson } from '../utils/helpers.js';
+import { publishMQTT } from '../config/mqtt.js';
+
 
 export const usersService = {
   async getUserProfile(targetUserId: string, currentUserId?: string) {
@@ -355,4 +357,25 @@ export const usersService = {
     const discover = await this.getDiscoverUsers(currentUserId);
     return discover.filter((u) => u.friendship_status === 'none').slice(0, limit);
   },
+
+  async setPresence(userId: string, isOnline: boolean) {
+    const lastSeen = new Date();
+    await prisma.user.updateMany({
+      where: { id: userId },
+      data: {
+        is_online: isOnline,
+        last_seen: lastSeen,
+      },
+    });
+
+    const statusPayload = {
+      userId,
+      isOnline,
+      lastSeen: lastSeen.toISOString(),
+    };
+    publishMQTT(`orbit/user/${userId}/status`, statusPayload);
+    publishMQTT('orbit/presence/global', statusPayload);
+  },
 };
+
+
