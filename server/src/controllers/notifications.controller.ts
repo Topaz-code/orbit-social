@@ -39,4 +39,13 @@ export const notificationsController = {
       res.status(400).json({ success: false, message: error.message });
     }
   },
+
+  async clearAll(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+      const result = await notificationsService.clearAllNotifications(req.user!.userId);
+      res.json(result);
+    } catch (error: any) {
+      res.status(500).json({ success: false, message: error.message });
+    }
+  },
 };

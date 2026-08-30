@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNotificationStore } from '../stores/notificationStore.js';
+import { useNotifications } from '../hooks/useNotifications.js';
 import { NotificationItem } from '../components/notifications/NotificationItem.js';
 import { Button } from '../components/ui/button.js';
 import { EmptyState } from '../components/shared/EmptyState.js';
@@ -10,13 +10,14 @@ export const NotificationsPage: React.FC = () => {
   const {
     notifications,
     unreadCount,
-    markAsRead,
-    markAllAsRead,
-    clearAll,
-  } = useNotificationStore();
+    markSingleRead,
+    markAllRead,
+    deleteSingleNotification,
+    clearAllNotifications,
+  } = useNotifications();
 
   return (
-    <div className="max-w-2xl mx-auto min-w-0">
+    <div className="max-w-2xl mx-auto min-w-0 pb-16">
       <div className="flex items-center justify-between p-4 mb-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs">
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600">
@@ -32,14 +33,14 @@ export const NotificationsPage: React.FC = () => {
 
         <div className="flex items-center gap-2">
           {unreadCount > 0 && (
-            <Button variant="ghost" size="sm" onClick={markAllAsRead}>
+            <Button variant="ghost" size="sm" onClick={markAllRead}>
               <CheckCheck className="h-4 w-4 mr-1 text-emerald-500" />
               <span>Mark all read</span>
             </Button>
           )}
 
           {notifications.length > 0 && (
-            <Button variant="ghost" size="icon-sm" onClick={clearAll} title="Clear all">
+            <Button variant="ghost" size="icon-sm" onClick={clearAllNotifications} title="Clear all">
               <Trash2 className="h-4 w-4 text-slate-400 hover:text-rose-500" />
             </Button>
           )}
@@ -58,7 +59,8 @@ export const NotificationsPage: React.FC = () => {
             <NotificationItem
               key={n.id}
               notification={n}
-              onMarkRead={markAsRead}
+              onMarkRead={markSingleRead}
+              onDelete={deleteSingleNotification}
             />
           ))}
         </div>
