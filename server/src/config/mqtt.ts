@@ -16,7 +16,7 @@ let wsServer: http.Server | null = null;
 // Track active authenticated users on clients
 const clientUserMap = new Map<string, string>();
 
-export function initMQTTBroker(httpServer?: http.Server): { tcpServer?: net.Server; wsServer?: http.Server } {
+export function initMQTTBroker(httpServer?: http.Server): { tcpServer?: net.Server | null; wsServer?: http.Server | null } {
   // 1. MQTT Client Authentication Hook
   aedes.authenticate = (client: Client, username: Readonly<string | undefined>, password: Readonly<Buffer | undefined>, callback) => {
     // Internal server publish client bypass
