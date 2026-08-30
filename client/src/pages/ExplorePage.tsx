@@ -54,12 +54,13 @@ export const ExplorePage: React.FC = () => {
 
   // Accept Request Mutation
   const acceptRequestMutation = useMutation({
-    mutationFn: async (friendshipId: string) => {
-      await api.put(`/friends/accept/${friendshipId}`);
+    mutationFn: async (identifier: string) => {
+      await api.post(`/friends/accept/${identifier}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['discover-users'] });
       queryClient.invalidateQueries({ queryKey: ['friends'] });
+      queryClient.invalidateQueries({ queryKey: ['friends-list'] });
     },
   });
 

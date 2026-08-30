@@ -16,7 +16,7 @@ export const NewCallModal: React.FC<NewCallModalProps> = ({ isOpen, onClose }) =
 
   const { data: friends = [], isLoading } = useQuery<User[]>({
     queryKey: ['friends-list'],
-    queryFn: () => api.get('/api/friends').then((r) => r.data.data),
+    queryFn: () => api.get('/friends').then((r) => r.data.data),
     enabled: isOpen,
   });
 

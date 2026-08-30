@@ -150,9 +150,9 @@ export const friendsService = {
     return friendship;
   },
 
-  async acceptFriendRequest(requestId: string, userId: string) {
-    const friendship = await prisma.friendship.findUnique({
-      where: { id: requestId },
+  async acceptFriendRequest(identifier: string, userId: string) {
+    let friendship = await prisma.friendship.findUnique({
+      where: { id: identifier },
       include: {
         requester: {
           select: { id: true, display_name: true, username: true },
@@ -163,38 +163,73 @@ export const friendsService = {
       },
     });
 
+    if (!friendship) {
+      friendship = await prisma.friendship.findFirst({
+        where: {
+          OR: [
+            { requester_id: identifier, addressee_id: userId },
+            { requester_id: userId, addressee_id: identifier },
+          ],
+        },
+        include: {
+          requester: {
+            select: { id: true, display_name: true, username: true },
+          },
+          addressee: {
+            select: { id: true, display_name: true, username: true },
+          },
+        },
+      });
+    }
+
     if (!friendship) throw new Error('Friend request not found');
-    if (friendship.addressee_id !== userId) throw new Error('Unauthorized to accept this request');
+    if (friendship.addressee_id !== userId && friendship.requester_id !== userId) {
+      throw new Error('Unauthorized to accept this request');
+    }
 
     const updated = await prisma.friendship.update({
-      where: { id: requestId },
+      where: { id: friendship.id },
       data: { status: 'accepted' },
     });
 
-    // Send notification to requester
+    const otherUserId = friendship.requester_id === userId ? friendship.addressee_id : friendship.requester_id;
+    const currentUser = friendship.requester_id === userId ? friendship.requester : friendship.addressee;
+
+    // Send notification to the other user
     const notification = await prisma.notification.create({
       data: {
-        user_id: friendship.requester_id,
+        user_id: otherUserId,
         type: 'friend_accept',
         reference_id: friendship.id,
         reference_type: 'friendship',
-        content: `${friendship.addressee.display_name} accepted your friend request!`,
+        content: `${currentUser.display_name} accepted your friend request!`,
       },
     });
 
-    mqttService.sendNotification(friendship.requester_id, notification);
+    mqttService.sendNotification(otherUserId, notification);
 
     return updated;
   },
 
-  async rejectFriendRequest(requestId: string, userId: string) {
-    const friendship = await prisma.friendship.findUnique({ where: { id: requestId } });
+  async rejectFriendRequest(identifier: string, userId: string) {
+    let friendship = await prisma.friendship.findUnique({ where: { id: identifier } });
+    if (!friendship) {
+      friendship = await prisma.friendship.findFirst({
+        where: {
+          OR: [
+            { requester_id: identifier, addressee_id: userId },
+            { requester_id: userId, addressee_id: identifier },
+          ],
+        },
+      });
+    }
+
     if (!friendship) throw new Error('Friend request not found');
     if (friendship.addressee_id !== userId && friendship.requester_id !== userId) {
       throw new Error('Unauthorized to modify this request');
     }
 
-    await prisma.friendship.delete({ where: { id: requestId } });
+    await prisma.friendship.delete({ where: { id: friendship.id } });
     return { success: true, message: 'Friend request removed' };
   },
 

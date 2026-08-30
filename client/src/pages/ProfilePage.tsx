@@ -85,19 +85,31 @@ export const ProfilePage: React.FC = () => {
     if (!targetUserId) return;
     await api.post(`/friends/request/${targetUserId}`);
     refetchProfile();
+    queryClient.invalidateQueries({ queryKey: ['user', targetUserId] });
+    queryClient.invalidateQueries({ queryKey: ['discover-users'] });
   };
 
   const acceptFriendRequest = async () => {
-    if (profile?.friendship_id) {
-      await api.put(`/friends/accept/${profile.friendship_id}`);
+    const identifier = profile?.friendship_id || targetUserId;
+    if (identifier) {
+      await api.post(`/friends/accept/${identifier}`);
       refetchProfile();
+      queryClient.invalidateQueries({ queryKey: ['user', targetUserId] });
+      queryClient.invalidateQueries({ queryKey: ['user-friends', targetUserId] });
+      queryClient.invalidateQueries({ queryKey: ['friends'] });
+      queryClient.invalidateQueries({ queryKey: ['discover-users'] });
     }
   };
 
   const removeFriend = async () => {
-    if (profile?.friendship_id) {
-      await api.delete(`/friends/${profile.friendship_id}`);
+    const identifier = profile?.friendship_id || targetUserId;
+    if (identifier) {
+      await api.delete(`/friends/${identifier}`);
       refetchProfile();
+      queryClient.invalidateQueries({ queryKey: ['user', targetUserId] });
+      queryClient.invalidateQueries({ queryKey: ['user-friends', targetUserId] });
+      queryClient.invalidateQueries({ queryKey: ['friends'] });
+      queryClient.invalidateQueries({ queryKey: ['discover-users'] });
     }
   };
 

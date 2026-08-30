@@ -8,7 +8,9 @@ router.get('/', authenticateToken, friendsController.getFriends);
 router.get('/requests', authenticateToken, friendsController.getFriendRequests);
 router.post('/request/:userId', authenticateToken, friendsController.sendFriendRequest);
 router.post('/accept/:requestId', authenticateToken, friendsController.acceptFriendRequest);
+router.put('/accept/:requestId', authenticateToken, friendsController.acceptFriendRequest);
 router.post('/reject/:requestId', authenticateToken, friendsController.rejectFriendRequest);
+router.put('/reject/:requestId', authenticateToken, friendsController.rejectFriendRequest);
 router.delete('/:friendshipId', authenticateToken, friendsController.removeFriend);
 router.post('/block/:userId', authenticateToken, friendsController.blockUser);
 
