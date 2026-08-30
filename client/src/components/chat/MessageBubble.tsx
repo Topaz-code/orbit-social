@@ -34,7 +34,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
 
   return (
     <div
-      className={`flex flex-col mb-3 group ${
+      className={`flex flex-col mb-3 group relative z-10 hover:z-30 ${
         isMine ? 'items-end' : 'items-start'
       } animate-fade-in`}
     >
@@ -166,10 +166,15 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
         </div>
 
         {/* Options / Reply Menu on Hover */}
-        <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className="opacity-0 group-hover:opacity-100 transition-opacity relative z-30">
           <DropdownMenu
+            align={isMine ? 'right' : 'left'}
             trigger={
-              <button className="p-1 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-400">
+              <button
+                type="button"
+                className="p-1.5 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
+                title="Message options"
+              >
                 <MoreVertical className="h-3.5 w-3.5" />
               </button>
             }

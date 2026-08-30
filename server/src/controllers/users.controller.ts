@@ -92,4 +92,14 @@ export const usersController = {
       res.status(500).json({ success: false, message: error.message });
     }
   },
+
+  async getSuggestedFriends(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+      const currentUserId = req.user!.userId;
+      const users = await usersService.getSuggestedFriends(currentUserId);
+      res.json({ success: true, data: users });
+    } catch (error: any) {
+      res.status(500).json({ success: false, message: error.message });
+    }
+  },
 };
