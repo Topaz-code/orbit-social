@@ -21,10 +21,12 @@ export const CreateGroupModal: React.FC<CreateGroupModalProps> = ({
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [privacy, setPrivacy] = useState<'public' | 'private'>('public');
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
+    setErrorMessage(null);
 
     try {
       await createGroup({
@@ -34,9 +36,10 @@ export const CreateGroupModal: React.FC<CreateGroupModalProps> = ({
       });
       setName('');
       setDescription('');
+      setErrorMessage(null);
       onOpenChange(false);
     } catch (err: any) {
-      alert(err.message || 'Failed to create group');
+      setErrorMessage(err.response?.data?.message || err.message || 'Could not create group. Please try again.');
     }
   };
 
@@ -51,6 +54,11 @@ export const CreateGroupModal: React.FC<CreateGroupModalProps> = ({
       </DialogHeader>
 
       <form onSubmit={handleSubmit} className="space-y-4">
+        {errorMessage && (
+          <div className="p-3 text-xs font-medium text-rose-600 bg-rose-50 dark:bg-rose-950/40 dark:text-rose-400 rounded-xl border border-rose-200 dark:border-rose-800">
+            {errorMessage}
+          </div>
+        )}
         <div>
           <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
             Group Name

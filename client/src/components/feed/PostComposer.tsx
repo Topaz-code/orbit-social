@@ -29,19 +29,21 @@ export const PostComposer: React.FC<PostComposerProps> = ({
   const [linkUrl, setLinkUrl] = useState('');
   const [showLinkInput, setShowLinkInput] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     if (files.length === 0) return;
+    setErrorMessage(null);
 
     try {
       const uploaded = await uploadMultipleFiles(files, 'posts');
       const newUrls = uploaded.map((u) => u.url);
       setMediaUrls((prev) => [...prev, ...newUrls]);
     } catch (err: any) {
-      alert('Failed to upload image(s): ' + err.message);
+      setErrorMessage(err.response?.data?.message || 'Could not upload selected photos. Please try again.');
     }
   };
 
@@ -52,6 +54,7 @@ export const PostComposer: React.FC<PostComposerProps> = ({
   const handleCreatePost = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!contentText.trim() && mediaUrls.length === 0) return;
+    setErrorMessage(null);
 
     setIsSubmitting(true);
     try {
@@ -78,11 +81,12 @@ export const PostComposer: React.FC<PostComposerProps> = ({
         setMediaUrls([]);
         setLinkUrl('');
         setShowLinkInput(false);
+        setErrorMessage(null);
         if (onPostCreated) onPostCreated(res.data.data);
         if (onClose) onClose();
       }
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Failed to create post');
+      setErrorMessage(err.response?.data?.message || 'Could not publish post. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -96,6 +100,14 @@ export const PostComposer: React.FC<PostComposerProps> = ({
         className || ''
       }`}
     >
+      {errorMessage && (
+        <div className="mb-3 p-2.5 text-xs font-medium text-rose-600 bg-rose-50 dark:bg-rose-950/40 dark:text-rose-400 rounded-xl border border-rose-200 dark:border-rose-800 flex items-center justify-between">
+          <span>{errorMessage}</span>
+          <button type="button" onClick={() => setErrorMessage(null)} className="text-rose-500 hover:text-rose-700">
+            <X className="h-3.5 w-3.5" />
+          </button>
+        </div>
+      )}
       <div className="flex gap-3">
         <Avatar src={user.avatar_url} fallback={user.display_name} size="md" />
 
