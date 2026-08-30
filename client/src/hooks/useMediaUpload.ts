@@ -15,11 +15,11 @@ export function useMediaUpload() {
     setError(null);
 
     const formData = new FormData();
-    formData.append('file', file);
     formData.append('category', category);
+    formData.append('file', file);
 
     try {
-      const res = await api.post('/upload', formData, {
+      const res = await api.post(`/upload?category=${category}`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
         onUploadProgress: (progressEvent) => {
           if (progressEvent.total) {
@@ -52,11 +52,11 @@ export function useMediaUpload() {
     setError(null);
 
     const formData = new FormData();
-    files.forEach((f) => formData.append('files', f));
     formData.append('category', category);
+    files.forEach((f) => formData.append('files', f));
 
     try {
-      const res = await api.post('/upload/multiple', formData, {
+      const res = await api.post(`/upload/multiple?category=${category}`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
 

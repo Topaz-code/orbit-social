@@ -38,6 +38,10 @@ export const Avatar: React.FC<AvatarProps> = ({
 }) => {
   const [imageError, setImageError] = React.useState(false);
 
+  React.useEffect(() => {
+    setImageError(false);
+  }, [src]);
+
   const fallbackLetter = (fallback || alt || 'O').slice(0, 2).toUpperCase();
 
   return (

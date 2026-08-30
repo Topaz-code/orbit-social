@@ -53,11 +53,11 @@ for (const sub of SUBDIRECTORIES) {
 
 const storage = multer.diskStorage({
   destination: (req: Request, file: Express.Multer.File, cb) => {
-    const category = (req.body.category || req.query.category || 'posts') as string;
+    const category = (req.query.category || req.body.category || 'posts') as string;
     const sanitizedCategory = category.replace(/[^a-zA-Z0-9_-]/g, '');
-    const targetDir = SUBDIRECTORIES.includes(sanitizedCategory)
-      ? path.join(UPLOAD_ROOT, sanitizedCategory)
-      : path.join(UPLOAD_ROOT, 'posts');
+    const finalCategory = SUBDIRECTORIES.includes(sanitizedCategory) ? sanitizedCategory : 'posts';
+    (file as any).targetCategory = finalCategory;
+    const targetDir = path.join(UPLOAD_ROOT, finalCategory);
     cb(null, targetDir);
   },
   filename: (req: Request, file: Express.Multer.File, cb) => {

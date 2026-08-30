@@ -134,7 +134,10 @@ export const ProfilePage: React.FC = () => {
       } else {
         await api.put(`/users/${currentUser?.id}`, { cover_url: uploadRes.url });
       }
-      refetchProfile();
+      await refetchProfile();
+      queryClient.invalidateQueries({ queryKey: ['user'] });
+      queryClient.invalidateQueries({ queryKey: ['feed-posts'] });
+      queryClient.invalidateQueries({ queryKey: ['user-posts'] });
       if (currentUser) {
         setUser({
           ...currentUser,

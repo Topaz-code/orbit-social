@@ -8,7 +8,7 @@ export const uploadController = {
         return res.status(400).json({ success: false, message: 'No file uploaded' });
       }
 
-      const category = (req.body.category || req.query.category || 'posts') as string;
+      const category = ((req.file as any).targetCategory || req.query.category || req.body.category || 'posts') as string;
       const fileUrl = `/uploads/${category}/${req.file.filename}`;
 
       res.status(201).json({
@@ -34,14 +34,16 @@ export const uploadController = {
         return res.status(400).json({ success: false, message: 'No files uploaded' });
       }
 
-      const category = (req.body.category || req.query.category || 'posts') as string;
-      const uploadedFiles = files.map((file) => ({
-        url: `/uploads/${category}/${file.filename}`,
-        filename: file.filename,
-        originalName: file.originalname,
-        mimetype: file.mimetype,
-        size: file.size,
-      }));
+      const uploadedFiles = files.map((file) => {
+        const category = ((file as any).targetCategory || req.query.category || req.body.category || 'posts') as string;
+        return {
+          url: `/uploads/${category}/${file.filename}`,
+          filename: file.filename,
+          originalName: file.originalname,
+          mimetype: file.mimetype,
+          size: file.size,
+        };
+      });
 
       res.status(201).json({
         success: true,
