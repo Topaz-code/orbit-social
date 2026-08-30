@@ -39,7 +39,7 @@ export const DropdownMenu: React.FC<DropdownProps> = ({
         <div
           onClick={() => setOpen(false)}
           className={cn(
-            'absolute z-50 mt-2 min-w-[12rem] rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-1.5 shadow-xl animate-fade-in focus:outline-none',
+            'absolute z-[99] mt-2 min-w-[10rem] rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-1.5 shadow-2xl animate-fade-in focus:outline-none ring-1 ring-black/10 dark:ring-white/10',
             align === 'right' ? 'right-0' : 'left-0',
             className
           )}

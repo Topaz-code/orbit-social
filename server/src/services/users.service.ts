@@ -350,4 +350,9 @@ export const usersService = {
       };
     });
   },
+
+  async getSuggestedFriends(currentUserId: string, limit = 5) {
+    const discover = await this.getDiscoverUsers(currentUserId);
+    return discover.filter((u) => u.friendship_status === 'none').slice(0, limit);
+  },
 };

@@ -25,12 +25,12 @@ export const FeedPage: React.FC = () => {
     },
   });
 
-  // Suggested Friends Query
+  // Suggested Friends Query (Only non-friends)
   const { data: suggestedFriends = [] } = useQuery({
     queryKey: ['suggested-friends'],
     queryFn: async () => {
-      const res = await api.get('/users/discover');
-      return (res.data?.data?.slice(0, 4) || []) as User[];
+      const res = await api.get('/users/suggested');
+      return (res.data?.data?.slice(0, 5) || []) as User[];
     },
   });
 

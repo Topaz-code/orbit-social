@@ -9,6 +9,7 @@ const router = Router();
 router.get('/export/me', authenticateToken, usersController.exportData);
 router.delete('/delete/me', authenticateToken, usersController.deleteAccount);
 router.get('/discover', optionalAuthenticate, usersController.getDiscoverUsers);
+router.get('/suggested', authenticateToken, usersController.getSuggestedFriends);
 router.get('/:id', optionalAuthenticate, usersController.getUserProfile);
 router.put('/:id', authenticateToken, validateBody(updateProfileSchema), usersController.updateUserProfile);
 router.get('/:id/posts', optionalAuthenticate, usersController.getUserPosts);
