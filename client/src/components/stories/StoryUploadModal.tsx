@@ -23,6 +23,7 @@ export const StoryUploadModal: React.FC<StoryUploadModalProps> = ({ open, onOpen
   const [overlayColor, setOverlayColor] = useState('#ffffff');
   const [overlayBg, setOverlayBg] = useState('rgba(0,0,0,0.6)');
   const [overlayPos, setOverlayPos] = useState<'top' | 'center' | 'bottom'>('center');
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -32,6 +33,7 @@ export const StoryUploadModal: React.FC<StoryUploadModalProps> = ({ open, onOpen
     const file = e.target.files?.[0];
     if (!file) return;
 
+    setErrorMessage(null);
     const isVideo = file.type.startsWith('video/');
     setMediaType(isVideo ? 'video' : 'image');
 
@@ -39,12 +41,13 @@ export const StoryUploadModal: React.FC<StoryUploadModalProps> = ({ open, onOpen
       const res = await uploadFile(file, 'stories');
       setMediaUrl(res.url);
     } catch (err: any) {
-      alert('Failed to upload story media: ' + err.message);
+      setErrorMessage(err.response?.data?.message || 'Failed to upload photo. Please check your connection.');
     }
   };
 
   const handlePublishStory = async () => {
     if (!mediaUrl) return;
+    setErrorMessage(null);
 
     try {
       await createStory({
@@ -65,9 +68,14 @@ export const StoryUploadModal: React.FC<StoryUploadModalProps> = ({ open, onOpen
       setMediaUrl('');
       setCaption('');
       setOverlayText('');
+      setErrorMessage(null);
       onOpenChange(false);
     } catch (err: any) {
-      alert('Failed to publish story: ' + (err.message || 'Error'));
+      const msg =
+        err.response?.data?.message ||
+        err.response?.data?.errors?.[0]?.message ||
+        'Could not publish your story. Please try again.';
+      setErrorMessage(msg);
     }
   };
 
@@ -83,6 +91,14 @@ export const StoryUploadModal: React.FC<StoryUploadModalProps> = ({ open, onOpen
       </DialogHeader>
 
       <div className="space-y-4">
+        {errorMessage && (
+          <div className="p-3 text-xs font-medium text-rose-600 bg-rose-50 dark:bg-rose-950/40 dark:text-rose-400 rounded-xl border border-rose-200 dark:border-rose-800 flex items-center justify-between">
+            <span>{errorMessage}</span>
+            <button type="button" onClick={() => setErrorMessage(null)} className="text-rose-500 hover:text-rose-700">
+              <X className="h-3.5 w-3.5" />
+            </button>
+          </div>
+        )}
         {/* Upload Drop Area or Preview */}
         {!mediaUrl ? (
           <div

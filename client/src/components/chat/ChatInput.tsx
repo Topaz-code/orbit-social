@@ -78,7 +78,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
 
       if (replyingToMessage) onCancelReply();
     } catch (err: any) {
-      alert('Failed to upload file: ' + err.message);
+      console.error('Failed to upload message media:', err);
     }
   };
 
@@ -125,7 +125,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
         setRecordingDuration((prev) => prev + 1);
       }, 1000);
     } catch (err) {
-      alert('Microphone access is required for voice notes');
+      console.warn('Microphone access was denied or unavailable.');
     }
   };
 

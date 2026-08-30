@@ -52,7 +52,8 @@ export const SettingsPage: React.FC = () => {
       setProfileMsg('Profile updated successfully!');
       setTimeout(() => setProfileMsg(null), 3000);
     } catch (err: any) {
-      alert(err.message || 'Failed to update profile');
+      setProfileMsg(err.response?.data?.message || err.message || 'Could not update profile.');
+      setTimeout(() => setProfileMsg(null), 4000);
     } finally {
       setIsUpdatingProfile(false);
     }

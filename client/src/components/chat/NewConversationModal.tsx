@@ -26,6 +26,7 @@ export const NewConversationModal: React.FC<NewConversationModalProps> = ({
   const [groupName, setGroupName] = useState('');
   const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const { data: searchResults = [], isLoading } = useQuery({
     queryKey: ['user-search', searchQuery],
@@ -41,6 +42,7 @@ export const NewConversationModal: React.FC<NewConversationModalProps> = ({
   });
 
   const toggleSelectUser = (userId: string) => {
+    setErrorMessage(null);
     if (mode === 'direct') {
       handleStartDirect(userId);
     } else {
@@ -48,7 +50,7 @@ export const NewConversationModal: React.FC<NewConversationModalProps> = ({
         setSelectedUserIds((prev) => prev.filter((id) => id !== userId));
       } else {
         if (selectedUserIds.length >= 9) {
-          alert('Maximum 10 members allowed in a group conversation');
+          setErrorMessage('Groups can have at most 10 members.');
           return;
         }
         setSelectedUserIds((prev) => [...prev, userId]);
@@ -58,11 +60,12 @@ export const NewConversationModal: React.FC<NewConversationModalProps> = ({
 
   const handleStartDirect = async (targetId: string) => {
     setIsSubmitting(true);
+    setErrorMessage(null);
     try {
       await startConversation(targetId);
       onOpenChange(false);
     } catch (err: any) {
-      alert(err.message || 'Failed to start chat');
+      setErrorMessage(err.response?.data?.message || err.message || 'Could not start chat. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -71,6 +74,7 @@ export const NewConversationModal: React.FC<NewConversationModalProps> = ({
   const handleCreateGroupChat = async () => {
     if (!groupName.trim() || selectedUserIds.length === 0) return;
     setIsSubmitting(true);
+    setErrorMessage(null);
     try {
       await api.post('/conversations', {
         type: 'group',
@@ -78,9 +82,10 @@ export const NewConversationModal: React.FC<NewConversationModalProps> = ({
         participant_ids: selectedUserIds,
       });
       await refetchConversations();
+      setErrorMessage(null);
       onOpenChange(false);
     } catch (err: any) {
-      alert(err.message || 'Failed to create group chat');
+      setErrorMessage(err.response?.data?.message || err.message || 'Could not create group chat. Please try again.');
     } finally {
       setIsSubmitting(false);
     }

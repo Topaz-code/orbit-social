@@ -23,9 +23,11 @@ export const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
   const [bio, setBio] = useState(user.bio || '');
   const [phone, setPhone] = useState(user.phone || '');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrorMessage(null);
     setIsSubmitting(true);
     try {
       await updateProfile({
@@ -33,9 +35,10 @@ export const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
         bio: bio.trim(),
         phone: phone.trim() || undefined,
       });
+      setErrorMessage(null);
       onOpenChange(false);
     } catch (err: any) {
-      alert(err.message || 'Failed to update profile');
+      setErrorMessage(err.response?.data?.message || err.message || 'Could not update profile. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -48,6 +51,11 @@ export const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
       </DialogHeader>
 
       <form onSubmit={handleSubmit} className="space-y-4">
+        {errorMessage && (
+          <div className="p-3 text-xs font-medium text-rose-600 bg-rose-50 dark:bg-rose-950/40 dark:text-rose-400 rounded-xl border border-rose-200 dark:border-rose-800">
+            {errorMessage}
+          </div>
+        )}
         <div>
           <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
             Display Name
