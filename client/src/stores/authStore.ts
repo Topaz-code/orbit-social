@@ -29,8 +29,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
     localStorage.setItem('orbit_user', JSON.stringify(user));
 
-    // Connect MQTT client for this user
-    mqttClient.connect(user.id);
+    // Connect MQTT client for this user (with JWT for broker auth)
+    mqttClient.connect(user.id, accessToken);
+
 
     set({
       user,
@@ -71,7 +72,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
       if (token && userStr) {
         const user = JSON.parse(userStr);
-        mqttClient.connect(user.id);
+        mqttClient.connect(user.id, token);
         set({
           user,
           accessToken: token,
