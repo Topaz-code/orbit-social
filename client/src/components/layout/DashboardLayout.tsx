@@ -5,14 +5,16 @@ import { Header } from './Header.js';
 import { MobileNav } from './MobileNav.js';
 import { useMQTT } from '../../hooks/useMQTT.js';
 import { useCall } from '../../hooks/useCall.js';
+import { useNotifications } from '../../hooks/useNotifications.js';
 import { IncomingCallModal } from '../calls/IncomingCallModal.js';
 import { ActiveCallView } from '../calls/ActiveCallView.js';
 import { PostComposerModal } from '../feed/PostComposerModal.js';
 import { StoryUploadModal } from '../stories/StoryUploadModal.js';
 
 export const DashboardLayout: React.FC = () => {
-  // Activate MQTT listeners for notifications, calls, presence
+  // Activate MQTT listeners for notifications, calls, presence & fetch notifications
   useMQTT();
+  useNotifications();
   const { incomingCall, activeCall, acceptCall, rejectCall } = useCall();
 
   const [isNewPostOpen, setIsNewPostOpen] = useState(false);
