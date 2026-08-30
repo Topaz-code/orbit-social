@@ -16,7 +16,7 @@ let wsServer: http.Server | null = null;
 // Track active authenticated users on clients
 const clientUserMap = new Map<string, string>();
 
-export function initMQTTBroker(): { tcpServer: net.Server; wsServer: http.Server } {
+export function initMQTTBroker(httpServer?: http.Server): { tcpServer?: net.Server; wsServer?: http.Server } {
   // 1. MQTT Client Authentication Hook
   aedes.authenticate = (client: Client, username: Readonly<string | undefined>, password: Readonly<Buffer | undefined>, callback) => {
     // Internal server publish client bypass
@@ -98,24 +98,35 @@ export function initMQTTBroker(): { tcpServer: net.Server; wsServer: http.Server
     callback(null);
   };
 
-  // 4. TCP Server for native MQTT clients
-  tcpServer = net.createServer(aedes.handle);
-  tcpServer.listen(MQTT_PORT, () => {
-    console.log(`📡 Aedes MQTT TCP Broker listening on port ${MQTT_PORT}`);
-  });
+  // 4. TCP Server for native MQTT clients (optional in dev)
+  try {
+    tcpServer = net.createServer(aedes.handle);
+    tcpServer.listen(MQTT_PORT, () => {
+      console.log(`📡 Aedes MQTT TCP Broker listening on port ${MQTT_PORT}`);
+    });
+  } catch (err) {
+    console.warn('[MQTT] TCP listener skipped:', err);
+  }
 
-  // 5. WebSocket Server for browser MQTT.js clients
-  wsServer = http.createServer();
-  const wss = new WebSocketServer({ server: wsServer });
-
-  wss.on('connection', (socket, req) => {
-    const stream = createWebSocketStream(socket);
-    aedes.handle(stream as any);
-  });
-
-  wsServer.listen(MQTT_WS_PORT, () => {
-    console.log(`🌐 Aedes MQTT WebSocket Broker listening on port ${MQTT_WS_PORT}`);
-  });
+  // 5. Attach WebSocket Server to main HTTP Server (path: /mqtt)
+  if (httpServer) {
+    const wss = new WebSocketServer({ server: httpServer, path: '/mqtt' });
+    wss.on('connection', (socket, req) => {
+      const stream = createWebSocketStream(socket);
+      aedes.handle(stream as any);
+    });
+    console.log(`🌐 Aedes MQTT WebSocket Broker attached to HTTP server at /mqtt`);
+  } else {
+    wsServer = http.createServer();
+    const wss = new WebSocketServer({ server: wsServer });
+    wss.on('connection', (socket, req) => {
+      const stream = createWebSocketStream(socket);
+      aedes.handle(stream as any);
+    });
+    wsServer.listen(MQTT_WS_PORT, () => {
+      console.log(`🌐 Aedes MQTT WebSocket Broker listening on port ${MQTT_WS_PORT}`);
+    });
+  }
 
   // 6. Presence tracking hooks
   aedes.on('client', (client) => {
