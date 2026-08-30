@@ -7,7 +7,7 @@ const features = [
   {
     icon: Users,
     title: 'Real connections',
-    desc: 'Follow the people you actually know — not influencers picked by an algorithm.',
+    desc: 'Follow people you actually know, not influencers picked by an algorithm.',
   },
   {
     icon: Star,
@@ -17,7 +17,7 @@ const features = [
   {
     icon: Globe,
     title: 'Private by default',
-    desc: 'You control what you share and who sees it — always.',
+    desc: 'You control what you share and who sees it.',
   },
 ];
 
@@ -73,7 +73,7 @@ export const RegisterPage: React.FC = () => {
             </span>
           </p>
           <p className="mt-3 text-sm text-slate-400 leading-relaxed max-w-xs">
-            Create a free account in seconds and connect with the people who matter — without sacrificing your privacy.
+            Create a free account in seconds and connect with the people who matter without sacrificing your privacy.
           </p>
         </div>
 
@@ -93,7 +93,7 @@ export const RegisterPage: React.FC = () => {
         </div>
 
         {/* Footer tagline */}
-        <p className="relative z-10 text-xs text-slate-700">Orbit — built for privacy.</p>
+        <p className="relative z-10 text-xs text-slate-700">Orbit: built for privacy.</p>
       </div>
 
       {/* ── Right Form Panel ───────────────────────────────── */}
