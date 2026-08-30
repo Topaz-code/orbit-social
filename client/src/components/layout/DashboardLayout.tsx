@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Outlet } from 'react-router-dom';
 import { Sidebar } from './Sidebar.js';
 import { Header } from './Header.js';
@@ -10,6 +10,7 @@ import { IncomingCallModal } from '../calls/IncomingCallModal.js';
 import { ActiveCallView } from '../calls/ActiveCallView.js';
 import { PostComposerModal } from '../feed/PostComposerModal.js';
 import { StoryUploadModal } from '../stories/StoryUploadModal.js';
+import { api } from '../../lib/api.js';
 
 export const DashboardLayout: React.FC = () => {
   // Activate MQTT listeners for notifications, calls, presence & fetch notifications
@@ -19,6 +20,15 @@ export const DashboardLayout: React.FC = () => {
 
   const [isNewPostOpen, setIsNewPostOpen] = useState(false);
   const [isNewStoryOpen, setIsNewStoryOpen] = useState(false);
+
+  // Keep-alive heartbeat so Render backend doesn't sleep while tab is active
+  useEffect(() => {
+    const ping = () => {
+      api.get('/health').catch(() => {});
+    };
+    const interval = setInterval(ping, 5 * 60 * 1000); // every 5 minutes
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <div className="flex min-h-screen bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100">
