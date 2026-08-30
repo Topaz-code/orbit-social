@@ -12,19 +12,23 @@ export const JWT_REFRESH_EXPIRES_IN = process.env.JWT_REFRESH_EXPIRES_IN || '30d
 
 export function generateAccessToken(payload: TokenPayload, rememberMe = true): string {
   return jwt.sign(payload, JWT_SECRET, {
+    algorithm: 'HS256',
     expiresIn: rememberMe ? (JWT_EXPIRES_IN as any) : '1d',
   });
 }
 
 export function generateRefreshToken(payload: TokenPayload): string {
   return jwt.sign(payload, JWT_REFRESH_SECRET, {
+    algorithm: 'HS256',
     expiresIn: JWT_REFRESH_EXPIRES_IN as any,
   });
 }
 
 export function verifyAccessToken(token: string): TokenPayload | null {
   try {
-    return jwt.verify(token, JWT_SECRET) as TokenPayload;
+    return jwt.verify(token, JWT_SECRET, {
+      algorithms: ['HS256'],
+    }) as TokenPayload;
   } catch {
     return null;
   }
@@ -32,7 +36,9 @@ export function verifyAccessToken(token: string): TokenPayload | null {
 
 export function verifyRefreshToken(token: string): TokenPayload | null {
   try {
-    return jwt.verify(token, JWT_REFRESH_SECRET) as TokenPayload;
+    return jwt.verify(token, JWT_REFRESH_SECRET, {
+      algorithms: ['HS256'],
+    }) as TokenPayload;
   } catch {
     return null;
   }

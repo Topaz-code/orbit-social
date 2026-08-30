@@ -28,22 +28,49 @@ import notificationsRoutes from './routes/notifications.routes.js';
 import callsRoutes from './routes/calls.routes.js';
 import searchRoutes from './routes/search.routes.js';
 import uploadRoutes from './routes/upload.routes.js';
+import { auditService } from './services/audit.service.js';
+import rateLimit from 'express-rate-limit';
 
 const app = express();
 const server = http.createServer(app);
 const PORT = parseInt(process.env.PORT || '5000', 10);
 const CLIENT_URL = process.env.CLIENT_URL || 'http://localhost:5173';
 
-// 1. Security Headers Middleware
+// 0. Disable banner leakage
+app.disable('x-powered-by');
+
+// 1. Enterprise Security Headers Middleware (CMMC L2 / OWASP)
 app.use((req, res, next) => {
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('X-Frame-Options', 'DENY');
   res.setHeader('X-XSS-Protection', '1; mode=block');
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
+  res.setHeader('Permissions-Policy', 'camera=(self), microphone=(self), geolocation=()');
   next();
 });
 
-// 2. Configure CORS
+// 2. Gateway Threat & Bot Scanner Blocker (WAF rules)
+app.use((req, res, next) => {
+  const userAgent = (req.headers['user-agent'] || '').toLowerCase();
+  const blockedScanners = ['sqlmap', 'nikto', 'masscan', 'dirbuster', 'nmap', 'zgrab', 'gobuster', 'wpscan'];
+  if (blockedScanners.some((tool) => userAgent.includes(tool))) {
+    return res.status(403).json({ success: false, message: 'Forbidden' });
+  }
+  next();
+});
+
+// 3. Global API Rate Limiter
+const globalLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 120, // 120 requests per minute per IP
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, message: 'Too many requests. Please slow down.' },
+});
+app.use('/api', globalLimiter);
+
+// 4. Configure CORS
 app.use(
   cors({
     origin: true, // Allow any incoming origin (including onrender.com and custom domains)
@@ -54,11 +81,11 @@ app.use(
 );
 app.options('*', cors());
 
-// 3. Request body parsing with strict size limits
+// 5. Request body parsing with strict size limits
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// 4. Static uploads serving with security headers
+// 6. Static uploads serving with security headers
 const uploadsPath = path.resolve(process.cwd(), 'uploads');
 app.use(
   '/uploads',
@@ -70,7 +97,7 @@ app.use(
   })
 );
 
-// 5. Embedded PeerJS WebRTC Signaling Server
+// 7. Embedded PeerJS WebRTC Signaling Server
 const peerServer = ExpressPeerServer(server, {
   path: '/',
   allow_discovery: true,
@@ -85,11 +112,22 @@ peerServer.on('disconnect', (client) => {
   console.log(`[PeerJS] Client disconnected: ${client.getId()}`);
 });
 
-// 6. Health Check
+// 8. Health & Audit Integrity Check
 app.get('/api/health', (req, res) => {
   res.json({
     status: 'ok',
     service: 'Orbit API Server',
+    timestamp: new Date().toISOString(),
+  });
+});
+
+app.get('/api/health/audit', (req, res) => {
+  const auditStatus = auditService.verifyIntegrity();
+  res.json({
+    status: 'ok',
+    service: 'Orbit Cryptographic Audit Ledger',
+    ledgerIntegrity: auditStatus.valid ? 'VERIFIED_TAMPER_FREE' : 'INTEGRITY_COMPROMISED',
+    totalRecords: auditStatus.totalRecords,
     timestamp: new Date().toISOString(),
   });
 });
