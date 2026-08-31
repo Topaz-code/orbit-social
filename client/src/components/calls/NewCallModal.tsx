@@ -12,6 +12,7 @@ interface NewCallModalProps {
 
 export const NewCallModal: React.FC<NewCallModalProps> = ({ isOpen, onClose }) => {
   const [search, setSearch] = useState('');
+  const [selectedFriend, setSelectedFriend] = useState<User | null>(null);
   const { startCall } = useCall();
 
   const { data: friends = [], isLoading } = useQuery<User[]>({
@@ -41,17 +42,18 @@ export const NewCallModal: React.FC<NewCallModalProps> = ({ isOpen, onClose }) =
       },
       type
     );
+    setSelectedFriend(null);
     onClose();
   };
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-fade-in"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className="w-full max-w-md rounded-2xl bg-[#202A2D] border border-[#3A4B4D] p-6 shadow-2xl text-[#D9D0B8]">
+      <div className="w-full max-w-md rounded-3xl bg-[#202A2D] border border-[#3A4B4D] p-6 shadow-2xl text-[#D9D0B8] animate-slide-up">
         {/* Header */}
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-lg font-bold text-[#D9D0B8]">New Call</h2>
@@ -77,7 +79,7 @@ export const NewCallModal: React.FC<NewCallModalProps> = ({ isOpen, onClose }) =
         </div>
 
         {/* Friends list */}
-        <div className="max-h-80 overflow-y-auto pr-1">
+        <div className="max-h-72 overflow-y-auto pr-1">
           {isLoading ? (
             <div className="space-y-3">
               {[1, 2, 3].map((n) => (
@@ -95,54 +97,115 @@ export const NewCallModal: React.FC<NewCallModalProps> = ({ isOpen, onClose }) =
               {search ? 'No friends match your search.' : 'No friends yet.'}
             </div>
           ) : (
-            <ul className="space-y-1">
-              {filtered.map((friend) => (
-                <li
-                  key={friend.id}
-                  className="flex items-center gap-3 rounded-[10px] p-2 transition-colors hover:bg-[#2B3940]"
-                >
-                  {/* Avatar */}
-                  <div className="relative shrink-0">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#2B3940] border border-[#3A4B4D] text-sm font-bold uppercase text-[#D9D0B8]">
-                      {friend.display_name.charAt(0)}
+            <ul className="space-y-1.5">
+              {filtered.map((friend) => {
+                const isSelected = selectedFriend?.id === friend.id;
+                return (
+                  <li
+                    key={friend.id}
+                    onClick={() => setSelectedFriend(isSelected ? null : friend)}
+                    className={`flex items-center gap-3 rounded-2xl p-2.5 transition-all cursor-pointer border ${
+                      isSelected
+                        ? 'bg-[#2B3940] border-[#496D6B]'
+                        : 'border-transparent hover:bg-[#2B3940]/70'
+                    }`}
+                  >
+                    {/* Avatar */}
+                    <div className="relative shrink-0">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#2B3940] border border-[#3A4B4D] text-sm font-bold uppercase text-[#D9D0B8]">
+                        {friend.display_name.charAt(0)}
+                      </div>
+                      {friend.is_online && (
+                        <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border-2 border-[#202A2D] bg-[#71877B]" />
+                      )}
                     </div>
-                    {friend.is_online && (
-                      <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border-2 border-[#202A2D] bg-[#71877B]" />
-                    )}
-                  </div>
 
-                  {/* Name / username */}
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-semibold text-[#D9D0B8]">
-                      {friend.display_name}
-                    </p>
-                    <p className="truncate text-xs text-[#A8AAA0]">@{friend.username}</p>
-                  </div>
+                    {/* Name / username */}
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-semibold text-[#D9D0B8]">
+                        {friend.display_name}
+                      </p>
+                      <p className="truncate text-xs text-[#A8AAA0]">@{friend.username}</p>
+                    </div>
 
-                  {/* Call buttons */}
-                  <div className="flex shrink-0 items-center gap-1">
-                    <button
-                      onClick={() => handleCall(friend, 'voice')}
-                      title="Voice call"
-                      className="flex h-9 w-9 items-center justify-center rounded-[8px] text-[#71877B] transition-colors hover:bg-[#2B3940] hover:text-[#82998C]"
+                    {/* Quick Call Action Icons */}
+                    <div
+                      className="flex shrink-0 items-center gap-1"
+                      onClick={(e) => e.stopPropagation()}
                     >
-                      <Phone className="h-4 w-4" />
-                    </button>
-                    <button
-                      onClick={() => handleCall(friend, 'video')}
-                      title="Video call"
-                      className="flex h-9 w-9 items-center justify-center rounded-[8px] text-[#496D6B] transition-colors hover:bg-[#2B3940] hover:text-[#5A7D78]"
-                    >
-                      <Video className="h-4 w-4" />
-                    </button>
-                  </div>
-                </li>
-              ))}
+                      <button
+                        onClick={() => handleCall(friend, 'voice')}
+                        title="Voice call"
+                        className="flex h-8 w-8 items-center justify-center rounded-full text-[#71877B] transition-colors hover:bg-[#171A1C] hover:text-[#82998C]"
+                      >
+                        <Phone className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={() => handleCall(friend, 'video')}
+                        title="Video call"
+                        className="flex h-8 w-8 items-center justify-center rounded-full text-[#496D6B] transition-colors hover:bg-[#171A1C] hover:text-[#5A7D78]"
+                      >
+                        <Video className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </li>
+                );
+              })}
             </ul>
           )}
         </div>
+
+        {/* Selected Friend Call Action Panel (Matching User Screen 2: Start Video | Cancel | Start Call) */}
+        {selectedFriend && (
+          <div className="mt-4 pt-4 border-t border-[#3A4B4D] animate-fade-in flex flex-col items-center">
+            <p className="text-xs text-[#A8AAA0] mb-3">
+              Call <span className="font-semibold text-[#D9D0B8]">{selectedFriend.display_name}</span>
+            </p>
+            <div className="flex items-center justify-center gap-8">
+              {/* Start Video */}
+              <div className="flex flex-col items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => handleCall(selectedFriend, 'video')}
+                  className="flex h-13 w-13 items-center justify-center rounded-full bg-[#496D6B] hover:bg-[#5a7d78] text-[#D9D0B8] shadow-lg transition-transform active:scale-95 border border-[#71877B]"
+                  title="Start Video"
+                >
+                  <Video className="h-5 w-5" />
+                </button>
+                <span className="text-xs font-medium text-[#D9D0B8]">Start Video</span>
+              </div>
+
+              {/* Cancel */}
+              <div className="flex flex-col items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => setSelectedFriend(null)}
+                  className="flex h-13 w-13 items-center justify-center rounded-full bg-[#2B3940] hover:bg-[#34444c] text-[#D9D0B8] shadow-lg transition-transform active:scale-95 border border-[#3A4B4D]"
+                  title="Cancel"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+                <span className="text-xs font-medium text-[#D9D0B8]">Cancel</span>
+              </div>
+
+              {/* Start Call */}
+              <div className="flex flex-col items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => handleCall(selectedFriend, 'voice')}
+                  className="flex h-13 w-13 items-center justify-center rounded-full bg-[#496D6B] hover:bg-[#5a7d78] text-[#D9D0B8] shadow-lg transition-transform active:scale-95 border border-[#71877B]"
+                  title="Start Call"
+                >
+                  <Phone className="h-5 w-5" />
+                </button>
+                <span className="text-xs font-medium text-[#D9D0B8]">Start Call</span>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
 };
+
 

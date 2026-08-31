@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useCallStore } from '../../stores/callStore.js';
 import { useCall } from '../../hooks/useCall.js';
 import { Avatar } from '../ui/avatar.js';
@@ -11,8 +11,8 @@ import {
   Volume2,
   VolumeX,
   PhoneOff,
-  Minimize2,
-  Maximize2,
+  ScreenShare,
+  ScreenShareOff,
 } from 'lucide-react';
 
 export const ActiveCallView: React.FC = () => {
@@ -26,6 +26,7 @@ export const ActiveCallView: React.FC = () => {
   } = useCallStore();
   const { endCall } = useCall();
 
+  const [isSharingScreen, setIsSharingScreen] = useState(false);
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
   const remoteAudioRef = useRef<HTMLAudioElement>(null);
@@ -34,10 +35,10 @@ export const ActiveCallView: React.FC = () => {
 
   // Attach local stream to preview
   useEffect(() => {
-    if (localVideoRef.current && localStream) {
+    if (localVideoRef.current && localStream && !isSharingScreen) {
       localVideoRef.current.srcObject = localStream;
     }
-  }, [localStream]);
+  }, [localStream, isSharingScreen]);
 
   // Ultra-low-latency remote audio playback via Web Audio API
   useEffect(() => {
@@ -122,11 +123,39 @@ export const ActiveCallView: React.FC = () => {
     };
   }, [activeCall?.status, activeCall?.isCaller]);
 
-
+  // Screen share toggle
+  const handleToggleScreenShare = async () => {
+    if (isSharingScreen) {
+      setIsSharingScreen(false);
+      if (localVideoRef.current && localStream) {
+        localVideoRef.current.srcObject = localStream;
+      }
+    } else {
+      try {
+        const displayStream = await navigator.mediaDevices.getDisplayMedia({
+          video: true,
+          audio: false,
+        });
+        const screenTrack = displayStream.getVideoTracks()[0];
+        if (screenTrack && localVideoRef.current) {
+          setIsSharingScreen(true);
+          localVideoRef.current.srcObject = displayStream;
+          screenTrack.onended = () => {
+            setIsSharingScreen(false);
+            if (localVideoRef.current && localStream) {
+              localVideoRef.current.srcObject = localStream;
+            }
+          };
+        }
+      } catch (err) {
+        console.warn('[ScreenShare] Cancelled or error:', err);
+      }
+    }
+  };
 
   if (!activeCall) return null;
 
-  const isVideoCall = activeCall.type === 'video';
+  const isVideoCall = activeCall.type === 'video' || isSharingScreen;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md animate-fade-in select-none">
@@ -150,6 +179,16 @@ export const ActiveCallView: React.FC = () => {
               </p>
             </div>
           </div>
+
+          {/* Speaker quick toggle */}
+          <button
+            type="button"
+            onClick={toggleSpeaker}
+            className="flex h-9 w-9 items-center justify-center rounded-full bg-[#2B3940] hover:bg-[#34444c] text-[#D9D0B8] border border-[#3A4B4D] transition-all"
+            title="Toggle Speaker"
+          >
+            {activeCall.isSpeakerOn ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+          </button>
         </div>
 
         {/* Video / Audio Center Stage */}
@@ -184,9 +223,9 @@ export const ActiveCallView: React.FC = () => {
                   playsInline
                   muted
                   className="h-full w-full object-cover mirror"
-                  style={{ transform: 'scaleX(-1)' }}
+                  style={{ transform: isSharingScreen ? 'none' : 'scaleX(-1)' }}
                 />
-                {activeCall.isVideoOff && (
+                {activeCall.isVideoOff && !isSharingScreen && (
                   <div className="absolute inset-0 bg-[#202A2D] flex items-center justify-center text-xs text-[#A8AAA0]">
                     Camera off
                   </div>
@@ -212,64 +251,82 @@ export const ActiveCallView: React.FC = () => {
               {/* Fallback audio element for remote audio track */}
               <audio ref={remoteAudioRef} autoPlay playsInline />
             </div>
-
           )}
         </div>
 
-        {/* Bottom Control Actions Bar */}
-        <div className="flex items-center justify-center gap-4 sm:gap-6 z-20 py-2">
-          {/* Mute toggle */}
-          <button
-            type="button"
-            onClick={toggleMute}
-            className={`flex h-12 w-12 items-center justify-center rounded-full transition-all border border-[#3A4B4D] ${
-              activeCall.isMuted
-                ? 'bg-[#B87568] text-[#171A1C]'
-                : 'bg-[#2B3940] hover:bg-[#314048] text-[#D9D0B8]'
-            }`}
-            title={activeCall.isMuted ? 'Unmute' : 'Mute'}
-          >
-            {activeCall.isMuted ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
-          </button>
+        {/* Bottom Control Actions Bar (Matching User Call Icon Types & Labels) */}
+        <div className="flex items-center justify-center gap-6 sm:gap-10 z-20 py-2">
+          {/* Screencast */}
+          <div className="flex flex-col items-center gap-1.5">
+            <button
+              type="button"
+              onClick={handleToggleScreenShare}
+              className={`flex h-13 w-13 items-center justify-center rounded-full transition-all border shadow-lg ${
+                isSharingScreen
+                  ? 'bg-[#496D6B] text-[#D9D0B8] border-[#71877B]'
+                  : 'bg-[#2B3940] hover:bg-[#34444c] text-[#D9D0B8] border-[#3A4B4D]'
+              }`}
+              title="Screencast"
+            >
+              {isSharingScreen ? <ScreenShareOff className="h-5 w-5" /> : <ScreenShare className="h-5 w-5" />}
+            </button>
+            <span className="text-xs font-medium text-[#D9D0B8]">Screencast</span>
+          </div>
 
-          {/* Video Toggle (if video call) */}
-          {isVideoCall && (
+          {/* Start Video / Stop Video */}
+          <div className="flex flex-col items-center gap-1.5">
             <button
               type="button"
               onClick={toggleVideo}
-              className={`flex h-12 w-12 items-center justify-center rounded-full transition-all border border-[#3A4B4D] ${
+              className={`flex h-13 w-13 items-center justify-center rounded-full transition-all border shadow-lg ${
                 activeCall.isVideoOff
-                  ? 'bg-[#B87568] text-[#171A1C]'
-                  : 'bg-[#2B3940] hover:bg-[#314048] text-[#D9D0B8]'
+                  ? 'bg-[#2B3940] text-[#A8AAA0] border-[#3A4B4D] hover:bg-[#34444c]'
+                  : 'bg-[#496D6B] text-[#D9D0B8] border-[#71877B] hover:bg-[#5a7d78]'
               }`}
-              title={activeCall.isVideoOff ? 'Turn on camera' : 'Turn off camera'}
+              title={activeCall.isVideoOff ? 'Start Video' : 'Stop Video'}
             >
               {activeCall.isVideoOff ? <VideoOff className="h-5 w-5" /> : <Video className="h-5 w-5" />}
             </button>
-          )}
+            <span className="text-xs font-medium text-[#D9D0B8]">
+              {activeCall.isVideoOff ? 'Start Video' : 'Stop Video'}
+            </span>
+          </div>
 
-          {/* Speaker Toggle */}
-          <button
-            type="button"
-            onClick={toggleSpeaker}
-            className="flex h-12 w-12 items-center justify-center rounded-full bg-[#2B3940] hover:bg-[#314048] text-[#D9D0B8] border border-[#3A4B4D] transition-all"
-            title="Speaker"
-          >
-            {activeCall.isSpeakerOn ? <Volume2 className="h-5 w-5" /> : <VolumeX className="h-5 w-5" />}
-          </button>
+          {/* End Call */}
+          <div className="flex flex-col items-center gap-1.5">
+            <button
+              type="button"
+              onClick={endCall}
+              className="flex h-13 w-13 items-center justify-center rounded-full bg-[#B87568] hover:bg-[#C98679] text-[#171A1C] shadow-xl transition-transform active:scale-95 border border-[#B87568]"
+              title="End Call"
+            >
+              <PhoneOff className="h-5 w-5" />
+            </button>
+            <span className="text-xs font-medium text-[#D9D0B8]">End Call</span>
+          </div>
 
-          {/* End Call Button */}
-          <button
-            type="button"
-            onClick={endCall}
-            className="flex h-14 w-14 items-center justify-center rounded-full bg-[#B87568] hover:bg-[#C98679] text-[#171A1C] shadow-xl transition-transform active:scale-95 ml-2"
-            title="End Call"
-          >
-            <PhoneOff className="h-6 w-6" />
-          </button>
+          {/* Mute */}
+          <div className="flex flex-col items-center gap-1.5">
+            <button
+              type="button"
+              onClick={toggleMute}
+              className={`flex h-13 w-13 items-center justify-center rounded-full transition-all border shadow-lg ${
+                activeCall.isMuted
+                  ? 'bg-[#B87568] text-[#171A1C] border-[#B87568]'
+                  : 'bg-[#2B3940] hover:bg-[#34444c] text-[#D9D0B8] border-[#3A4B4D]'
+              }`}
+              title={activeCall.isMuted ? 'Unmute' : 'Mute'}
+            >
+              {activeCall.isMuted ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
+            </button>
+            <span className="text-xs font-medium text-[#D9D0B8]">
+              {activeCall.isMuted ? 'Unmute' : 'Mute'}
+            </span>
+          </div>
         </div>
       </div>
     </div>
   );
 };
+
 
