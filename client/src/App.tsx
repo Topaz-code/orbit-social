@@ -32,7 +32,7 @@ const ProtectedRoute: React.FC<{ children: React.ReactElement }> = ({ children }
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-900">
+      <div className="min-h-screen flex items-center justify-center bg-[#171A1C]">
         <LoadingSpinner size="lg" label="Entering Orbit..." />
       </div>
     );
@@ -51,7 +51,7 @@ const PublicRoute: React.FC<{ children: React.ReactElement }> = ({ children }) =
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-900">
+      <div className="min-h-screen flex items-center justify-center bg-[#171A1C]">
         <LoadingSpinner size="lg" />
       </div>
     );
@@ -63,6 +63,7 @@ const PublicRoute: React.FC<{ children: React.ReactElement }> = ({ children }) =
 
   return children;
 };
+
 
 export const App: React.FC = () => {
   const { initializeAuth } = useAuthStore();

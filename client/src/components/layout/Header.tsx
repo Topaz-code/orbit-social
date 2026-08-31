@@ -149,7 +149,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewPost, onOpenNewStory })
         {user && (
           <DropdownMenu
             trigger={
-              <button className="flex items-center gap-2 p-1 rounded-full hover:ring-2 hover:ring-indigo-500/50 transition-all">
+              <button className="flex items-center gap-2 p-1 rounded-full hover:ring-2 hover:ring-[#496D6B] transition-all">
                 <Avatar
                   src={user.avatar_url}
                   fallback={user.display_name}
@@ -159,36 +159,36 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewPost, onOpenNewStory })
               </button>
             }
           >
-            <div className="p-3 border-b border-slate-100 dark:border-slate-800">
-              <p className="text-sm font-bold text-slate-900 dark:text-slate-100 truncate">
+            <div className="p-3 border-b border-[#3A4B4D]">
+              <p className="text-sm font-bold text-[#D9D0B8] truncate">
                 {user.display_name}
               </p>
-              <p className="text-xs text-slate-400 truncate">@{user.username}</p>
+              <p className="text-xs text-[#A8AAA0] truncate">@{user.username}</p>
             </div>
 
             <DropdownItem onClick={() => navigate(`/profile/${user.id}`)}>
-              <UserIcon className="h-4 w-4 text-slate-400" />
+              <UserIcon className="h-4 w-4 text-[#7F8B86]" />
               <span>Your Profile</span>
             </DropdownItem>
 
             <DropdownItem onClick={() => navigate('/settings')}>
-              <Settings className="h-4 w-4 text-slate-400" />
+              <Settings className="h-4 w-4 text-[#7F8B86]" />
               <span>Settings & Privacy</span>
             </DropdownItem>
 
             <DropdownDivider />
 
             {/* Theme Toggle Submenu */}
-            <div className="px-3 py-1 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+            <div className="px-3 py-1 text-[11px] font-semibold text-[#7F8B86] uppercase tracking-wider">
               Theme
             </div>
-            <div className="grid grid-cols-3 gap-1 p-1 bg-slate-50 dark:bg-slate-800/60 rounded-lg mx-2 mb-2">
+            <div className="grid grid-cols-3 gap-1 p-1 bg-[#2B3940] rounded-lg mx-2 mb-2 border border-[#3A4B4D]">
               <button
                 type="button"
                 onClick={() => setTheme('light')}
                 className={cn(
                   'flex items-center justify-center p-1.5 rounded-md text-xs transition-colors',
-                  theme === 'light' ? 'bg-white dark:bg-slate-700 shadow text-indigo-600' : 'text-slate-500'
+                  theme === 'light' ? 'bg-[#202A2D] text-[#D0A56A] font-bold shadow-xs' : 'text-[#7F8B86] hover:text-[#D9D0B8]'
                 )}
                 title="Light"
               >
@@ -199,7 +199,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewPost, onOpenNewStory })
                 onClick={() => setTheme('dark')}
                 className={cn(
                   'flex items-center justify-center p-1.5 rounded-md text-xs transition-colors',
-                  theme === 'dark' ? 'bg-white dark:bg-slate-700 shadow text-indigo-400' : 'text-slate-500'
+                  theme === 'dark' ? 'bg-[#202A2D] text-[#D0A56A] font-bold shadow-xs' : 'text-[#7F8B86] hover:text-[#D9D0B8]'
                 )}
                 title="Dark"
               >
@@ -210,7 +210,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewPost, onOpenNewStory })
                 onClick={() => setTheme('system')}
                 className={cn(
                   'flex items-center justify-center p-1.5 rounded-md text-xs transition-colors',
-                  theme === 'system' ? 'bg-white dark:bg-slate-700 shadow text-indigo-500' : 'text-slate-500'
+                  theme === 'system' ? 'bg-[#202A2D] text-[#D0A56A] font-bold shadow-xs' : 'text-[#7F8B86] hover:text-[#D9D0B8]'
                 )}
                 title="System"
               >
@@ -219,6 +219,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewPost, onOpenNewStory })
             </div>
 
             <DropdownDivider />
+
 
             <DropdownItem onClick={logout} destructive>
               <LogOut className="h-4 w-4" />

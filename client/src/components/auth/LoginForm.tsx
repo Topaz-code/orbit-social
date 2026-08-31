@@ -93,28 +93,28 @@ export const LoginForm: React.FC = () => {
   };
 
   return (
-    <Card className="w-full max-w-md shadow-2xl border-slate-200/80 dark:border-slate-800 backdrop-blur-xl bg-white/95 dark:bg-slate-900/95">
+    <Card className="w-full max-w-md shadow-2xl border-[#3A4B4D] bg-[#202A2D] text-[#D9D0B8]">
       <CardHeader className="text-center pb-4">
-        <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-indigo-50 dark:bg-indigo-950/50 p-2.5 shadow-inner">
+        <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#2B3940] p-2.5 border border-[#3A4B4D]">
           <img src="/orbit-logo.svg" alt="Orbit" className="h-full w-full" />
         </div>
-        <CardTitle className="text-2xl font-black tracking-tight bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+        <CardTitle className="text-2xl font-bold tracking-tight text-[#D9D0B8]">
           Welcome to Orbit
         </CardTitle>
-        <CardDescription className="text-xs">
+        <CardDescription className="text-xs text-[#A8AAA0]">
           Break free from algorithms. Stay connected with friends.
         </CardDescription>
       </CardHeader>
 
       <CardContent>
         {serverError && (
-          <div className="mb-4 rounded-xl bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-800/60 p-3 text-xs text-rose-600 dark:text-rose-400 font-medium animate-fade-in">
+          <div className="mb-4 rounded-xl bg-[#B87568]/15 border border-[#B87568]/30 p-3 text-xs text-[#B87568] font-medium animate-fade-in">
             {serverError}
           </div>
         )}
 
         {resetSuccessMsg && (
-          <div className="mb-4 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800/60 p-3 text-xs text-emerald-600 dark:text-emerald-400 font-medium animate-fade-in">
+          <div className="mb-4 rounded-xl bg-[#71877B]/15 border border-[#71877B]/30 p-3 text-xs text-[#71877B] font-medium animate-fade-in">
             {resetSuccessMsg}
           </div>
         )}
@@ -122,13 +122,13 @@ export const LoginForm: React.FC = () => {
         {!isResetMode ? (
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+              <label className="block text-xs font-semibold text-[#A8AAA0] mb-1.5">
                 Username, Email or Phone
               </label>
               <Input
                 type="text"
                 placeholder="Username or email"
-                icon={<User className="h-4 w-4" />}
+                icon={<User className="h-4 w-4 text-[#7F8B86]" />}
                 error={errors.identifier?.message}
                 {...register('identifier')}
               />
@@ -136,13 +136,13 @@ export const LoginForm: React.FC = () => {
 
             <div>
               <div className="flex items-center justify-between mb-1.5">
-                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                <label className="text-xs font-semibold text-[#A8AAA0]">
                   Password
                 </label>
                 <button
                   type="button"
                   onClick={() => setIsResetMode(true)}
-                  className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline"
+                  className="text-xs text-[#D0A56A] hover:underline"
                 >
                   Forgot password?
                 </button>
@@ -150,7 +150,7 @@ export const LoginForm: React.FC = () => {
               <Input
                 type="password"
                 placeholder="••••••••"
-                icon={<Lock className="h-4 w-4" />}
+                icon={<Lock className="h-4 w-4 text-[#7F8B86]" />}
                 error={errors.password?.message}
                 {...register('password')}
               />
@@ -160,10 +160,10 @@ export const LoginForm: React.FC = () => {
               <label className="flex items-center gap-2 cursor-pointer select-none">
                 <input
                   type="checkbox"
-                  className="h-4 w-4 rounded text-indigo-600 accent-indigo-600 focus:ring-indigo-500"
+                  className="h-4 w-4 rounded accent-[#D0A56A] bg-[#2B3940] border-[#3A4B4D]"
                   {...register('rememberMe')}
                 />
-                <span className="text-xs text-slate-600 dark:text-slate-400">Remember me</span>
+                <span className="text-xs text-[#A8AAA0]">Remember me</span>
               </label>
 
               <span className="text-[11px] text-slate-400 flex items-center gap-1">
@@ -181,7 +181,7 @@ export const LoginForm: React.FC = () => {
             {!securityQuestion ? (
               <form onSubmit={handleFetchQuestion} className="space-y-4">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                  <label className="block text-xs font-semibold text-[#A8AAA0] mb-1.5">
                     Enter your Username or Email
                   </label>
                   <Input
@@ -189,27 +189,27 @@ export const LoginForm: React.FC = () => {
                     placeholder="Username or email"
                     value={resetIdentifier}
                     onChange={(e) => setResetIdentifier(e.target.value)}
-                    icon={<User className="h-4 w-4" />}
+                    icon={<User className="h-4 w-4 text-[#7F8B86]" />}
                     required
                   />
                 </div>
-                <Button type="submit" className="w-full" isLoading={isSubmittingReset}>
+                <Button type="submit" className="w-full h-11" isLoading={isSubmittingReset}>
                   Continue to Security Question
                 </Button>
               </form>
             ) : (
               <form onSubmit={handleResetPassword} className="space-y-4">
-                <div className="p-3 bg-slate-100 dark:bg-slate-800 rounded-xl text-xs">
-                  <p className="font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                <div className="p-3 bg-[#2B3940] border border-[#3A4B4D] rounded-xl text-xs">
+                  <p className="font-semibold text-[#A8AAA0] mb-1">
                     Security Question:
                   </p>
-                  <p className="text-indigo-600 dark:text-indigo-400 font-medium">
+                  <p className="text-[#D0A56A] font-medium">
                     {securityQuestion}
                   </p>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                  <label className="block text-xs font-semibold text-[#A8AAA0] mb-1.5">
                     Your Answer
                   </label>
                   <Input
@@ -217,13 +217,13 @@ export const LoginForm: React.FC = () => {
                     placeholder="Your answer"
                     value={securityAnswer}
                     onChange={(e) => setSecurityAnswer(e.target.value)}
-                    icon={<KeyRound className="h-4 w-4" />}
+                    icon={<KeyRound className="h-4 w-4 text-[#7F8B86]" />}
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                  <label className="block text-xs font-semibold text-[#A8AAA0] mb-1.5">
                     New Password
                   </label>
                   <Input
@@ -231,12 +231,12 @@ export const LoginForm: React.FC = () => {
                     placeholder="At least 6 characters"
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
-                    icon={<Lock className="h-4 w-4" />}
+                    icon={<Lock className="h-4 w-4 text-[#7F8B86]" />}
                     required
                   />
                 </div>
 
-                <Button type="submit" className="w-full" isLoading={isSubmittingReset}>
+                <Button type="submit" className="w-full h-11" isLoading={isSubmittingReset}>
                   Reset Password
                 </Button>
               </form>
@@ -248,7 +248,7 @@ export const LoginForm: React.FC = () => {
                 setIsResetMode(false);
                 setSecurityQuestion(null);
               }}
-              className="w-full text-center text-xs text-slate-500 hover:text-slate-900 dark:hover:text-slate-200 mt-2"
+              className="w-full text-center text-xs text-[#7F8B86] hover:text-[#D9D0B8] mt-2 transition-colors"
             >
               Back to Login
             </button>
@@ -257,18 +257,19 @@ export const LoginForm: React.FC = () => {
 
       </CardContent>
 
-      <CardFooter className="flex justify-center border-t border-slate-100 dark:border-slate-800 pt-4">
-        <p className="text-xs text-slate-500 dark:text-slate-400">
+      <CardFooter className="flex justify-center border-t border-[#3A4B4D] pt-4">
+        <p className="text-xs text-[#A8AAA0]">
           Do not have an account?{' '}
           <button
             type="button"
             onClick={() => navigate('/register')}
-            className="font-bold text-indigo-600 dark:text-indigo-400 hover:underline"
+            className="font-bold text-[#D0A56A] hover:underline"
           >
             Create account
           </button>
         </p>
       </CardFooter>
     </Card>
+
   );
 };

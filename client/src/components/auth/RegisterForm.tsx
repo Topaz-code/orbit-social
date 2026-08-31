@@ -57,94 +57,94 @@ export const RegisterForm: React.FC = () => {
   };
 
   return (
-    <Card className="w-full max-w-md shadow-2xl border-slate-200/80 dark:border-slate-800 backdrop-blur-xl bg-white/95 dark:bg-slate-900/95 my-6">
+    <Card className="w-full max-w-md shadow-2xl border-[#3A4B4D] bg-[#202A2D] text-[#D9D0B8] my-6">
       <CardHeader className="text-center pb-4">
-        <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-indigo-50 dark:bg-indigo-950/50 p-2.5 shadow-inner">
+        <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#2B3940] p-2.5 border border-[#3A4B4D]">
           <img src="/orbit-logo.svg" alt="Orbit" className="h-full w-full" />
         </div>
-        <CardTitle className="text-2xl font-black tracking-tight bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+        <CardTitle className="text-2xl font-bold tracking-tight text-[#D9D0B8]">
           Join Orbit
         </CardTitle>
-        <CardDescription className="text-xs">
+        <CardDescription className="text-xs text-[#A8AAA0]">
           A teen-first social network built on privacy, not engagement metrics.
         </CardDescription>
       </CardHeader>
 
       <CardContent>
         {serverError && (
-          <div className="mb-4 rounded-xl bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-800/60 p-3 text-xs text-rose-600 dark:text-rose-400 font-medium animate-fade-in">
+          <div className="mb-4 rounded-xl bg-[#B87568]/15 border border-[#B87568]/30 p-3 text-xs text-[#B87568] font-medium animate-fade-in">
             {serverError}
           </div>
         )}
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-3.5">
           <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+            <label className="block text-xs font-semibold text-[#A8AAA0] mb-1">
               Display Name
             </label>
             <Input
               type="text"
               placeholder="Your name"
-              icon={<Sparkles className="h-4 w-4" />}
+              icon={<Sparkles className="h-4 w-4 text-[#7F8B86]" />}
               error={errors.display_name?.message}
               {...register('display_name')}
             />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+            <label className="block text-xs font-semibold text-[#A8AAA0] mb-1">
               Username
             </label>
             <Input
               type="text"
               placeholder="Choose a username"
-              icon={<User className="h-4 w-4" />}
+              icon={<User className="h-4 w-4 text-[#7F8B86]" />}
               error={errors.username?.message}
               {...register('username')}
             />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+            <label className="block text-xs font-semibold text-[#A8AAA0] mb-1">
               Email Address
             </label>
             <Input
               type="email"
               placeholder="jordan@example.com"
-              icon={<Mail className="h-4 w-4" />}
+              icon={<Mail className="h-4 w-4 text-[#7F8B86]" />}
               error={errors.email?.message}
               {...register('email')}
             />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+            <label className="block text-xs font-semibold text-[#A8AAA0] mb-1">
               Phone Number (Optional)
             </label>
             <Input
               type="tel"
               placeholder="+1 555 019 283"
-              icon={<Phone className="h-4 w-4" />}
+              icon={<Phone className="h-4 w-4 text-[#7F8B86]" />}
               error={errors.phone?.message}
               {...register('phone')}
             />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+            <label className="block text-xs font-semibold text-[#A8AAA0] mb-1">
               Password
             </label>
             <Input
               type="password"
               placeholder="At least 6 characters"
-              icon={<Lock className="h-4 w-4" />}
+              icon={<Lock className="h-4 w-4 text-[#7F8B86]" />}
               error={errors.password?.message}
               {...register('password')}
             />
           </div>
 
-          <div className="border-t border-slate-100 dark:border-slate-800 pt-3">
-            <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-2">
+          <div className="border-t border-[#3A4B4D] pt-3">
+            <p className="text-[11px] font-semibold text-[#A8AAA0] mb-2">
               Recovery Security Question:
             </p>
             <Input
@@ -162,18 +162,19 @@ export const RegisterForm: React.FC = () => {
         </form>
       </CardContent>
 
-      <CardFooter className="flex justify-center border-t border-slate-100 dark:border-slate-800 pt-4">
-        <p className="text-xs text-slate-500 dark:text-slate-400">
+      <CardFooter className="flex justify-center border-t border-[#3A4B4D] pt-4">
+        <p className="text-xs text-[#A8AAA0]">
           Already have an account?{' '}
           <button
             type="button"
             onClick={() => navigate('/login')}
-            className="font-bold text-indigo-600 dark:text-indigo-400 hover:underline"
+            className="font-bold text-[#D0A56A] hover:underline"
           >
             Log in
           </button>
         </p>
       </CardFooter>
     </Card>
+
   );
 };

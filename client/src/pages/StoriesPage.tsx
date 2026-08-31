@@ -73,8 +73,9 @@ export const StoriesPage: React.FC = () => {
                       src={group.user.avatar_url}
                       fallback={group.user.display_name}
                       size="sm"
-                      className="ring-2 ring-indigo-500"
+                      className="ring-2 ring-[#496D6B]"
                     />
+
                     <span className="text-xs font-bold truncate">{group.user.display_name}</span>
                   </div>
 

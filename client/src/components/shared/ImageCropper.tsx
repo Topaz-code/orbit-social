@@ -128,7 +128,7 @@ export const ImageCropper: React.FC<ImageCropperProps> = ({
       </div>
 
       {/* Control Sliders & Buttons */}
-      <div className="flex items-center justify-between gap-4 mt-5 bg-slate-100 dark:bg-slate-800/80 p-3 rounded-xl">
+      <div className="flex items-center justify-between gap-4 mt-5 bg-[#2B3940] border border-[#3A4B4D] p-3 rounded-xl">
         <div className="flex items-center gap-2">
           <Button
             type="button"
@@ -145,8 +145,9 @@ export const ImageCropper: React.FC<ImageCropperProps> = ({
             step="0.05"
             value={scale}
             onChange={(e) => setScale(parseFloat(e.target.value))}
-            className="w-24 accent-indigo-600"
+            className="w-24 accent-[#D0A56A]"
           />
+
           <Button
             type="button"
             variant="ghost"

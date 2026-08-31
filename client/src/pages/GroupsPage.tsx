@@ -49,10 +49,10 @@ export const GroupsPage: React.FC = () => {
         {/* My Groups Tab */}
         <TabsContent value="my-groups">
           {isLoading ? (
-            <div className="py-12 text-center text-xs text-slate-400">Loading groups...</div>
+            <div className="py-12 text-center text-xs text-[#7F8B86]">Loading groups...</div>
           ) : myGroups.length === 0 ? (
             <EmptyState
-              icon={<Users className="h-8 w-8 text-indigo-600" />}
+              icon={<Users className="h-8 w-8 text-[#D0A56A]" />}
               title="You haven't joined any groups"
               description="Join a group from Discover or create a private circle with up to 10 friends."
               actionLabel="Explore Groups"
@@ -70,13 +70,14 @@ export const GroupsPage: React.FC = () => {
         {/* Discover Groups Tab */}
         <TabsContent value="discover">
           {isLoading ? (
-            <div className="py-12 text-center text-xs text-slate-400">Searching groups...</div>
+            <div className="py-12 text-center text-xs text-[#7F8B86]">Searching groups...</div>
           ) : discoverGroups.length === 0 ? (
             <EmptyState
-              icon={<Users className="h-8 w-8 text-indigo-600" />}
+              icon={<Users className="h-8 w-8 text-[#D0A56A]" />}
               title="No public groups to discover"
               description="You are currently a member of all available public groups."
             />
+
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
               {discoverGroups.map((group: Group) => (
