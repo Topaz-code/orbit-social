@@ -1,25 +1,22 @@
 import React from 'react';
 
 /**
- * Screencast Icon: Outline dual screens with share/broadcast arrow
+ * Screencast Icon: Google Cast / Chromecast TV frame with bottom-left radiating arcs (Matching Reference)
  */
 export const ScreencastIcon: React.FC<{ className?: string }> = ({ className = 'w-6 h-6' }) => (
   <svg
     viewBox="0 0 24 24"
     fill="none"
     stroke="currentColor"
-    strokeWidth="2"
+    strokeWidth="2.3"
     strokeLinecap="round"
     strokeLinejoin="round"
     className={className}
   >
-    {/* Rear monitor */}
-    <path d="M4 6V4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-2" />
-    {/* Front screen */}
-    <rect x="2" y="8" width="14" height="12" rx="2" />
-    {/* Share arrow */}
-    <path d="M18 18l4-4-4-4" />
-    <path d="M22 14h-8" />
+    <path d="M2 8V6a3 3 0 0 1 3-3h14a3 3 0 0 1 3 3v12a3 3 0 0 1-3 3h-4" />
+    <path d="M2 12a9 9 0 0 1 9 9" />
+    <path d="M2 16a5 5 0 0 1 5 5" />
+    <path d="M2 20h.01" />
   </svg>
 );
 
@@ -62,17 +59,22 @@ export const SolidVideoOffIcon: React.FC<{ className?: string }> = ({ className 
 );
 
 /**
- * End Call Icon: Flaticon styled downward curved telephone receiver
+ * End Call Icon: Flaticon styled downward curved telephone receiver outline (Matching Reference)
  */
 export const SolidEndCallIcon: React.FC<{ className?: string }> = ({ className = 'w-6 h-6' }) => (
   <svg
     viewBox="0 0 24 24"
-    fill="currentColor"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2.4"
+    strokeLinecap="round"
+    strokeLinejoin="round"
     className={className}
   >
-    <path d="M12 4C7.8 4 3.9 5.5 0.8 8.1C0.2 8.6 0.1 9.5 0.6 10.1L2.8 12.3C3.3 12.8 4.2 12.9 4.8 12.4C6.5 11.1 7.6 10.4 9.8 9.9C10.5 9.7 11 9.1 11 8.3V5.5C11.3 5.5 11.7 5.5 12 5.5C12.3 5.5 12.7 5.5 13 5.5V8.3C13 9.1 13.5 9.7 14.2 9.9C16.4 10.4 17.5 11.1 19.2 12.4C19.8 12.9 20.7 12.8 21.2 12.3L23.4 10.1C23.9 9.5 23.8 8.6 23.2 8.1C20.1 5.5 16.2 4 12 4Z" />
+    <path d="M3.5 15.5C3.5 9 20.5 9 20.5 15.5l-3.2 1.2c-.7.3-1.5-.1-1.8-.8l-.8-2c-.3-.7-1-1.2-1.8-1.2h-1.8c-.8 0-1.5.5-1.8 1.2l-.8 2c-.3.7-1.1 1.1-1.8.8l-3.2-1.2z" />
   </svg>
 );
+
 
 /**
  * Start Call Icon: Flaticon styled upright phone receiver
