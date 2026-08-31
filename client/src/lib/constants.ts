@@ -59,7 +59,8 @@ export const MQTT_WS_URL =
 export const PEERJS_HOST = endpoint.hostname;
 export const PEERJS_PORT = endpoint.port;
 export const PEERJS_SECURE = endpoint.isSecure;
-export const PEERJS_PATH = '/';
+export const PEERJS_PATH = '/peerjs';
+
 
 export const ICE_SERVERS: RTCIceServer[] = [
   { urls: 'stun:stun.l.google.com:19302' },
