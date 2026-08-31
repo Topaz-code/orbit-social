@@ -1,0 +1,15 @@
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Global allowlist"
+paths = [
+  ''node_modules'',
+  ''dist'',
+  ''build'',
+  ''.git'',
+  ''package-lock.json''
+]
+regexes = [
+  ''(?:A3T[A-Z0-9]|AKIA|AGPA|AIDA|AROA|AIPA|ANPA|ANVA|ASIA)[A-Z0-9]{16}'',
+]
