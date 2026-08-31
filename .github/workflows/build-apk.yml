@@ -81,6 +81,10 @@ jobs:
       - name: Ensure Android assets directory exists
         run: mkdir -p mobile/android/app/src/main/assets
 
+      - name: Bundle React Native JS and Assets
+        working-directory: mobile
+        run: npx react-native bundle --platform android --dev false --entry-file index.js --bundle-output android/app/src/main/assets/index.android.bundle --assets-dest android/app/src/main/res
+
       - name: Generate Android debug.keystore if missing
         working-directory: mobile/android/app
         run: |
