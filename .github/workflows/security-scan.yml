@@ -5,6 +5,7 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  workflow_dispatch:
 
 jobs:
   gitleaks:
@@ -16,8 +17,11 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Run Gitleaks Secrets Scanner
-        uses: gitleaks/gitleaks-action@v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITLEAKS_CONFIG: .gitleaks.toml
+      - name: Install Gitleaks
+        run: |
+          wget -q https://github.com/gitleaks/gitleaks/releases/download/v8.18.4/gitleaks_8.18.4_linux_x64.tar.gz
+          tar -zxvf gitleaks_8.18.4_linux_x64.tar.gz
+          sudo mv gitleaks /usr/local/bin/
+
+      - name: Run Gitleaks Scanner
+        run: gitleaks detect --source . --verbose --config .gitleaks.toml

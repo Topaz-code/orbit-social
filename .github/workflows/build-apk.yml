@@ -22,6 +22,11 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: '8.8'
+
       - name: Set up Node.js 20
         uses: actions/setup-node@v4
         with:
@@ -29,30 +34,61 @@ jobs:
           cache: 'npm'
           cache-dependency-path: mobile/package.json
 
-      - name: Restore or inject google-services.json
+      - name: Inject or Fallback google-services.json
         run: |
+          mkdir -p mobile/android/app
           if [ -n "${{ secrets.GOOGLE_SERVICES_JSON_BASE64 }}" ]; then
             echo "${{ secrets.GOOGLE_SERVICES_JSON_BASE64 }}" | base64 --decode > mobile/android/app/google-services.json
-            echo "Successfully decoded google-services.json from GitHub Secrets."
-          else
-            echo "Note: Using repository local google-services.json if present."
+            echo "Successfully restored google-services.json from GitHub Secrets."
+          elif [ ! -f "mobile/android/app/google-services.json" ]; then
+            echo "Generating fallback google-services.json for build..."
+            cat << 'EOF' > mobile/android/app/google-services.json
+          {
+            "project_info": {
+              "project_number": "597749902093",
+              "project_id": "orbit-social-c90ed",
+              "storage_bucket": "orbit-social-c90ed.firebasestorage.app"
+            },
+            "client": [
+              {
+                "client_info": {
+                  "mobilesdk_app_id": "1:597749902093:android:dummy123456",
+                  "android_client_info": {
+                    "package_name": "com.orbit.social"
+                  }
+                },
+                "oauth_client": [],
+                "api_key": [
+                  {
+                    "current_key": "AIzaSyDummyKeyForBuildOnly12345"
+                  }
+                ],
+                "services": {
+                  "appinvite_service": {
+                    "other_platform_oauth_client": []
+                  }
+                }
+              }
+            ],
+            "configuration_version": "1"
+          }
+          EOF
           fi
 
       - name: Install dependencies
         working-directory: mobile
         run: npm install --legacy-peer-deps
 
-      - name: Grant execute permission for Gradle Wrapper
-        working-directory: mobile/android
+      - name: Generate Android debug.keystore if missing
+        working-directory: mobile/android/app
         run: |
-          if [ ! -f "gradlew" ]; then
-            gradle wrapper --gradle-version 8.8
+          if [ ! -f "debug.keystore" ]; then
+            keytool -genkey -v -keystore debug.keystore -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
           fi
-          chmod +x gradlew
 
       - name: Build Android Debug APK
         working-directory: mobile/android
-        run: ./gradlew assembleDebug --no-daemon
+        run: gradle assembleDebug --stacktrace
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
