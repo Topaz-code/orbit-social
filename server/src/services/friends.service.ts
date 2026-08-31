@@ -1,5 +1,6 @@
 import { prisma } from '../config/database.js';
 import { mqttService } from './mqtt.service.js';
+import { isUserActiveOnline } from '../utils/presence.js';
 
 export const friendsService = {
   async getFriends(userId: string) {
@@ -38,11 +39,13 @@ export const friendsService = {
       const friend = f.requester_id === userId ? f.addressee : f.requester;
       return {
         ...friend,
+        is_online: isUserActiveOnline(friend),
         friendship_id: f.id,
         friends_since: f.created_at,
       };
     });
   },
+
 
   async getFriendRequests(userId: string) {
     // Incoming requests

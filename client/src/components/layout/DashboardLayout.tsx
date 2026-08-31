@@ -12,7 +12,11 @@ import { PostComposerModal } from '../feed/PostComposerModal.js';
 import { StoryUploadModal } from '../stories/StoryUploadModal.js';
 import { api } from '../../lib/api.js';
 
+import { useAuthStore } from '../../stores/authStore.js';
+import { API_BASE_URL } from '../../lib/constants.js';
+
 export const DashboardLayout: React.FC = () => {
+  const { user } = useAuthStore();
   // Activate MQTT listeners for notifications, calls, presence & fetch notifications
   useMQTT();
   useNotifications();
@@ -23,27 +27,45 @@ export const DashboardLayout: React.FC = () => {
 
   // Heartbeat & active presence ping so friend accounts see immediate online status
   useEffect(() => {
-    // Mark online immediately
+    if (!user?.id) return;
+
+    // Mark online immediately on mount
     api.post('/users/presence').catch(() => {});
 
-    // Periodic heartbeat every 60 seconds
+    // Periodic heartbeat every 20 seconds while user is active
     const interval = setInterval(() => {
-      api.post('/users/presence').catch(() => {});
-      api.get('/health').catch(() => {});
-    }, 60 * 1000);
+      if (document.visibilityState === 'visible') {
+        api.post('/users/presence').catch(() => {});
+      }
+    }, 20 * 1000);
 
-    const handleUnload = () => {
-      // Best-effort offline notification on tab close
-      navigator.sendBeacon?.('/api/users/presence');
+    // Immediately refresh presence when tab regains focus/visibility
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        api.post('/users/presence').catch(() => {});
+      }
     };
 
+    const handleUnload = () => {
+      // Immediate offline notification on tab/window close or navigation away
+      if (user?.id && navigator.sendBeacon) {
+        const beaconUrl = `${API_BASE_URL}/users/presence/offline?userId=${encodeURIComponent(user.id)}`;
+        navigator.sendBeacon(beaconUrl);
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
     window.addEventListener('beforeunload', handleUnload);
+    window.addEventListener('pagehide', handleUnload);
 
     return () => {
       clearInterval(interval);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('beforeunload', handleUnload);
+      window.removeEventListener('pagehide', handleUnload);
     };
-  }, []);
+  }, [user?.id]);
+
 
 
   return (

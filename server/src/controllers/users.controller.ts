@@ -1,6 +1,7 @@
-import { Response, NextFunction } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import { usersService } from '../services/users.service.js';
 import { AuthenticatedRequest } from '../types/index.js';
+
 
 export const usersController = {
   async getUserProfile(req: AuthenticatedRequest, res: Response, next: NextFunction) {
@@ -122,5 +123,18 @@ export const usersController = {
       res.status(500).json({ success: false, message: error.message });
     }
   },
+
+  async setPresenceOfflineBeacon(req: Request, res: Response, next: NextFunction) {
+    try {
+      const userId = (req.query.userId || req.body?.userId) as string;
+      if (userId && typeof userId === 'string' && userId.length > 5) {
+        await usersService.setPresence(userId, false);
+      }
+      res.json({ success: true });
+    } catch (error: any) {
+      res.status(200).json({ success: true });
+    }
+  },
 };
+
 

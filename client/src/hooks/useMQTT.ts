@@ -99,10 +99,14 @@ export function useMQTT() {
       if (payload?.userId) {
         updateUserPresence(payload.userId, payload.isOnline, payload.lastSeen);
         queryClient.invalidateQueries({ queryKey: ['friends'] });
+        queryClient.invalidateQueries({ queryKey: ['friends-list'] });
+        queryClient.invalidateQueries({ queryKey: ['suggested-friends'] });
         queryClient.invalidateQueries({ queryKey: ['profile'] });
         queryClient.invalidateQueries({ queryKey: ['users'] });
+        queryClient.invalidateQueries({ queryKey: ['conversations'] });
       }
     });
+
 
     return () => {
       unsubsNotif();

@@ -1,6 +1,8 @@
 import { prisma } from '../config/database.js';
 import { sanitizeUser, parseJson } from '../utils/helpers.js';
 import { publishMQTT } from '../config/mqtt.js';
+import { isUserActiveOnline } from '../utils/presence.js';
+
 
 
 export const usersService = {
@@ -347,6 +349,7 @@ export const usersService = {
       }
       return {
         ...u,
+        is_online: isUserActiveOnline(u),
         friendship_id: rel?.id,
         friendship_status: friendshipStatus,
       };
@@ -376,6 +379,39 @@ export const usersService = {
     publishMQTT(`orbit/user/${userId}/status`, statusPayload);
     publishMQTT('orbit/presence/global', statusPayload);
   },
+
+  async sweepStalePresence() {
+    try {
+      const cutoff = new Date(Date.now() - 60 * 1000);
+      const staleUsers = await prisma.user.findMany({
+        where: {
+          is_online: true,
+          last_seen: { lt: cutoff },
+        },
+        select: { id: true, last_seen: true },
+      });
+
+      if (staleUsers.length > 0) {
+        await prisma.user.updateMany({
+          where: { id: { in: staleUsers.map((u) => u.id) } },
+          data: { is_online: false },
+        });
+
+        for (const u of staleUsers) {
+          const payload = {
+            userId: u.id,
+            isOnline: false,
+            lastSeen: u.last_seen ? u.last_seen.toISOString() : new Date().toISOString(),
+          };
+          publishMQTT(`orbit/user/${u.id}/status`, payload);
+          publishMQTT('orbit/presence/global', payload);
+        }
+      }
+    } catch (err) {
+      // Ignore background sweep errors
+    }
+  },
 };
+
 
 
