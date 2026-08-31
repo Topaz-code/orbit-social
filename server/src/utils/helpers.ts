@@ -1,4 +1,5 @@
 import bcrypt from 'bcryptjs';
+import { isUserActiveOnline } from './presence.js';
 
 const SALT_ROUNDS = 12;
 
@@ -24,8 +25,10 @@ export function sanitizeUser(user: any) {
   const { password_hash, security_answer_hash, ...safeUser } = user;
   return {
     ...safeUser,
+    is_online: isUserActiveOnline(user),
     privacy_settings: typeof safeUser.privacy_settings === 'string'
       ? parseJson(safeUser.privacy_settings, {})
       : safeUser.privacy_settings,
   };
 }
+

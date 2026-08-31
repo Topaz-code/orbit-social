@@ -13,6 +13,8 @@ router.get('/suggested', authenticateToken, usersController.getSuggestedFriends)
 // Presence ping — client POSTs here on mount to mark online, DELETEs on unload to mark offline
 router.post('/presence', authenticateToken, usersController.setPresenceOnline);
 router.delete('/presence', authenticateToken, usersController.setPresenceOffline);
+router.post('/presence/offline', usersController.setPresenceOfflineBeacon);
+
 router.get('/:id', optionalAuthenticate, usersController.getUserProfile);
 router.put('/:id', authenticateToken, validateBody(updateProfileSchema), usersController.updateUserProfile);
 router.get('/:id/posts', optionalAuthenticate, usersController.getUserPosts);

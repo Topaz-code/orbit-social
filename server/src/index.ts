@@ -28,8 +28,12 @@ import notificationsRoutes from './routes/notifications.routes.js';
 import callsRoutes from './routes/calls.routes.js';
 import searchRoutes from './routes/search.routes.js';
 import uploadRoutes from './routes/upload.routes.js';
+import { usersService } from './services/users.service.js';
+
 import { auditService } from './services/audit.service.js';
+
 import rateLimit from 'express-rate-limit';
+
 
 const app = express();
 const server = http.createServer(app);
@@ -168,7 +172,15 @@ async function bootstrap() {
     // Start Story Auto-Cleanup Cron
     startStoryCleanupCron();
 
+
+
+    // Start Real-Time Presence Sweeper (Clears stale ghost sessions every 15s)
+    setInterval(() => {
+      usersService.sweepStalePresence();
+    }, 15 * 1000);
+
     // Start HTTP Server (Express + PeerJS on Port 5000)
+
     server.listen(PORT, () => {
       console.log(`
   🚀 Orbit Backend Server Running! (Hardened Security Applied)

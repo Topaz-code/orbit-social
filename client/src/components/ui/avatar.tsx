@@ -66,16 +66,19 @@ export const Avatar: React.FC<AvatarProps> = ({
         )}
       </div>
 
-      {showStatus && (
+      {(showStatus || isOnline !== undefined) && (
         <span
           className={cn(
-            'absolute bottom-0 right-0 rounded-full ring-[#171A1C]',
+            'absolute bottom-0 right-0 rounded-full ring-2 ring-[#171A1C] transition-colors duration-300',
             onlineIndicatorSizes[size],
-            isOnline ? 'bg-[#71877B]' : 'bg-[#7F8B86]'
+            isOnline
+              ? 'bg-[#52B788] shadow-[0_0_6px_rgba(82,183,136,0.5)]'
+              : 'bg-[#7F8B86]'
           )}
           title={isOnline ? 'Online' : 'Offline'}
         />
       )}
+
 
     </div>
   );
