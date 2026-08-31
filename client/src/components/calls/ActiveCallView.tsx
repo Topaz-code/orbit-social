@@ -3,17 +3,16 @@ import { useCallStore } from '../../stores/callStore.js';
 import { useCall } from '../../hooks/useCall.js';
 import { Avatar } from '../ui/avatar.js';
 import { formatCallDuration } from '../../lib/utils.js';
+import { Volume2, VolumeX } from 'lucide-react';
 import {
-  Mic,
-  MicOff,
-  Video,
-  VideoOff,
-  Volume2,
-  VolumeX,
-  PhoneOff,
-  ScreenShare,
-  ScreenShareOff,
-} from 'lucide-react';
+  ScreencastIcon,
+  SolidVideoIcon,
+  SolidVideoOffIcon,
+  SolidEndCallIcon,
+  SolidMicIcon,
+  SolidMicOffIcon,
+} from './CallIcons.js';
+
 
 export const ActiveCallView: React.FC = () => {
   const {
@@ -268,7 +267,7 @@ export const ActiveCallView: React.FC = () => {
               }`}
               title="Screencast"
             >
-              {isSharingScreen ? <ScreenShareOff className="h-5 w-5" /> : <ScreenShare className="h-5 w-5" />}
+              <ScreencastIcon className="h-5 w-5" />
             </button>
             <span className="text-xs font-medium text-[#D9D0B8]">Screencast</span>
           </div>
@@ -285,7 +284,11 @@ export const ActiveCallView: React.FC = () => {
               }`}
               title={activeCall.isVideoOff ? 'Start Video' : 'Stop Video'}
             >
-              {activeCall.isVideoOff ? <VideoOff className="h-5 w-5" /> : <Video className="h-5 w-5" />}
+              {activeCall.isVideoOff ? (
+                <SolidVideoOffIcon className="h-5 w-5" />
+              ) : (
+                <SolidVideoIcon className="h-5 w-5" />
+              )}
             </button>
             <span className="text-xs font-medium text-[#D9D0B8]">
               {activeCall.isVideoOff ? 'Start Video' : 'Stop Video'}
@@ -300,7 +303,7 @@ export const ActiveCallView: React.FC = () => {
               className="flex h-13 w-13 items-center justify-center rounded-full bg-[#B87568] hover:bg-[#C98679] text-[#171A1C] shadow-xl transition-transform active:scale-95 border border-[#B87568]"
               title="End Call"
             >
-              <PhoneOff className="h-5 w-5" />
+              <SolidEndCallIcon className="h-6 w-6" />
             </button>
             <span className="text-xs font-medium text-[#D9D0B8]">End Call</span>
           </div>
@@ -317,13 +320,18 @@ export const ActiveCallView: React.FC = () => {
               }`}
               title={activeCall.isMuted ? 'Unmute' : 'Mute'}
             >
-              {activeCall.isMuted ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
+              {activeCall.isMuted ? (
+                <SolidMicOffIcon className="h-5 w-5" />
+              ) : (
+                <SolidMicIcon className="h-5 w-5" />
+              )}
             </button>
             <span className="text-xs font-medium text-[#D9D0B8]">
               {activeCall.isMuted ? 'Unmute' : 'Mute'}
             </span>
           </div>
         </div>
+
       </div>
     </div>
   );
