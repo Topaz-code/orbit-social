@@ -13,7 +13,7 @@ export function authenticateToken(req: AuthenticatedRequest, res: Response, next
 
   const payload = verifyAccessToken(token);
   if (!payload) {
-    res.status(403).json({ success: false, message: 'Invalid or expired token' });
+    res.status(401).json({ success: false, message: 'Invalid or expired token' });
     return;
   }
 
