@@ -28,6 +28,7 @@ import groupsRoutes from './routes/groups.routes.js';
 import friendsRoutes from './routes/friends.routes.js';
 import notificationsRoutes from './routes/notifications.routes.js';
 import callsRoutes from './routes/calls.routes.js';
+import deviceRoutes from './routes/device.routes.js';
 import searchRoutes from './routes/search.routes.js';
 import uploadRoutes from './routes/upload.routes.js';
 import { usersService } from './services/users.service.js';
@@ -212,6 +213,7 @@ app.use('/api/groups', groupsRoutes);
 app.use('/api/friends', friendsRoutes);
 app.use('/api/notifications', notificationsRoutes);
 app.use('/api/calls', callsRoutes);
+app.use('/api/device', deviceRoutes);
 app.use('/api/search', searchRoutes);
 app.use('/api/upload', uploadRoutes);
 

@@ -1,5 +1,6 @@
 import { prisma } from '../config/database.js';
 import { mqttService } from './mqtt.service.js';
+import { pushService } from './push.service.js';
 
 export const callsService = {
   async getCallHistory(userId: string, limit = 30) {
@@ -88,6 +89,16 @@ export const callsService = {
       type: call.type,
       conversationId: call.conversation_id,
     });
+
+    // Notify mobile receiver via high-priority FCM Call Wakeup (OS lockscreen intent)
+    pushService.sendCallWakeup(data.receiver_id, {
+      callId: call.id,
+      callerId: caller.id,
+      callerName: caller.display_name,
+      callerAvatar: caller.avatar_url || '',
+      callType: call.type as 'voice' | 'video',
+      conversationId: call.conversation_id || '',
+    }).catch((err) => console.error('[Call] Push wakeup error:', err));
 
     return call;
   },

@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
@@ -39,6 +39,7 @@ model User {
   notifications         Notification[]
   calls_initiated       Call[]               @relation("CallInitiator")
   calls_received        Call[]               @relation("CallReceiver")
+  device_tokens         DeviceToken[]
 
   @@map("users")
 }
@@ -285,4 +286,19 @@ model Call {
   @@index([receiver_id])
   @@index([status])
   @@map("calls")
+}
+
+model DeviceToken {
+  id         String   @id @default(uuid())
+  user_id    String
+  token      String   @unique
+  platform   String   @default("android") // android, ios, web
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  // Relations
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id])
+  @@map("device_tokens")
 }
