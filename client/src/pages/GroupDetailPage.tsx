@@ -85,30 +85,30 @@ export const GroupDetailPage: React.FC = () => {
   const isFull = (group.member_count || 0) >= MAX_GROUP_MEMBERS;
 
   return (
-    <div className="max-w-4xl mx-auto min-w-0">
+    <div className="max-w-4xl mx-auto min-w-0 text-[#D9D0B8]">
       {/* Back to groups */}
       <button
         type="button"
         onClick={() => navigate('/groups')}
-        className="flex items-center gap-1 text-xs font-semibold text-slate-500 hover:text-slate-900 dark:hover:text-slate-200 mb-4"
+        className="flex items-center gap-1 text-xs font-semibold text-[#A8AAA0] hover:text-[#D9D0B8] mb-4"
       >
         <ArrowLeft className="h-4 w-4" />
         <span>Back to Groups</span>
       </button>
 
       {/* Group Banner & Header */}
-      <div className="rounded-3xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden shadow-xs mb-6">
-        <div className="h-48 sm:h-56 w-full bg-slate-900 overflow-hidden relative">
+      <div className="rounded-3xl border border-[#3A4B4D] bg-[#202A2D] overflow-hidden shadow-xs mb-6">
+        <div className="h-48 sm:h-56 w-full bg-[#171A1C] overflow-hidden relative">
           <img
             src={group.cover_url}
             alt={group.name}
-            className="h-full w-full object-cover"
+            className="h-full w-full object-cover opacity-90"
           />
-          <div className="absolute top-4 right-4 flex items-center gap-1.5 bg-black/60 backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold text-white uppercase tracking-wider">
+          <div className="absolute top-4 right-4 flex items-center gap-1.5 bg-black/70 backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold text-white uppercase tracking-wider">
             {group.privacy === 'public' ? (
-              <Globe className="h-3.5 w-3.5 text-emerald-400" />
+              <Globe className="h-3.5 w-3.5 text-[#71877B]" />
             ) : (
-              <Lock className="h-3.5 w-3.5 text-amber-400" />
+              <Lock className="h-3.5 w-3.5 text-[#D0A56A]" />
             )}
             <span>{group.privacy} Group</span>
           </div>
@@ -120,7 +120,7 @@ export const GroupDetailPage: React.FC = () => {
               src={group.avatar_url}
               fallback={group.name}
               size="xl"
-              className="ring-4 ring-white dark:ring-slate-900 shadow-xl"
+              className="ring-4 ring-[#202A2D] shadow-xl"
             />
 
             <div className="flex items-center gap-2">
@@ -130,7 +130,7 @@ export const GroupDetailPage: React.FC = () => {
                   size="sm"
                   onClick={() => leaveMutation.mutate()}
                   isLoading={leaveMutation.isPending}
-                  className="hover:text-rose-500 hover:border-rose-500"
+                  className="hover:text-[#B87568] hover:border-[#B87568] border-[#3A4B4D] text-[#D9D0B8]"
                 >
                   <LogOut className="h-4 w-4 mr-1.5" />
                   <span>Leave Group</span>
@@ -141,8 +141,9 @@ export const GroupDetailPage: React.FC = () => {
                   onClick={() => joinMutation.mutate()}
                   isLoading={joinMutation.isPending}
                   disabled={isFull}
+                  className="bg-[#D0A56A] text-[#171A1C] hover:bg-[#E0B779] rounded-[10px]"
                 >
-                  <UserPlus className="h-4 w-4 mr-1.5" />
+                  <UserPlus className="h-4 w-4 mr-1.5 stroke-[2.5]" />
                   <span>{isFull ? 'Group Full' : 'Join Group'}</span>
                 </Button>
               )}
@@ -151,7 +152,7 @@ export const GroupDetailPage: React.FC = () => {
 
           <div className="space-y-2">
             <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-black text-slate-900 dark:text-slate-100 tracking-tight">
+              <h1 className="text-2xl font-bold text-[#D9D0B8] tracking-tight">
                 {group.name}
               </h1>
               <Badge variant={isFull ? 'destructive' : 'cyan'}>
@@ -159,12 +160,13 @@ export const GroupDetailPage: React.FC = () => {
               </Badge>
             </div>
 
-            <p className="text-sm text-slate-700 dark:text-slate-300 max-w-2xl leading-relaxed">
+            <p className="text-sm text-[#A8AAA0] max-w-2xl leading-relaxed">
               {group.description || 'No description provided.'}
             </p>
           </div>
         </div>
       </div>
+
 
       {/* Group Feed & Members Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>

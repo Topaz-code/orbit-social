@@ -254,30 +254,31 @@ export const ProfilePage: React.FC = () => {
 
         {/* About Tab */}
         <TabsContent value="about" className="mt-6">
-          <div className="rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-xs space-y-4">
-            <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">About {profile.display_name}</h3>
-            <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-line">
+          <div className="rounded-2xl border border-[#3A4B4D] bg-[#202A2D] p-6 shadow-xs space-y-4 text-[#D9D0B8]">
+            <h3 className="text-base font-bold text-[#D9D0B8]">About {profile.display_name}</h3>
+            <p className="text-sm font-serif text-[#D9D0B8] leading-relaxed whitespace-pre-line">
               {profile.bio || 'No bio provided.'}
             </p>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-slate-100 dark:border-slate-800 text-xs">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-[#3A4B4D] text-xs">
               <div>
-                <span className="text-slate-400 font-medium">Username:</span>
-                <p className="font-bold text-slate-900 dark:text-slate-100">@{profile.username}</p>
+                <span className="text-[#A8AAA0] font-medium">Username:</span>
+                <p className="font-bold text-[#D9D0B8]">@{profile.username}</p>
               </div>
               <div>
-                <span className="text-slate-400 font-medium">Email:</span>
-                <p className="font-bold text-slate-900 dark:text-slate-100">{profile.email}</p>
+                <span className="text-[#A8AAA0] font-medium">Email:</span>
+                <p className="font-bold text-[#D9D0B8]">{profile.email}</p>
               </div>
               {profile.phone && (
                 <div>
-                  <span className="text-slate-400 font-medium">Phone:</span>
-                  <p className="font-bold text-slate-900 dark:text-slate-100">{profile.phone}</p>
+                  <span className="text-[#A8AAA0] font-medium">Phone:</span>
+                  <p className="font-bold text-[#D9D0B8]">{profile.phone}</p>
                 </div>
               )}
             </div>
           </div>
         </TabsContent>
+
 
         {/* Friends Tab */}
         <TabsContent value="friends" className="mt-6">

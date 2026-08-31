@@ -46,18 +46,18 @@ export const NewCallModal: React.FC<NewCallModalProps> = ({ isOpen, onClose }) =
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl dark:bg-slate-900">
+      <div className="w-full max-w-md rounded-2xl bg-[#202A2D] border border-[#3A4B4D] p-6 shadow-2xl text-[#D9D0B8]">
         {/* Header */}
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">New Call</h2>
+          <h2 className="text-lg font-bold text-[#D9D0B8]">New Call</h2>
           <button
             onClick={onClose}
-            className="flex h-8 w-8 items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-300"
+            className="flex h-8 w-8 items-center justify-center rounded-[8px] text-[#7F8B86] transition-colors hover:bg-[#2B3940] hover:text-[#D9D0B8]"
             aria-label="Close"
           >
             <X className="h-5 w-5" />
@@ -66,32 +66,32 @@ export const NewCallModal: React.FC<NewCallModalProps> = ({ isOpen, onClose }) =
 
         {/* Search */}
         <div className="relative mb-4">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#7F8B86]" />
           <input
             type="text"
             placeholder="Search friends..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2 pl-9 pr-4 text-sm text-slate-900 placeholder-slate-400 outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500 dark:focus:border-sky-500 dark:focus:ring-sky-900"
+            className="w-full rounded-[10px] border border-[#3A4B4D] bg-[#2B3940] py-2 pl-9 pr-4 text-sm text-[#D9D0B8] placeholder-[#7F8B86] outline-none focus:ring-2 focus:ring-[#496D6B]"
           />
         </div>
 
         {/* Friends list */}
-        <div className="max-h-80 overflow-y-auto">
+        <div className="max-h-80 overflow-y-auto pr-1">
           {isLoading ? (
             <div className="space-y-3">
               {[1, 2, 3].map((n) => (
-                <div key={n} className="flex animate-pulse items-center gap-3 rounded-xl p-2">
-                  <div className="h-10 w-10 shrink-0 rounded-full bg-slate-200 dark:bg-slate-700" />
+                <div key={n} className="flex animate-pulse items-center gap-3 rounded-xl p-2 bg-[#2B3940]/50">
+                  <div className="h-10 w-10 shrink-0 rounded-full bg-[#2B3940]" />
                   <div className="flex-1 space-y-2">
-                    <div className="h-3 w-32 rounded bg-slate-200 dark:bg-slate-700" />
-                    <div className="h-2.5 w-20 rounded bg-slate-200 dark:bg-slate-700" />
+                    <div className="h-3 w-32 rounded bg-[#2B3940]" />
+                    <div className="h-2.5 w-20 rounded bg-[#2B3940]" />
                   </div>
                 </div>
               ))}
             </div>
           ) : filtered.length === 0 ? (
-            <div className="py-10 text-center text-sm text-slate-400">
+            <div className="py-10 text-center text-sm text-[#A8AAA0]">
               {search ? 'No friends match your search.' : 'No friends yet.'}
             </div>
           ) : (
@@ -99,24 +99,24 @@ export const NewCallModal: React.FC<NewCallModalProps> = ({ isOpen, onClose }) =
               {filtered.map((friend) => (
                 <li
                   key={friend.id}
-                  className="flex items-center gap-3 rounded-xl p-2 transition-colors hover:bg-slate-50 dark:hover:bg-slate-800"
+                  className="flex items-center gap-3 rounded-[10px] p-2 transition-colors hover:bg-[#2B3940]"
                 >
                   {/* Avatar */}
                   <div className="relative shrink-0">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-sky-500 text-sm font-bold uppercase text-white">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#2B3940] border border-[#3A4B4D] text-sm font-bold uppercase text-[#D9D0B8]">
                       {friend.display_name.charAt(0)}
                     </div>
                     {friend.is_online && (
-                      <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border-2 border-white bg-emerald-500 dark:border-slate-900" />
+                      <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border-2 border-[#202A2D] bg-[#71877B]" />
                     )}
                   </div>
 
                   {/* Name / username */}
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-semibold text-slate-900 dark:text-slate-100">
+                    <p className="truncate text-sm font-semibold text-[#D9D0B8]">
                       {friend.display_name}
                     </p>
-                    <p className="truncate text-xs text-slate-400">@{friend.username}</p>
+                    <p className="truncate text-xs text-[#A8AAA0]">@{friend.username}</p>
                   </div>
 
                   {/* Call buttons */}
@@ -124,14 +124,14 @@ export const NewCallModal: React.FC<NewCallModalProps> = ({ isOpen, onClose }) =
                     <button
                       onClick={() => handleCall(friend, 'voice')}
                       title="Voice call"
-                      className="flex h-9 w-9 items-center justify-center rounded-full text-emerald-600 transition-colors hover:bg-emerald-50 dark:hover:bg-emerald-950/50"
+                      className="flex h-9 w-9 items-center justify-center rounded-[8px] text-[#71877B] transition-colors hover:bg-[#2B3940] hover:text-[#82998C]"
                     >
                       <Phone className="h-4 w-4" />
                     </button>
                     <button
                       onClick={() => handleCall(friend, 'video')}
                       title="Video call"
-                      className="flex h-9 w-9 items-center justify-center rounded-full text-sky-600 transition-colors hover:bg-sky-50 dark:hover:bg-sky-950/50"
+                      className="flex h-9 w-9 items-center justify-center rounded-[8px] text-[#496D6B] transition-colors hover:bg-[#2B3940] hover:text-[#5A7D78]"
                     >
                       <Video className="h-4 w-4" />
                     </button>
@@ -145,3 +145,4 @@ export const NewCallModal: React.FC<NewCallModalProps> = ({ isOpen, onClose }) =
     </div>
   );
 };
+

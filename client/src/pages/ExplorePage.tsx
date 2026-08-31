@@ -75,34 +75,34 @@ export const ExplorePage: React.FC = () => {
   });
 
   return (
-    <div className="max-w-3xl mx-auto min-w-0 pb-12">
+    <div className="max-w-3xl mx-auto min-w-0 pb-12 text-[#D9D0B8]">
       {/* Header Banner */}
-      <div className="flex items-center gap-3 mb-6 p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs">
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400">
+      <div className="flex items-center gap-3 mb-6 p-4 rounded-2xl bg-[#202A2D] border border-[#3A4B4D] shadow-xs">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#2B3940] border border-[#3A4B4D] text-[#D0A56A]">
           <Compass className="h-5 w-5" />
         </div>
         <div className="min-w-0 flex-1">
-          <h1 className="text-lg font-black text-slate-900 dark:text-slate-100">Explore Orbit</h1>
-          <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
+          <h1 className="text-lg font-bold text-[#D9D0B8]">Explore Orbit</h1>
+          <p className="text-xs text-[#A8AAA0] truncate">
             Discover new people in your network and public updates across Orbit.
           </p>
         </div>
       </div>
 
       {/* Tabs Switcher */}
-      <div className="flex items-center gap-2 p-1 bg-slate-100 dark:bg-slate-800/60 rounded-xl mb-6 border border-slate-200/60 dark:border-slate-800">
+      <div className="flex items-center gap-2 p-1 bg-[#202A2D] rounded-xl mb-6 border border-[#3A4B4D]">
         <button
           onClick={() => setSearchParams({ tab: 'people' })}
-          className={`flex-1 flex items-center justify-center gap-2 py-2 px-4 rounded-lg text-xs font-bold transition-all ${
+          className={`flex-1 flex items-center justify-center gap-2 py-2 px-4 rounded-[8px] text-xs font-bold transition-all ${
             activeTab === 'people'
-              ? 'bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-xs'
-              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+              ? 'bg-[#496D6B] text-[#D9D0B8] shadow-xs'
+              : 'text-[#A8AAA0] hover:text-[#D9D0B8]'
           }`}
         >
           <Users className="h-4 w-4" />
           <span>Discover People</span>
           {discoverUsers.length > 0 && (
-            <span className="ml-1 px-1.5 py-0.5 rounded-full text-[10px] bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 font-semibold">
+            <span className="ml-1 px-1.5 py-0.5 rounded-full text-[10px] bg-[#2B3940] text-[#D9D0B8] font-semibold border border-[#3A4B4D]">
               {discoverUsers.length}
             </span>
           )}
@@ -110,10 +110,10 @@ export const ExplorePage: React.FC = () => {
 
         <button
           onClick={() => setSearchParams({ tab: 'posts' })}
-          className={`flex-1 flex items-center justify-center gap-2 py-2 px-4 rounded-lg text-xs font-bold transition-all ${
+          className={`flex-1 flex items-center justify-center gap-2 py-2 px-4 rounded-[8px] text-xs font-bold transition-all ${
             activeTab === 'posts'
-              ? 'bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-xs'
-              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+              ? 'bg-[#496D6B] text-[#D9D0B8] shadow-xs'
+              : 'text-[#A8AAA0] hover:text-[#D9D0B8]'
           }`}
         >
           <Newspaper className="h-4 w-4" />
@@ -126,26 +126,26 @@ export const ExplorePage: React.FC = () => {
         <div className="space-y-4">
           {/* Search bar */}
           <div className="relative mb-4">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#7F8B86]" />
             <input
               type="text"
               placeholder="Search by name, username, or interests..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-xs text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all shadow-xs"
+              className="w-full pl-10 pr-4 py-2.5 rounded-[10px] bg-[#2B3940] border border-[#3A4B4D] text-xs text-[#D9D0B8] placeholder:text-[#7F8B86] focus:outline-none focus:ring-2 focus:ring-[#496D6B] transition-all shadow-xs"
             />
           </div>
 
           {isUsersLoading ? (
             <div className="space-y-3">
               {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 flex items-center gap-3 animate-pulse">
-                  <div className="h-12 w-12 rounded-full bg-slate-200 dark:bg-slate-800" />
+                <div key={i} className="p-4 rounded-2xl bg-[#202A2D] border border-[#3A4B4D] flex items-center gap-3 animate-pulse">
+                  <div className="h-12 w-12 rounded-full bg-[#2B3940]" />
                   <div className="flex-1 space-y-2">
-                    <div className="h-4 w-32 rounded bg-slate-200 dark:bg-slate-800" />
-                    <div className="h-3 w-48 rounded bg-slate-200 dark:bg-slate-800" />
+                    <div className="h-4 w-32 rounded bg-[#2B3940]" />
+                    <div className="h-3 w-48 rounded bg-[#2B3940]" />
                   </div>
-                  <div className="h-8 w-24 rounded-xl bg-slate-200 dark:bg-slate-800" />
+                  <div className="h-8 w-24 rounded-xl bg-[#2B3940]" />
                 </div>
               ))}
             </div>
@@ -159,7 +159,7 @@ export const ExplorePage: React.FC = () => {
               {filteredUsers.map((user) => (
                 <div
                   key={user.id}
-                  className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 transition-all shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+                  className="p-4 rounded-2xl bg-[#202A2D] border border-[#3A4B4D] hover:border-[#496D6B]/50 transition-all shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4"
                 >
                   <div className="flex items-center gap-3 min-w-0">
                     <NavLink to={`/profile/${user.id}`} className="shrink-0">
@@ -174,13 +174,13 @@ export const ExplorePage: React.FC = () => {
                     <div className="min-w-0 flex-1">
                       <NavLink
                         to={`/profile/${user.id}`}
-                        className="text-sm font-bold text-slate-900 dark:text-slate-100 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors flex items-center gap-1.5 truncate"
+                        className="text-sm font-bold text-[#D9D0B8] hover:text-[#D0A56A] transition-colors flex items-center gap-1.5 truncate"
                       >
                         <span className="truncate">{user.display_name}</span>
                       </NavLink>
-                      <p className="text-xs text-slate-400 truncate">@{user.username}</p>
+                      <p className="text-xs text-[#A8AAA0] truncate">@{user.username}</p>
                       {user.bio && (
-                        <p className="text-xs text-slate-600 dark:text-slate-400 mt-1 line-clamp-1">
+                        <p className="text-xs text-[#A8AAA0] mt-1 line-clamp-1">
                           {user.bio}
                         </p>
                       )}
@@ -194,7 +194,7 @@ export const ExplorePage: React.FC = () => {
                         size="sm"
                         onClick={() => sendRequestMutation.mutate(user.id)}
                         disabled={sendRequestMutation.isPending}
-                        className="flex items-center gap-1.5 px-3.5 py-1.5 h-8 text-xs font-semibold rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs"
+                        className="flex items-center gap-1.5 px-3.5 py-1.5 h-8 text-xs font-semibold rounded-[10px] bg-[#D0A56A] hover:bg-[#E0B779] text-[#171A1C] shadow-xs"
                       >
                         <UserPlus className="h-3.5 w-3.5" />
                         <span>Add Friend</span>
@@ -202,8 +202,8 @@ export const ExplorePage: React.FC = () => {
                     )}
 
                     {user.friendship_status === 'pending_sent' && (
-                      <div className="flex items-center gap-1.5 px-3 py-1.5 h-8 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-500 text-xs font-medium border border-slate-200 dark:border-slate-700">
-                        <Clock className="h-3.5 w-3.5 text-amber-500" />
+                      <div className="flex items-center gap-1.5 px-3 py-1.5 h-8 rounded-[10px] bg-[#2B3940] text-[#A8AAA0] text-xs font-medium border border-[#3A4B4D]">
+                        <Clock className="h-3.5 w-3.5 text-[#D0A56A]" />
                         <span>Requested</span>
                       </div>
                     )}
@@ -213,7 +213,7 @@ export const ExplorePage: React.FC = () => {
                         size="sm"
                         onClick={() => acceptRequestMutation.mutate(user.friendship_id!)}
                         disabled={acceptRequestMutation.isPending}
-                        className="flex items-center gap-1.5 px-3.5 py-1.5 h-8 text-xs font-semibold rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white"
+                        className="flex items-center gap-1.5 px-3.5 py-1.5 h-8 text-xs font-semibold rounded-[10px] bg-[#71877B] hover:bg-[#82998C] text-[#171A1C]"
                       >
                         <Check className="h-3.5 w-3.5" />
                         <span>Accept</span>
@@ -222,7 +222,7 @@ export const ExplorePage: React.FC = () => {
 
                     {user.friendship_status === 'friends' && (
                       <div className="flex items-center gap-2">
-                        <span className="flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 rounded-lg border border-emerald-200 dark:border-emerald-800">
+                        <span className="flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-[#71877B] bg-[#71877B]/15 rounded-[8px] border border-[#71877B]/30">
                           <Check className="h-3 w-3" />
                           <span>Friends</span>
                         </span>
@@ -230,7 +230,7 @@ export const ExplorePage: React.FC = () => {
                           variant="ghost"
                           size="sm"
                           onClick={() => navigate('/messages')}
-                          className="h-8 px-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
+                          className="h-8 px-2.5 rounded-[10px] text-[#D9D0B8] hover:bg-[#2B3940]"
                         >
                           <MessageSquare className="h-3.5 w-3.5" />
                         </Button>
@@ -243,6 +243,7 @@ export const ExplorePage: React.FC = () => {
           )}
         </div>
       )}
+
 
       {/* TAB 2: PUBLIC POSTS */}
       {activeTab === 'posts' && (

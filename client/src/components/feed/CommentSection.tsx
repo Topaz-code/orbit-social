@@ -70,12 +70,12 @@ export const CommentSection: React.FC<CommentSectionProps> = ({
   };
 
   return (
-    <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800 animate-fade-in">
+    <div className="mt-4 pt-4 border-t border-[#3A4B4D] animate-fade-in">
       {/* Input Box */}
       {user && (
         <form onSubmit={handleSubmit} className="mb-4">
           {replyingToUser && (
-            <div className="flex items-center justify-between text-[11px] text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/40 px-3 py-1 rounded-t-lg">
+            <div className="flex items-center justify-between text-[11px] text-[#D0A56A] bg-[#2B3940] border border-b-0 border-[#3A4B4D] px-3 py-1 rounded-t-[10px]">
               <span>Replying to @{replyingToUser}</span>
               <button
                 type="button"
@@ -83,7 +83,7 @@ export const CommentSection: React.FC<CommentSectionProps> = ({
                   setReplyToId(null);
                   setReplyingToUser(null);
                 }}
-                className="hover:underline font-bold"
+                className="hover:underline font-bold text-[#A8AAA0]"
               >
                 Cancel
               </button>
@@ -101,12 +101,12 @@ export const CommentSection: React.FC<CommentSectionProps> = ({
                 placeholder="Write a comment..."
                 value={commentText}
                 onChange={(e) => setCommentText(e.target.value)}
-                className="w-full h-10 rounded-full border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800/80 pl-4 pr-10 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full h-10 rounded-[10px] border border-[#3A4B4D] bg-[#2B3940] pl-4 pr-10 text-sm text-[#D9D0B8] placeholder:text-[#7F8B86] focus:outline-none focus:ring-2 focus:ring-[#496D6B]"
               />
               <button
                 type="submit"
                 disabled={!commentText.trim() || addCommentMutation.isPending}
-                className="absolute right-1.5 top-1/2 -translate-y-1/2 flex h-7 w-7 items-center justify-center rounded-full bg-indigo-600 text-white disabled:opacity-40 hover:bg-indigo-700 transition-colors"
+                className="absolute right-1.5 top-1/2 -translate-y-1/2 flex h-7 w-7 items-center justify-center rounded-[8px] bg-[#D0A56A] text-[#171A1C] disabled:opacity-40 hover:bg-[#E0B779] transition-colors"
               >
                 <Send className="h-3.5 w-3.5" />
               </button>
@@ -117,9 +117,9 @@ export const CommentSection: React.FC<CommentSectionProps> = ({
 
       {/* Comments List */}
       {isLoading ? (
-        <div className="py-2 text-center text-xs text-slate-400">Loading comments...</div>
+        <div className="py-2 text-center text-xs text-[#7F8B86]">Loading comments...</div>
       ) : comments.length === 0 ? (
-        <div className="py-3 text-center text-xs text-slate-400">
+        <div className="py-3 text-center text-xs text-[#7F8B86]">
           No comments yet. Be the first to start the conversation!
         </div>
       ) : (
@@ -134,28 +134,28 @@ export const CommentSection: React.FC<CommentSectionProps> = ({
                   size="sm"
                 />
                 <div className="flex-1 min-w-0">
-                  <div className="inline-block rounded-2xl bg-slate-100 dark:bg-slate-800/70 px-3.5 py-2 text-left max-w-full">
+                  <div className="inline-block rounded-2xl bg-[#2B3940] border border-[#3A4B4D] px-3.5 py-2 text-left max-w-full">
                     <div className="flex items-center gap-2">
-                      <span className="text-xs font-bold text-slate-900 dark:text-slate-100">
+                      <span className="text-xs font-bold text-[#D9D0B8]">
                         {comment.user.display_name}
                       </span>
-                      <span className="text-[10px] text-slate-400">
+                      <span className="text-[10px] text-[#A8AAA0]">
                         {formatRelativeTime(comment.created_at)}
                       </span>
                     </div>
-                    <p className="text-xs text-slate-700 dark:text-slate-300 mt-0.5 break-words">
+                    <p className="text-xs text-[#D9D0B8] mt-0.5 break-words">
                       {comment.content}
                     </p>
                   </div>
 
-                  <div className="flex items-center gap-3 mt-1 ml-2 text-[11px] font-medium text-slate-500">
+                  <div className="flex items-center gap-3 mt-1 ml-2 text-[11px] font-medium text-[#A8AAA0]">
                     <button
                       type="button"
                       onClick={() => {
                         setReplyToId(comment.id);
                         setReplyingToUser(comment.user.username);
                       }}
-                      className="hover:text-indigo-600 dark:hover:text-indigo-400 flex items-center gap-1"
+                      className="hover:text-[#D0A56A] flex items-center gap-1 transition-colors"
                     >
                       <CornerDownRight className="h-3 w-3" /> Reply
                     </button>
@@ -164,7 +164,7 @@ export const CommentSection: React.FC<CommentSectionProps> = ({
                       <button
                         type="button"
                         onClick={() => deleteCommentMutation.mutate(comment.id)}
-                        className="hover:text-rose-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="hover:text-[#B87568] opacity-0 group-hover:opacity-100 transition-opacity text-[#7F8B86]"
                         title="Delete comment"
                       >
                         <Trash2 className="h-3 w-3" />
@@ -176,7 +176,7 @@ export const CommentSection: React.FC<CommentSectionProps> = ({
 
               {/* Nested Replies (1 Level Deep) */}
               {comment.replies && comment.replies.length > 0 && (
-                <div className="ml-8 space-y-2 border-l-2 border-slate-100 dark:border-slate-800 pl-3">
+                <div className="ml-8 space-y-2 border-l-2 border-[#3A4B4D] pl-3">
                   {comment.replies.map((reply) => (
                     <div key={reply.id} className="flex items-start gap-2 group">
                       <Avatar
@@ -185,16 +185,16 @@ export const CommentSection: React.FC<CommentSectionProps> = ({
                         size="xs"
                       />
                       <div className="flex-1 min-w-0">
-                        <div className="inline-block rounded-2xl bg-slate-100/70 dark:bg-slate-800/50 px-3 py-1.5 text-left max-w-full">
+                        <div className="inline-block rounded-2xl bg-[#2B3940]/70 border border-[#3A4B4D] px-3 py-1.5 text-left max-w-full">
                           <div className="flex items-center gap-2">
-                            <span className="text-xs font-bold text-slate-900 dark:text-slate-100">
+                            <span className="text-xs font-bold text-[#D9D0B8]">
                               {reply.user.display_name}
                             </span>
-                            <span className="text-[10px] text-slate-400">
+                            <span className="text-[10px] text-[#A8AAA0]">
                               {formatRelativeTime(reply.created_at)}
                             </span>
                           </div>
-                          <p className="text-xs text-slate-700 dark:text-slate-300 mt-0.5 break-words">
+                          <p className="text-xs text-[#D9D0B8] mt-0.5 break-words">
                             {reply.content}
                           </p>
                         </div>
@@ -203,7 +203,7 @@ export const CommentSection: React.FC<CommentSectionProps> = ({
                             <button
                               type="button"
                               onClick={() => deleteCommentMutation.mutate(reply.id)}
-                              className="text-[10px] text-slate-400 hover:text-rose-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                              className="text-[10px] text-[#7F8B86] hover:text-[#B87568] opacity-0 group-hover:opacity-100 transition-opacity"
                             >
                               Delete
                             </button>
@@ -218,6 +218,7 @@ export const CommentSection: React.FC<CommentSectionProps> = ({
           ))}
         </div>
       )}
+
     </div>
   );
 };

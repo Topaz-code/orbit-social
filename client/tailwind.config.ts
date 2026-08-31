@@ -6,36 +6,49 @@ export default {
   theme: {
     extend: {
       colors: {
-        orbit: {
-          50: '#eef2ff',
-          100: '#e0e7ff',
-          200: '#c7d2fe',
-          300: '#a5b4fc',
-          400: '#818cf8',
-          500: '#6366f1',
-          600: '#4f46e5',
-          700: '#4338ca',
-          800: '#3730a3',
-          900: '#312e81',
-          gradientStart: '#6366f1',
-          gradientEnd: '#8b5cf6',
-        },
+        // Brand Identity Palette Tokens
+        page: '#171A1C',
         surface: {
-          light: '#ffffff',
-          dark: '#1e293b',
-          mutedLight: '#f1f5f9',
-          mutedDark: '#0f172a',
+          DEFAULT: '#202A2D',
+          raised: '#2B3940',
+          hover: '#314048',
+          border: '#3A4B4D',
         },
-        accent: {
-          cyan: '#06b6d4',
-          emerald: '#10b981',
-          rose: '#f43f5e',
-          amber: '#f59e0b',
+        brand: {
+          teal: '#496D6B',
+          tealHover: '#5A7D78',
+          sage: '#71877B',
+          sageHover: '#82998C',
+          amber: '#D0A56A',
+          amberHover: '#E0B779',
+          danger: '#B87568',
+          dangerHover: '#C98679',
+          topNav: '#141819',
+        },
+        text: {
+          primary: '#D9D0B8',
+          secondary: '#A8AAA0',
+          muted: '#7F8B86',
+        },
+        orbit: {
+          50: '#F5F3ED',
+          100: '#E8E3D5',
+          200: '#D9D0B8',
+          300: '#C7BC9F',
+          400: '#B5A886',
+          500: '#D0A56A', // Primary Amber
+          600: '#B88F55',
+          700: '#496D6B', // Teal Accent
+          800: '#2B3940',
+          900: '#202A2D',
+          950: '#171A1C',
         },
       },
       fontFamily: {
-        sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+        sans: ['Manrope', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+        serif: ['Lora', 'Georgia', 'serif'],
       },
+
       animation: {
         'heart-burst': 'heartBurst 0.6s cubic-bezier(0.17, 0.89, 0.32, 1.49) forwards',
         'story-spin': 'storySpin 4s linear infinite',

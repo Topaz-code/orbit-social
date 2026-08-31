@@ -54,8 +54,8 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
         <div
           className={`rounded-2xl px-4 py-2.5 shadow-xs text-sm break-words ${
             isMine
-              ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-br-xs'
-              : 'bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 border border-slate-200/80 dark:border-slate-700/80 rounded-bl-xs'
+              ? 'bg-[#496D6B] text-[#D9D0B8] rounded-br-xs'
+              : 'bg-[#2B3940] text-[#D9D0B8] border border-[#3A4B4D] rounded-bl-xs'
           }`}
         >
           {/* Replied Message Preview */}
@@ -63,8 +63,8 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
             <div
               className={`mb-2 rounded-xl p-2 text-xs border-l-3 ${
                 isMine
-                  ? 'bg-black/20 border-white/80 text-white/90'
-                  : 'bg-slate-100 dark:bg-slate-900 border-indigo-500 text-slate-700 dark:text-slate-300'
+                  ? 'bg-black/20 border-[#D0A56A] text-[#D9D0B8]/90'
+                  : 'bg-[#202A2D] border-[#496D6B] text-[#D9D0B8]'
               }`}
             >
               <p className="font-bold text-[11px] leading-tight">
@@ -108,15 +108,15 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
                     type="button"
                     onClick={toggleAudio}
                     className={`flex h-8 w-8 items-center justify-center rounded-full ${
-                      isMine ? 'bg-white text-indigo-600' : 'bg-indigo-600 text-white'
+                      isMine ? 'bg-[#171A1C] text-[#D0A56A]' : 'bg-[#496D6B] text-[#D9D0B8]'
                     }`}
                   >
                     {isPlayingAudio ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4 ml-0.5" />}
                   </button>
                   <div className="flex-1">
-                    <div className="h-1.5 w-full rounded-full bg-slate-300 dark:bg-slate-700 overflow-hidden">
+                    <div className="h-1.5 w-full rounded-full bg-black/20 overflow-hidden">
                       <div
-                        className={`h-full ${isMine ? 'bg-white' : 'bg-indigo-600'} ${
+                        className={`h-full ${isMine ? 'bg-[#D0A56A]' : 'bg-[#D0A56A]'} ${
                           isPlayingAudio ? 'animate-pulse' : ''
                         }`}
                         style={{ width: isPlayingAudio ? '100%' : '30%' }}
@@ -132,7 +132,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
                   href={getMediaUrl(message.media_url)}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-2 p-2 rounded-lg bg-black/10 hover:bg-black/20 transition-colors"
+                  className="flex items-center gap-2 p-2 rounded-lg bg-black/15 hover:bg-black/25 transition-colors text-[#D9D0B8]"
                 >
                   <FileText className="h-5 w-5" />
                   <span className="text-xs underline truncate">Download File</span>
@@ -149,14 +149,14 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
           {/* Timestamp & Read Receipt */}
           <div
             className={`flex items-center justify-end gap-1 mt-1 text-[10px] ${
-              isMine ? 'text-indigo-100' : 'text-slate-400'
+              isMine ? 'text-[#D9D0B8]/70' : 'text-[#A8AAA0]'
             }`}
           >
             <span>{formatChatTime(message.created_at)}</span>
             {isMine && (
               <span>
               {message.is_read ? (
-                <span title="Read"><CheckCheck className="h-3.5 w-3.5 text-cyan-300" /></span>
+                <span title="Read"><CheckCheck className="h-3.5 w-3.5 text-[#D0A56A]" /></span>
               ) : (
                 <span title="Sent"><Check className="h-3.5 w-3.5 opacity-70" /></span>
               )}
@@ -164,6 +164,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
             )}
           </div>
         </div>
+
 
         {/* Options / Reply Menu on Hover */}
         <div className="opacity-0 group-hover:opacity-100 transition-opacity relative z-30">

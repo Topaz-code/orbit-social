@@ -45,15 +45,15 @@ export const ChatView: React.FC<ChatViewProps> = ({ conversation, onBack }) => {
   };
 
   return (
-    <div className="flex flex-col h-full bg-slate-50/50 dark:bg-slate-950/40">
+    <div className="flex flex-col h-full bg-[#171A1C]">
       {/* Chat Top Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200/80 dark:border-slate-800/80 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-[#3A4B4D] bg-[#141819]">
         <div className="flex items-center gap-3">
           {onBack && (
             <button
               type="button"
               onClick={onBack}
-              className="lg:hidden p-1.5 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800"
+              className="lg:hidden p-1.5 rounded-lg text-[#A8AAA0] hover:bg-[#2B3940]"
             >
               <ArrowLeft className="h-5 w-5" />
             </button>
@@ -68,10 +68,10 @@ export const ChatView: React.FC<ChatViewProps> = ({ conversation, onBack }) => {
           />
 
           <div>
-            <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 leading-tight">
+            <h3 className="text-sm font-bold text-[#D9D0B8] leading-tight">
               {conversation.name}
             </h3>
-            <p className="text-[11px] text-slate-400">
+            <p className="text-[11px] text-[#A8AAA0]">
               {conversation.type === 'direct'
                 ? conversation.other_user?.is_online
                   ? 'Active now'
@@ -87,7 +87,7 @@ export const ChatView: React.FC<ChatViewProps> = ({ conversation, onBack }) => {
             <button
               type="button"
               onClick={() => handleStartCall('voice')}
-              className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-indigo-600 transition-colors"
+              className="flex h-9 w-9 items-center justify-center rounded-[10px] hover:bg-[#2B3940] text-[#D9D0B8] hover:text-[#71877B] transition-colors"
               title="Voice Call"
             >
               <Phone className="h-4 w-4" />
@@ -95,7 +95,7 @@ export const ChatView: React.FC<ChatViewProps> = ({ conversation, onBack }) => {
             <button
               type="button"
               onClick={() => handleStartCall('video')}
-              className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-indigo-600 transition-colors"
+              className="flex h-9 w-9 items-center justify-center rounded-[10px] hover:bg-[#2B3940] text-[#D9D0B8] hover:text-[#71877B] transition-colors"
               title="Video Call"
             >
               <Video className="h-4 w-4" />
@@ -107,12 +107,12 @@ export const ChatView: React.FC<ChatViewProps> = ({ conversation, onBack }) => {
       {/* Messages Stream */}
       <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-1">
         {messages.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full text-center text-xs text-slate-400">
-            <div className="h-12 w-12 rounded-full bg-indigo-50 dark:bg-indigo-950/40 flex items-center justify-center text-indigo-500 mb-2">
-              🪐
+          <div className="flex flex-col items-center justify-center h-full text-center text-xs text-[#7F8B86]">
+            <div className="h-12 w-12 rounded-full bg-[#202A2D] border border-[#3A4B4D] flex items-center justify-center text-[#496D6B] mb-2">
+              <Phone className="h-5 w-5" />
             </div>
-            <p className="font-semibold text-slate-700 dark:text-slate-300">Direct Chat</p>
-            <p className="max-w-xs mt-1">
+            <p className="font-semibold text-[#D9D0B8]">Direct Chat</p>
+            <p className="max-w-xs mt-1 text-[#A8AAA0]">
               Messages are delivered in real-time with zero ad tracking or profiling.
             </p>
           </div>
@@ -126,6 +126,7 @@ export const ChatView: React.FC<ChatViewProps> = ({ conversation, onBack }) => {
             />
           ))
         )}
+
 
         {/* Live Typing Status */}
         {typingUsers.length > 0 && (

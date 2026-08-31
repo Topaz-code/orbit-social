@@ -48,17 +48,17 @@ export const SearchPage: React.FC = () => {
   const totalResults = people.length + posts.length + groups.length;
 
   return (
-    <div className="max-w-4xl mx-auto min-w-0">
+    <div className="max-w-4xl mx-auto min-w-0 text-[#D9D0B8]">
       {/* Search Input Bar */}
       <form onSubmit={handleSearchSubmit} className="mb-6">
         <div className="relative">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#7F8B86]" />
           <input
             type="text"
             placeholder="Search for people, posts, hashtags, or groups..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            className="w-full h-12 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 pl-12 pr-4 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="w-full h-12 rounded-2xl border border-[#3A4B4D] bg-[#202A2D] pl-12 pr-4 text-sm text-[#D9D0B8] placeholder:text-[#7F8B86] shadow-xs focus:outline-none focus:ring-2 focus:ring-[#496D6B]"
           />
         </div>
       </form>
@@ -85,7 +85,7 @@ export const SearchPage: React.FC = () => {
             <TabsContent value="all" className="space-y-8">
               {people.length > 0 && (
                 <div>
-                  <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 mb-3">
+                  <h3 className="text-sm font-bold text-[#D9D0B8] mb-3">
                     People
                   </h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -98,7 +98,7 @@ export const SearchPage: React.FC = () => {
 
               {groups.length > 0 && (
                 <div>
-                  <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 mb-3">
+                  <h3 className="text-sm font-bold text-[#D9D0B8] mb-3">
                     Groups
                   </h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -111,7 +111,7 @@ export const SearchPage: React.FC = () => {
 
               {posts.length > 0 && (
                 <div>
-                  <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 mb-3">
+                  <h3 className="text-sm font-bold text-[#D9D0B8] mb-3">
                     Posts
                   </h3>
                   <div className="space-y-4">
@@ -154,4 +154,5 @@ export const SearchPage: React.FC = () => {
       </Tabs>
     </div>
   );
+
 };

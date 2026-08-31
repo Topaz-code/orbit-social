@@ -52,22 +52,22 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
   };
 
   return (
-    <div className="rounded-3xl border border-slate-200/80 dark:border-slate-800/80 bg-white dark:bg-slate-900 overflow-hidden shadow-xs mb-6">
+    <div className="rounded-3xl border border-[#3A4B4D] bg-[#202A2D] overflow-hidden shadow-xs mb-6 text-[#D9D0B8]">
       {/* Cover Image Banner */}
-      <div className="relative h-48 sm:h-64 w-full bg-slate-900 overflow-hidden group">
+      <div className="relative h-48 sm:h-64 w-full bg-[#171A1C] overflow-hidden group">
         <img
           src={
             getMediaUrl(user.cover_url) ||
             'https://images.unsplash.com/photo-1534447677768-be436bb09401?w=1200&auto=format&fit=crop&q=80'
           }
           alt="Cover"
-          className="h-full w-full object-cover"
+          className="h-full w-full object-cover opacity-90"
         />
         {isSelf && onUpdateCover && (
           <button
             type="button"
             onClick={onUpdateCover}
-            className="absolute top-4 right-4 flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-black/60 hover:bg-black/80 text-white text-xs font-semibold backdrop-blur-md transition-all shadow-md"
+            className="absolute top-4 right-4 flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] bg-black/70 hover:bg-black/90 text-[#D9D0B8] text-xs font-semibold backdrop-blur-md transition-all shadow-xs border border-[#3A4B4D]"
           >
             <Camera className="h-4 w-4" />
             <span className="hidden sm:inline">Change Cover</span>
@@ -80,7 +80,7 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
         <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-4 -mt-16 sm:-mt-20 mb-6">
           {/* Avatar Container */}
           <div className="relative group">
-            <div className="rounded-full ring-4 ring-white dark:ring-slate-900 shadow-xl overflow-hidden bg-white dark:bg-slate-900">
+            <div className="rounded-full ring-4 ring-[#202A2D] shadow-xl overflow-hidden bg-[#202A2D]">
               <Avatar
                 src={user.avatar_url}
                 fallback={user.display_name}
@@ -94,10 +94,10 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
             {isSelf && (
               <button
                 onClick={onUpdateAvatar}
-                className="absolute bottom-1 right-1 p-2 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg transition-transform hover:scale-105"
+                className="absolute bottom-1 right-1 p-2 rounded-full bg-[#D0A56A] hover:bg-[#E0B779] text-[#171A1C] shadow-lg transition-transform hover:scale-105"
                 title="Change Profile Photo"
               >
-                <Camera className="h-4 w-4" />
+                <Camera className="h-4 w-4 stroke-[2.5]" />
               </button>
             )}
           </div>
@@ -105,34 +105,34 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
           {/* Action Buttons */}
           <div className="flex items-center gap-2 flex-wrap">
             {isSelf ? (
-              <Button onClick={onOpenEdit} variant="outline" size="sm">
+              <Button onClick={onOpenEdit} variant="outline" size="sm" className="bg-[#2B3940] border-[#3A4B4D] text-[#D9D0B8] hover:bg-[#314048] rounded-[10px]">
                 Edit Profile
               </Button>
             ) : (
               <>
                 {friendshipStatus === 'friends' ? (
-                  <Button variant="secondary" size="sm" onClick={onRemoveFriend}>
-                    <UserCheck className="h-4 w-4 mr-1.5 text-emerald-500" />
+                  <Button variant="secondary" size="sm" onClick={onRemoveFriend} className="bg-[#71877B]/20 text-[#71877B] border border-[#71877B]/40 rounded-[10px]">
+                    <UserCheck className="h-4 w-4 mr-1.5 text-[#71877B]" />
                     <span>Friends</span>
                   </Button>
                 ) : friendshipStatus === 'pending_sent' ? (
-                  <Button variant="secondary" size="sm" disabled>
+                  <Button variant="secondary" size="sm" disabled className="bg-[#2B3940] text-[#A8AAA0] border border-[#3A4B4D] rounded-[10px]">
                     Request Sent
                   </Button>
                 ) : friendshipStatus === 'pending_received' ? (
-                  <Button size="sm" onClick={onAcceptFriendRequest} className="bg-emerald-600 hover:bg-emerald-700 text-white">
+                  <Button size="sm" onClick={onAcceptFriendRequest} className="bg-[#71877B] hover:bg-[#82998C] text-[#171A1C] rounded-[10px]">
                     <UserCheck className="h-4 w-4 mr-1.5" />
                     <span>Accept Request</span>
                   </Button>
                 ) : (
-                  <Button size="sm" onClick={onSendFriendRequest}>
-                    <UserPlus className="h-4 w-4 mr-1.5" />
+                  <Button size="sm" onClick={onSendFriendRequest} className="bg-[#D0A56A] hover:bg-[#E0B779] text-[#171A1C] rounded-[10px]">
+                    <UserPlus className="h-4 w-4 mr-1.5 stroke-[2.5]" />
                     <span>Add Friend</span>
                   </Button>
                 )}
 
-                <Button variant="outline" size="sm" onClick={handleStartDirectChat}>
-                  <MessageCircle className="h-4 w-4 mr-1.5 text-indigo-500" />
+                <Button variant="secondary" size="sm" onClick={handleStartDirectChat} className="bg-[#496D6B] hover:bg-[#5A7D78] text-[#D9D0B8] rounded-[10px]">
+                  <MessageCircle className="h-4 w-4 mr-1.5" />
                   <span>Message</span>
                 </Button>
 
@@ -151,6 +151,7 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
                     )
                   }
                   title="Voice Call"
+                  className="rounded-[10px] text-[#D9D0B8] hover:bg-[#2B3940]"
                 >
                   <Phone className="h-4 w-4" />
                 </Button>
@@ -162,37 +163,37 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
         {/* User Bio and Meta Stats */}
         <div className="space-y-2">
           <div>
-            <h1 className="text-2xl font-black tracking-tight text-slate-900 dark:text-slate-100">
+            <h1 className="text-2xl font-bold tracking-tight text-[#D9D0B8]">
               {user.display_name}
             </h1>
-            <p className="text-sm text-slate-400 font-medium">@{user.username}</p>
+            <p className="text-sm text-[#A8AAA0] font-medium">@{user.username}</p>
           </div>
 
           {user.bio && (
-            <p className="text-sm text-slate-700 dark:text-slate-300 max-w-2xl leading-relaxed whitespace-pre-line">
+            <p className="text-sm font-serif text-[#D9D0B8] max-w-2xl leading-relaxed whitespace-pre-line">
               {user.bio}
             </p>
           )}
 
-          <div className="flex flex-wrap items-center gap-4 sm:gap-6 pt-3 text-xs text-slate-500 dark:text-slate-400 border-t border-slate-100 dark:border-slate-800">
+          <div className="flex flex-wrap items-center gap-4 sm:gap-6 pt-3 text-xs text-[#A8AAA0] border-t border-[#3A4B4D]">
             <span className="flex items-center gap-1.5">
-              <Users className="h-4 w-4 text-indigo-500" />
-              <strong className="text-slate-900 dark:text-slate-100">
+              <Users className="h-4 w-4 text-[#496D6B]" />
+              <strong className="text-[#D9D0B8]">
                 {user.friend_count || 0}
               </strong>{' '}
               Friends
             </span>
 
             <span className="flex items-center gap-1.5">
-              <FileText className="h-4 w-4 text-purple-500" />
-              <strong className="text-slate-900 dark:text-slate-100">
+              <FileText className="h-4 w-4 text-[#D0A56A]" />
+              <strong className="text-[#D9D0B8]">
                 {user.post_count || 0}
               </strong>{' '}
               Posts
             </span>
 
             <span className="flex items-center gap-1.5">
-              <Calendar className="h-4 w-4 text-slate-400" />
+              <Calendar className="h-4 w-4 text-[#7F8B86]" />
               Joined {formatRelativeTime(user.created_at)}
             </span>
           </div>
@@ -200,4 +201,5 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
       </div>
     </div>
   );
+
 };

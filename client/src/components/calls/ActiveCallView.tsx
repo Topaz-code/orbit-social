@@ -48,8 +48,8 @@ export const ActiveCallView: React.FC = () => {
   const isVideoCall = activeCall.type === 'video';
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/95 backdrop-blur-xl animate-fade-in select-none">
-      <div className="relative w-full h-full max-w-5xl max-h-[90vh] rounded-3xl overflow-hidden bg-slate-900 border border-slate-800 shadow-2xl flex flex-col justify-between p-6 m-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md animate-fade-in select-none">
+      <div className="relative w-full h-full max-w-5xl max-h-[90vh] rounded-3xl overflow-hidden bg-[#202A2D] border border-[#3A4B4D] shadow-2xl flex flex-col justify-between p-6 m-4 text-[#D9D0B8]">
         {/* Call Header */}
         <div className="flex items-center justify-between z-20">
           <div className="flex items-center gap-3">
@@ -59,10 +59,10 @@ export const ActiveCallView: React.FC = () => {
               size="md"
             />
             <div>
-              <h3 className="text-base font-bold text-white leading-tight">
+              <h3 className="text-base font-bold text-[#D9D0B8] leading-tight">
                 {activeCall.remoteUser.display_name}
               </h3>
-              <p className="text-xs text-indigo-400 font-mono">
+              <p className="text-xs text-[#D0A56A] font-mono">
                 {activeCall.status === 'ringing'
                   ? 'Ringing...'
                   : formatCallDuration(activeCall.duration)}
@@ -72,7 +72,7 @@ export const ActiveCallView: React.FC = () => {
         </div>
 
         {/* Video / Audio Center Stage */}
-        <div className="relative flex-1 my-4 rounded-2xl overflow-hidden bg-slate-950 flex items-center justify-center">
+        <div className="relative flex-1 my-4 rounded-2xl overflow-hidden bg-[#171A1C] border border-[#3A4B4D] flex items-center justify-center">
           {isVideoCall ? (
             <>
               {/* Remote Video */}
@@ -91,12 +91,12 @@ export const ActiveCallView: React.FC = () => {
                     size="xl"
                     className="mb-4"
                   />
-                  <p className="text-sm font-semibold text-white">Connecting video stream...</p>
+                  <p className="text-sm font-semibold text-[#D9D0B8]">Connecting video stream...</p>
                 </div>
               )}
 
               {/* Local PiP (Picture-in-Picture) */}
-              <div className="absolute top-4 right-4 h-36 w-28 sm:h-44 sm:w-36 rounded-2xl overflow-hidden border-2 border-white/40 shadow-2xl bg-black z-20">
+              <div className="absolute top-4 right-4 h-36 w-28 sm:h-44 sm:w-36 rounded-2xl overflow-hidden border-2 border-[#3A4B4D] shadow-2xl bg-[#171A1C] z-20">
                 <video
                   ref={localVideoRef}
                   autoPlay
@@ -106,7 +106,7 @@ export const ActiveCallView: React.FC = () => {
                   style={{ transform: 'scaleX(-1)' }}
                 />
                 {activeCall.isVideoOff && (
-                  <div className="absolute inset-0 bg-slate-900 flex items-center justify-center text-xs text-slate-400">
+                  <div className="absolute inset-0 bg-[#202A2D] flex items-center justify-center text-xs text-[#A8AAA0]">
                     Camera off
                   </div>
                 )}
@@ -116,7 +116,7 @@ export const ActiveCallView: React.FC = () => {
             /* Voice Call Center Avatar Stage */
             <div className="flex flex-col items-center justify-center text-center">
               <div className="relative mb-6">
-                <span className="absolute inset-0 rounded-full bg-indigo-500/20 animate-ping" />
+                <span className="absolute inset-0 rounded-full bg-[#D0A56A]/20 animate-ping" />
                 <Avatar
                   src={activeCall.remoteUser.avatar_url}
                   fallback={activeCall.remoteUser.display_name}
@@ -124,8 +124,8 @@ export const ActiveCallView: React.FC = () => {
                   className="h-32 w-32"
                 />
               </div>
-              <h2 className="text-2xl font-black text-white">{activeCall.remoteUser.display_name}</h2>
-              <p className="text-sm text-slate-400 mt-1">
+              <h2 className="text-2xl font-bold text-[#D9D0B8]">{activeCall.remoteUser.display_name}</h2>
+              <p className="text-sm text-[#A8AAA0] mt-1">
                 {activeCall.status === 'ringing' ? 'Calling...' : 'Voice Call Active'}
               </p>
               {/* Hidden audio element for remote audio track */}
@@ -140,10 +140,10 @@ export const ActiveCallView: React.FC = () => {
           <button
             type="button"
             onClick={toggleMute}
-            className={`flex h-12 w-12 items-center justify-center rounded-full transition-all ${
+            className={`flex h-12 w-12 items-center justify-center rounded-full transition-all border border-[#3A4B4D] ${
               activeCall.isMuted
-                ? 'bg-rose-500 text-white'
-                : 'bg-white/10 hover:bg-white/20 text-white'
+                ? 'bg-[#B87568] text-[#171A1C]'
+                : 'bg-[#2B3940] hover:bg-[#314048] text-[#D9D0B8]'
             }`}
             title={activeCall.isMuted ? 'Unmute' : 'Mute'}
           >
@@ -155,10 +155,10 @@ export const ActiveCallView: React.FC = () => {
             <button
               type="button"
               onClick={toggleVideo}
-              className={`flex h-12 w-12 items-center justify-center rounded-full transition-all ${
+              className={`flex h-12 w-12 items-center justify-center rounded-full transition-all border border-[#3A4B4D] ${
                 activeCall.isVideoOff
-                  ? 'bg-rose-500 text-white'
-                  : 'bg-white/10 hover:bg-white/20 text-white'
+                  ? 'bg-[#B87568] text-[#171A1C]'
+                  : 'bg-[#2B3940] hover:bg-[#314048] text-[#D9D0B8]'
               }`}
               title={activeCall.isVideoOff ? 'Turn on camera' : 'Turn off camera'}
             >
@@ -170,7 +170,7 @@ export const ActiveCallView: React.FC = () => {
           <button
             type="button"
             onClick={toggleSpeaker}
-            className="flex h-12 w-12 items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white transition-all"
+            className="flex h-12 w-12 items-center justify-center rounded-full bg-[#2B3940] hover:bg-[#314048] text-[#D9D0B8] border border-[#3A4B4D] transition-all"
             title="Speaker"
           >
             {activeCall.isSpeakerOn ? <Volume2 className="h-5 w-5" /> : <VolumeX className="h-5 w-5" />}
@@ -180,7 +180,7 @@ export const ActiveCallView: React.FC = () => {
           <button
             type="button"
             onClick={endCall}
-            className="flex h-14 w-14 items-center justify-center rounded-full bg-rose-600 hover:bg-rose-700 text-white shadow-xl shadow-rose-600/30 transition-transform active:scale-95 ml-2"
+            className="flex h-14 w-14 items-center justify-center rounded-full bg-[#B87568] hover:bg-[#C98679] text-[#171A1C] shadow-xl transition-transform active:scale-95 ml-2"
             title="End Call"
           >
             <PhoneOff className="h-6 w-6" />
@@ -190,3 +190,4 @@ export const ActiveCallView: React.FC = () => {
     </div>
   );
 };
+

@@ -144,22 +144,22 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   };
 
   return (
-    <div className="relative border-t border-slate-200/80 dark:border-slate-800/80 bg-white dark:bg-slate-900 p-3 select-none">
+    <div className="relative border-t border-[#3A4B4D] bg-[#202A2D] p-3 select-none">
       {/* Reply Banner */}
       {replyingToMessage && (
-        <div className="flex items-center justify-between bg-slate-100 dark:bg-slate-800/80 px-3 py-1.5 rounded-xl mb-2 text-xs animate-slide-up">
+        <div className="flex items-center justify-between bg-[#2B3940] border border-[#3A4B4D] px-3 py-1.5 rounded-[10px] mb-2 text-xs animate-slide-up">
           <div className="flex items-center gap-2 truncate">
-            <span className="font-bold text-indigo-600 dark:text-indigo-400">
+            <span className="font-bold text-[#D0A56A]">
               Replying to {replyingToMessage.sender.display_name}:
             </span>
-            <span className="text-slate-500 truncate">
+            <span className="text-[#A8AAA0] truncate">
               {replyingToMessage.content || 'Media attachment'}
             </span>
           </div>
           <button
             type="button"
             onClick={onCancelReply}
-            className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+            className="p-1 text-[#7F8B86] hover:text-[#D9D0B8]"
           >
             <X className="h-3.5 w-3.5" />
           </button>
@@ -178,10 +178,10 @@ export const ChatInput: React.FC<ChatInputProps> = ({
 
       {/* Voice Recording Active Bar */}
       {isRecording ? (
-        <div className="flex items-center justify-between bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 p-2.5 rounded-2xl animate-fade-in">
+        <div className="flex items-center justify-between bg-[#B87568]/15 border border-[#B87568]/30 p-2.5 rounded-[10px] animate-fade-in">
           <div className="flex items-center gap-3">
-            <span className="flex h-3 w-3 rounded-full bg-rose-500 animate-ping" />
-            <span className="text-xs font-bold text-rose-600 dark:text-rose-400">
+            <span className="flex h-3 w-3 rounded-full bg-[#B87568] animate-ping" />
+            <span className="text-xs font-bold text-[#B87568]">
               Recording Voice Note: {recordingDuration}s
             </span>
           </div>
@@ -190,14 +190,14 @@ export const ChatInput: React.FC<ChatInputProps> = ({
             <button
               type="button"
               onClick={() => stopRecording(true)}
-              className="px-3 py-1 text-xs text-slate-500 hover:text-rose-500 font-medium"
+              className="px-3 py-1 text-xs text-[#A8AAA0] hover:text-[#B87568] font-medium"
             >
               Cancel
             </button>
             <button
               type="button"
               onClick={() => stopRecording(false)}
-              className="flex items-center gap-1 bg-rose-600 hover:bg-rose-700 text-white text-xs px-3 py-1.5 rounded-xl font-bold transition-colors"
+              className="flex items-center gap-1 bg-[#B87568] hover:bg-[#C98679] text-[#171A1C] text-xs px-3 py-1.5 rounded-[10px] font-bold transition-colors"
             >
               <Send className="h-3.5 w-3.5" /> Send Voice
             </button>
@@ -218,11 +218,11 @@ export const ChatInput: React.FC<ChatInputProps> = ({
             type="button"
             onClick={() => fileInputRef.current?.click()}
             disabled={isUploading || disabled}
-            className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
+            className="flex h-10 w-10 items-center justify-center rounded-[10px] hover:bg-[#2B3940] text-[#7F8B86] hover:text-[#D9D0B8] transition-colors"
             title="Attach file or photo"
           >
             {isUploading ? (
-              <Loader2 className="h-5 w-5 animate-spin text-indigo-600" />
+              <Loader2 className="h-5 w-5 animate-spin text-[#D0A56A]" />
             ) : (
               <Paperclip className="h-5 w-5" />
             )}
@@ -232,7 +232,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
           <button
             type="button"
             onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-            className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
+            className="flex h-10 w-10 items-center justify-center rounded-[10px] hover:bg-[#2B3940] text-[#7F8B86] hover:text-[#D9D0B8] transition-colors"
             title="Emojis"
           >
             <Smile className="h-5 w-5" />
@@ -245,7 +245,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
             value={text}
             onChange={handleTextChange}
             disabled={disabled}
-            className="flex-1 h-10 rounded-full border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800/80 px-4 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="flex-1 h-10 rounded-[10px] border border-[#3A4B4D] bg-[#2B3940] px-4 text-sm text-[#D9D0B8] placeholder:text-[#7F8B86] focus:outline-none focus:ring-2 focus:ring-[#496D6B]"
           />
 
           {/* Voice note or Send button */}
@@ -253,7 +253,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
             <button
               type="submit"
               disabled={disabled}
-              className="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-600 text-white hover:bg-indigo-700 transition-colors shadow-md shadow-indigo-500/20 active:scale-95"
+              className="flex h-10 w-10 items-center justify-center rounded-[10px] bg-[#D0A56A] text-[#171A1C] hover:bg-[#E0B779] transition-colors shadow-xs active:scale-95"
             >
               <Send className="h-4 w-4" />
             </button>
@@ -262,7 +262,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
               type="button"
               onClick={startRecording}
               disabled={disabled}
-              className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+              className="flex h-10 w-10 items-center justify-center rounded-[10px] hover:bg-[#2B3940] text-[#7F8B86] hover:text-[#71877B] transition-colors"
               title="Record voice note"
             >
               <Mic className="h-5 w-5" />
@@ -273,3 +273,4 @@ export const ChatInput: React.FC<ChatInputProps> = ({
     </div>
   );
 };
+

@@ -252,7 +252,7 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
 
           {currentGroup.is_self ? (
             <div className="flex items-center gap-2 text-xs text-white/80 py-1">
-              <Eye className="h-4 w-4 text-cyan-400" />
+              <Eye className="h-4 w-4 text-[#71877B]" />
               <span>
                 {currentStory.views_count || 0} viewer
                 {(currentStory.views_count || 0) === 1 ? '' : 's'}
@@ -262,20 +262,21 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
             <form onSubmit={handleSendReply} className="flex items-center gap-2">
               <input
                 type="text"
-                placeholder={replySent ? 'Reply sent! ✨' : `Reply to ${currentGroup.user.display_name}...`}
+                placeholder={replySent ? 'Reply sent!' : `Reply to ${currentGroup.user.display_name}...`}
                 value={replyText}
                 onChange={(e) => setReplyText(e.target.value)}
-                className="flex-1 h-10 rounded-full border border-white/30 bg-white/20 backdrop-blur-md px-4 text-xs text-white placeholder:text-white/60 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                className="flex-1 h-10 rounded-[10px] border border-white/20 bg-black/40 backdrop-blur-md px-4 text-xs text-[#D9D0B8] placeholder:text-[#A8AAA0] focus:outline-none focus:ring-2 focus:ring-[#496D6B]"
               />
               <button
                 type="submit"
                 disabled={!replyText.trim()}
-                className="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-600 text-white disabled:opacity-40 hover:bg-indigo-700 transition-colors"
+                className="flex h-10 w-10 items-center justify-center rounded-[10px] bg-[#D0A56A] text-[#171A1C] disabled:opacity-40 hover:bg-[#E0B779] transition-colors"
               >
                 <Send className="h-4 w-4" />
               </button>
             </form>
           )}
+
         </div>
       </div>
 

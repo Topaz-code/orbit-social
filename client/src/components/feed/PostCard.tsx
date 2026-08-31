@@ -54,7 +54,7 @@ export const PostCard: React.FC<PostCardProps> = ({
   };
 
   return (
-    <article className="rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-white dark:bg-slate-850 p-4 sm:p-5 shadow-xs transition-all hover:border-slate-300 dark:hover:border-slate-700/80 bg-white dark:bg-slate-900 mb-4 animate-fade-in">
+    <article className="rounded-2xl border border-[#3A4B4D] bg-[#202A2D] p-4 sm:p-5 shadow-xs transition-all hover:border-[#496D6B]/50 mb-4 animate-fade-in text-[#D9D0B8]">
       {/* Header */}
       <div className="flex items-center justify-between mb-3">
         <NavLink
@@ -70,15 +70,15 @@ export const PostCard: React.FC<PostCardProps> = ({
           />
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-sm font-bold text-slate-900 dark:text-slate-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+              <span className="text-sm font-bold text-[#D9D0B8] group-hover:text-[#D0A56A] transition-colors">
                 {post.user.display_name}
               </span>
-              <span className="text-xs text-slate-400">@{post.user.username}</span>
+              <span className="text-xs text-[#A8AAA0]">@{post.user.username}</span>
             </div>
-            <div className="flex items-center gap-1.5 text-[11px] text-slate-400">
+            <div className="flex items-center gap-1.5 text-[11px] text-[#A8AAA0]">
               <span>{formatRelativeTime(post.created_at)}</span>
               <span>•</span>
-              <span className="flex items-center" title={`Visibility: ${post.visibility}`}>
+              <span className="flex items-center text-[#7F8B86]" title={`Visibility: ${post.visibility}`}>
                 {post.visibility === 'public' ? (
                   <Globe className="h-3 w-3" />
                 ) : post.visibility === 'friends' ? (
@@ -94,13 +94,13 @@ export const PostCard: React.FC<PostCardProps> = ({
         {/* Post Options Menu */}
         <DropdownMenu
           trigger={
-            <button className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+            <button className="p-1.5 rounded-lg text-[#7F8B86] hover:text-[#D9D0B8] hover:bg-[#2B3940] transition-colors">
               <MoreHorizontal className="h-4 w-4" />
             </button>
           }
         >
           <DropdownItem onClick={handleCopyLink}>
-            {copied ? <Check className="h-4 w-4 text-emerald-500" /> : <Copy className="h-4 w-4" />}
+            {copied ? <Check className="h-4 w-4 text-[#71877B]" /> : <Copy className="h-4 w-4 text-[#7F8B86]" />}
             <span>{copied ? 'Link Copied!' : 'Copy link to post'}</span>
           </DropdownItem>
 
@@ -114,18 +114,19 @@ export const PostCard: React.FC<PostCardProps> = ({
       </div>
 
       {/* Content Text */}
-      <div className="text-sm text-slate-800 dark:text-slate-200 leading-relaxed whitespace-pre-line">
+      <div className="text-sm text-[#D9D0B8] leading-relaxed whitespace-pre-line">
         {displayText}
         {isLongText && (
           <button
             type="button"
             onClick={() => setIsExpanded(!isExpanded)}
-            className="ml-1 text-indigo-600 dark:text-indigo-400 font-semibold hover:underline"
+            className="ml-1 text-[#D0A56A] font-semibold hover:underline"
           >
             {isExpanded ? 'Show less' : 'Read more'}
           </button>
         )}
       </div>
+
 
       {/* Media Gallery */}
       <MediaGallery

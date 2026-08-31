@@ -31,13 +31,13 @@ export const StoryRing: React.FC<StoryRingProps> = ({
       className={cn(
         'relative inline-flex rounded-full cursor-pointer transition-transform hover:scale-105 active:scale-95 select-none',
         hasUnseenStory
-          ? 'story-ring-gradient shadow-md shadow-purple-500/20'
-          : 'bg-slate-200 dark:bg-slate-700',
+          ? 'story-ring-gradient shadow-xs'
+          : 'bg-[#3A4B4D]',
         containerSizes[size],
         className
       )}
     >
-      <div className="rounded-full bg-white dark:bg-slate-900 p-[2px]">
+      <div className="rounded-full bg-[#171A1C] p-[2px]">
         <Avatar
           src={avatarUrl}
           fallback={displayName}
@@ -45,5 +45,6 @@ export const StoryRing: React.FC<StoryRingProps> = ({
         />
       </div>
     </div>
+
   );
 };

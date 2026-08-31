@@ -50,14 +50,14 @@ export const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
         <DialogTitle>Edit Profile</DialogTitle>
       </DialogHeader>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-4 text-[#D9D0B8]">
         {errorMessage && (
-          <div className="p-3 text-xs font-medium text-rose-600 bg-rose-50 dark:bg-rose-950/40 dark:text-rose-400 rounded-xl border border-rose-200 dark:border-rose-800">
+          <div className="p-3 text-xs font-medium text-[#B87568] bg-[#B87568]/15 rounded-xl border border-[#B87568]/30">
             {errorMessage}
           </div>
         )}
         <div>
-          <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+          <label className="block text-xs font-semibold text-[#D9D0B8] mb-1">
             Display Name
           </label>
           <Input
@@ -69,7 +69,7 @@ export const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
         </div>
 
         <div>
-          <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+          <label className="block text-xs font-semibold text-[#D9D0B8] mb-1">
             Bio
           </label>
           <Textarea
@@ -80,7 +80,7 @@ export const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
         </div>
 
         <div>
-          <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+          <label className="block text-xs font-semibold text-[#D9D0B8] mb-1">
             Phone Number
           </label>
           <Input
@@ -92,14 +92,15 @@ export const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
         </div>
 
         <DialogFooter>
-          <Button variant="ghost" onClick={() => onOpenChange(false)}>
+          <Button variant="ghost" onClick={() => onOpenChange(false)} className="text-[#A8AAA0] hover:text-[#D9D0B8] hover:bg-[#2B3940]">
             Cancel
           </Button>
-          <Button type="submit" isLoading={isSubmitting}>
+          <Button type="submit" isLoading={isSubmitting} className="bg-[#D0A56A] text-[#171A1C] hover:bg-[#E0B779] rounded-[10px] font-semibold">
             Save Changes
           </Button>
         </DialogFooter>
       </form>
+
     </Dialog>
   );
 };

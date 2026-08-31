@@ -50,7 +50,7 @@ export const Avatar: React.FC<AvatarProps> = ({
     <div className={cn('relative inline-flex flex-shrink-0 select-none', className)} {...props}>
       <div
         className={cn(
-          'relative flex items-center justify-center rounded-full overflow-hidden bg-gradient-to-tr from-indigo-500 to-purple-600 text-white font-medium',
+          'relative flex items-center justify-center rounded-full overflow-hidden bg-[#2B3940] border border-[#3A4B4D] text-[#D9D0B8] font-semibold',
           sizeClasses[size]
         )}
       >
@@ -69,13 +69,14 @@ export const Avatar: React.FC<AvatarProps> = ({
       {showStatus && (
         <span
           className={cn(
-            'absolute bottom-0 right-0 rounded-full ring-white dark:ring-slate-900',
+            'absolute bottom-0 right-0 rounded-full ring-[#171A1C]',
             onlineIndicatorSizes[size],
-            isOnline ? 'bg-emerald-500' : 'bg-slate-400 dark:bg-slate-600'
+            isOnline ? 'bg-[#71877B]' : 'bg-[#7F8B86]'
           )}
           title={isOnline ? 'Online' : 'Offline'}
         />
       )}
+
     </div>
   );
 };
