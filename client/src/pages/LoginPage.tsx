@@ -25,9 +25,9 @@ export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-[100dvh] flex bg-[#171A1C] text-[#D9D0B8]">
+    <div className="min-h-[100dvh] lg:h-screen lg:overflow-hidden flex bg-[#171A1C] text-[#D9D0B8]">
       {/* ── Left Brand Panel (lg+) ─────────────────────────── */}
-      <div className="hidden lg:flex lg:w-1/2 bg-[#141819] border-r border-[#3A4B4D] flex-col justify-between p-12 relative overflow-hidden">
+      <div className="hidden lg:flex lg:w-1/2 lg:h-full bg-[#141819] border-r border-[#3A4B4D] flex-col justify-between p-12 relative overflow-hidden select-none shrink-0">
         {/* Abstract orbit / constellation SVG */}
         <svg
           className="absolute inset-0 w-full h-full opacity-[0.08] pointer-events-none select-none"
@@ -97,9 +97,9 @@ export const LoginPage: React.FC = () => {
       </div>
 
       {/* ── Right Form Panel ───────────────────────────────── */}
-      <div className="flex-1 flex flex-col bg-[#171A1C]">
+      <div className="flex-1 flex flex-col bg-[#171A1C] lg:h-full lg:overflow-y-auto">
         {/* Top-right register link */}
-        <div className="flex justify-end p-4 sm:p-6">
+        <div className="flex justify-end p-4 sm:p-6 shrink-0">
           <button
             type="button"
             onClick={() => navigate('/register')}
@@ -116,6 +116,7 @@ export const LoginPage: React.FC = () => {
         </div>
       </div>
     </div>
+
 
   );
 };
