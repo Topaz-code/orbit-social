@@ -16,7 +16,7 @@ export const MessagesPage: React.FC = () => {
   };
 
   return (
-    <div className="h-[calc(100vh-7.5rem)] lg:h-[calc(100vh-4.5rem)] rounded-3xl border border-[#3A4B4D] bg-[#202A2D] shadow-xs overflow-hidden flex text-[#D9D0B8]">
+    <div className="h-[calc(100vh-8.5rem)] lg:h-[calc(100vh-5rem)] rounded-3xl border border-[#3A4B4D] bg-[#202A2D] shadow-xs overflow-hidden flex text-[#D9D0B8]">
       {/* Left Column: Conversation Sidebar */}
       <div
         className={`w-full lg:w-80 flex-shrink-0 h-full ${

@@ -41,7 +41,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewPost, onOpenNewStory })
   };
 
   return (
-    <header className="sticky top-0 z-20 flex h-16 w-full items-center justify-between border-b border-[#3A4B4D] bg-[#141819] px-4 sm:px-8">
+    <header className="sticky top-0 z-20 flex h-20 w-full items-center justify-between border-b-0 lg:border-b border-[#3A4B4D] bg-[#141819] px-4 sm:px-8">
       {/* Mobile Logo Brand */}
       <div className="flex items-center gap-3 lg:hidden">
         <img src="/orbit-logo.svg" alt="Orbit" className="h-8 w-8 cursor-pointer" onClick={() => navigate('/')} />
