@@ -76,27 +76,36 @@ export const IncomingCallModal: React.FC<IncomingCallModalProps> = ({
         </div>
 
         {/* Accept / Decline Action Buttons */}
-        <div className="flex items-center justify-center gap-6 mt-6">
-          <button
-            type="button"
-            onClick={onReject}
-            className="flex h-14 w-14 items-center justify-center rounded-full bg-[#B87568] text-[#171A1C] hover:bg-[#C98679] shadow-lg transition-transform active:scale-95"
-            title="Decline"
-          >
-            <PhoneOff className="h-6 w-6" />
-          </button>
+        <div className="flex items-center justify-center gap-8 mt-6">
+          {/* Decline */}
+          <div className="flex flex-col items-center gap-1.5">
+            <button
+              type="button"
+              onClick={onReject}
+              className="flex h-14 w-14 items-center justify-center rounded-full bg-[#B87568] text-[#171A1C] hover:bg-[#C98679] shadow-lg transition-transform active:scale-95 border border-[#B87568]"
+              title="Decline"
+            >
+              <PhoneOff className="h-6 w-6" />
+            </button>
+            <span className="text-xs font-medium text-[#D9D0B8]">Decline</span>
+          </div>
 
-          <button
-            type="button"
-            onClick={onAccept}
-            className="flex h-14 w-14 items-center justify-center rounded-full bg-[#71877B] text-[#171A1C] hover:bg-[#82998C] shadow-lg transition-transform active:scale-95 animate-bounce"
-            title="Accept"
-          >
-            <Phone className="h-6 w-6" />
-          </button>
+          {/* Accept */}
+          <div className="flex flex-col items-center gap-1.5">
+            <button
+              type="button"
+              onClick={onAccept}
+              className="flex h-14 w-14 items-center justify-center rounded-full bg-[#71877B] text-[#171A1C] hover:bg-[#82998C] shadow-lg transition-transform active:scale-95 animate-bounce border border-[#71877B]"
+              title="Accept"
+            >
+              {type === 'video' ? <Video className="h-6 w-6" /> : <Phone className="h-6 w-6" />}
+            </button>
+            <span className="text-xs font-medium text-[#D9D0B8]">Accept</span>
+          </div>
         </div>
       </div>
     </div>
+
 
   );
 };
