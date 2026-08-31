@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { Avatar } from '../ui/avatar.js';
-import { Phone, PhoneOff, Video } from 'lucide-react';
+import { SolidEndCallIcon, SolidStartCallIcon, SolidVideoIcon } from './CallIcons.js';
 
 interface IncomingCallModalProps {
   caller: {
@@ -71,7 +71,7 @@ export const IncomingCallModal: React.FC<IncomingCallModalProps> = ({
         <p className="text-xs text-[#A8AAA0] mt-0.5">@{caller.username}</p>
 
         <div className="my-4 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#2B3940] border border-[#3A4B4D] text-xs font-semibold text-[#D0A56A]">
-          {type === 'video' ? <Video className="h-3.5 w-3.5" /> : <Phone className="h-3.5 w-3.5" />}
+          {type === 'video' ? <SolidVideoIcon className="h-3.5 w-3.5" /> : <SolidStartCallIcon className="h-3.5 w-3.5" />}
           <span className="capitalize">Incoming {type} Call...</span>
         </div>
 
@@ -85,7 +85,7 @@ export const IncomingCallModal: React.FC<IncomingCallModalProps> = ({
               className="flex h-14 w-14 items-center justify-center rounded-full bg-[#B87568] text-[#171A1C] hover:bg-[#C98679] shadow-lg transition-transform active:scale-95 border border-[#B87568]"
               title="Decline"
             >
-              <PhoneOff className="h-6 w-6" />
+              <SolidEndCallIcon className="h-6 w-6" />
             </button>
             <span className="text-xs font-medium text-[#D9D0B8]">Decline</span>
           </div>
@@ -98,11 +98,12 @@ export const IncomingCallModal: React.FC<IncomingCallModalProps> = ({
               className="flex h-14 w-14 items-center justify-center rounded-full bg-[#71877B] text-[#171A1C] hover:bg-[#82998C] shadow-lg transition-transform active:scale-95 animate-bounce border border-[#71877B]"
               title="Accept"
             >
-              {type === 'video' ? <Video className="h-6 w-6" /> : <Phone className="h-6 w-6" />}
+              {type === 'video' ? <SolidVideoIcon className="h-6 w-6" /> : <SolidStartCallIcon className="h-6 w-6" />}
             </button>
             <span className="text-xs font-medium text-[#D9D0B8]">Accept</span>
           </div>
         </div>
+
       </div>
     </div>
 

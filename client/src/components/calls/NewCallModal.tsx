@@ -1,9 +1,14 @@
 import React, { useState } from 'react';
-import { X, Phone, Video, Search } from 'lucide-react';
+import { Search } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../../lib/api.js';
 import { useCall } from '../../hooks/useCall.js';
 import type { User } from '../../types/index.js';
+import {
+  SolidVideoIcon,
+  SolidCancelIcon,
+  SolidStartCallIcon,
+} from './CallIcons.js';
 
 interface NewCallModalProps {
   isOpen: boolean;
@@ -62,7 +67,7 @@ export const NewCallModal: React.FC<NewCallModalProps> = ({ isOpen, onClose }) =
             className="flex h-8 w-8 items-center justify-center rounded-[8px] text-[#7F8B86] transition-colors hover:bg-[#2B3940] hover:text-[#D9D0B8]"
             aria-label="Close"
           >
-            <X className="h-5 w-5" />
+            <SolidCancelIcon className="h-4 w-4" />
           </button>
         </div>
 
@@ -138,14 +143,14 @@ export const NewCallModal: React.FC<NewCallModalProps> = ({ isOpen, onClose }) =
                         title="Voice call"
                         className="flex h-8 w-8 items-center justify-center rounded-full text-[#71877B] transition-colors hover:bg-[#171A1C] hover:text-[#82998C]"
                       >
-                        <Phone className="h-4 w-4" />
+                        <SolidStartCallIcon className="h-4 w-4" />
                       </button>
                       <button
                         onClick={() => handleCall(friend, 'video')}
                         title="Video call"
                         className="flex h-8 w-8 items-center justify-center rounded-full text-[#496D6B] transition-colors hover:bg-[#171A1C] hover:text-[#5A7D78]"
                       >
-                        <Video className="h-4 w-4" />
+                        <SolidVideoIcon className="h-4 w-4" />
                       </button>
                     </div>
                   </li>
@@ -170,7 +175,7 @@ export const NewCallModal: React.FC<NewCallModalProps> = ({ isOpen, onClose }) =
                   className="flex h-13 w-13 items-center justify-center rounded-full bg-[#496D6B] hover:bg-[#5a7d78] text-[#D9D0B8] shadow-lg transition-transform active:scale-95 border border-[#71877B]"
                   title="Start Video"
                 >
-                  <Video className="h-5 w-5" />
+                  <SolidVideoIcon className="h-5 w-5" />
                 </button>
                 <span className="text-xs font-medium text-[#D9D0B8]">Start Video</span>
               </div>
@@ -183,7 +188,7 @@ export const NewCallModal: React.FC<NewCallModalProps> = ({ isOpen, onClose }) =
                   className="flex h-13 w-13 items-center justify-center rounded-full bg-[#2B3940] hover:bg-[#34444c] text-[#D9D0B8] shadow-lg transition-transform active:scale-95 border border-[#3A4B4D]"
                   title="Cancel"
                 >
-                  <X className="h-5 w-5" />
+                  <SolidCancelIcon className="h-5 w-5" />
                 </button>
                 <span className="text-xs font-medium text-[#D9D0B8]">Cancel</span>
               </div>
@@ -196,7 +201,7 @@ export const NewCallModal: React.FC<NewCallModalProps> = ({ isOpen, onClose }) =
                   className="flex h-13 w-13 items-center justify-center rounded-full bg-[#496D6B] hover:bg-[#5a7d78] text-[#D9D0B8] shadow-lg transition-transform active:scale-95 border border-[#71877B]"
                   title="Start Call"
                 >
-                  <Phone className="h-5 w-5" />
+                  <SolidStartCallIcon className="h-5 w-5" />
                 </button>
                 <span className="text-xs font-medium text-[#D9D0B8]">Start Call</span>
               </div>
@@ -207,5 +212,3 @@ export const NewCallModal: React.FC<NewCallModalProps> = ({ isOpen, onClose }) =
     </div>
   );
 };
-
-

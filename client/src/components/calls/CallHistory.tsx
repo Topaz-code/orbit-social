@@ -5,8 +5,10 @@ import { CallRecord } from '../../types/index.js';
 import { Avatar } from '../ui/avatar.js';
 import { Button } from '../ui/button.js';
 import { formatRelativeTime, formatCallDuration } from '../../lib/utils.js';
-import { Phone, Video, PhoneIncoming, PhoneOutgoing, PhoneMissed } from 'lucide-react';
+import { PhoneIncoming, PhoneOutgoing, PhoneMissed } from 'lucide-react';
+import { SolidStartCallIcon, SolidVideoIcon } from './CallIcons.js';
 import { useCall } from '../../hooks/useCall.js';
+
 
 export const CallHistory: React.FC = () => {
   const { startCall } = useCall();
@@ -77,7 +79,7 @@ export const CallHistory: React.FC = () => {
                   title="Voice Call"
                   className="rounded-[10px] text-[#71877B] hover:bg-[#2B3940]"
                 >
-                  <Phone className="h-4 w-4" />
+                  <SolidStartCallIcon className="h-4 w-4" />
                 </Button>
                 <Button
                   variant="ghost"
@@ -86,9 +88,10 @@ export const CallHistory: React.FC = () => {
                   title="Video Call"
                   className="rounded-[10px] text-[#496D6B] hover:bg-[#2B3940]"
                 >
-                  <Video className="h-4 w-4" />
+                  <SolidVideoIcon className="h-4 w-4" />
                 </Button>
               </div>
+
             </div>
           );
         })
