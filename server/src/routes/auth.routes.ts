@@ -12,10 +12,10 @@ import {
 
 const router = Router();
 
-// Rate limiter for login (brute force protection)
+// Rate limiter for login (brute force protection — OWASP: max 5 per 15 min)
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 20, // Limit each IP to 20 login attempts per windowMs
+  max: 5, // 5 attempts per 15 minutes per IP
   standardHeaders: true,
   legacyHeaders: false,
   message: {
