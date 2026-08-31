@@ -136,25 +136,25 @@ export const SettingsPage: React.FC = () => {
   ];
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6 min-w-0 pb-16">
+    <div className="max-w-4xl mx-auto space-y-6 min-w-0 pb-16 text-[#D9D0B8]">
       {/* Header Banner */}
-      <div className="relative overflow-hidden rounded-3xl border border-slate-200/80 dark:border-slate-800/80 bg-gradient-to-br from-white via-indigo-50/20 to-slate-50 dark:from-slate-900 dark:via-indigo-950/20 dark:to-slate-950 p-6 sm:p-8 shadow-xs">
+      <div className="relative overflow-hidden rounded-3xl border border-[#3A4B4D] bg-[#202A2D] p-6 sm:p-8 shadow-xs">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="space-y-1">
-            <div className="inline-flex items-center gap-1.5 rounded-full bg-indigo-500/10 dark:bg-indigo-500/20 px-3 py-1 text-xs font-semibold text-indigo-600 dark:text-indigo-400">
+            <div className="inline-flex items-center gap-1.5 rounded-full bg-[#2B3940] border border-[#3A4B4D] px-3 py-1 text-xs font-semibold text-[#D0A56A]">
               <Sparkles className="h-3.5 w-3.5" />
               <span>Personal Preferences</span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-slate-100 tracking-tight">
+            <h1 className="text-2xl sm:text-3xl font-bold text-[#D9D0B8] tracking-tight">
               Settings & Privacy
             </h1>
-            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 max-w-xl">
+            <p className="text-xs sm:text-sm text-[#A8AAA0] max-w-xl">
               Customize your profile appearance, access credentials, interface theme, and decentralized data exports.
             </p>
           </div>
 
           {user && (
-            <div className="flex items-center gap-3.5 p-3 rounded-2xl bg-white/80 dark:bg-slate-800/80 backdrop-blur border border-slate-200/60 dark:border-slate-700/60 shadow-xs">
+            <div className="flex items-center gap-3.5 p-3 rounded-2xl bg-[#2B3940] border border-[#3A4B4D] shadow-xs">
               <Avatar
                 src={user.avatar_url}
                 fallback={user.display_name}
@@ -163,10 +163,10 @@ export const SettingsPage: React.FC = () => {
                 showStatus={true}
               />
               <div className="min-w-0">
-                <p className="text-sm font-bold text-slate-900 dark:text-slate-100 truncate">
+                <p className="text-sm font-bold text-[#D9D0B8] truncate">
                   {user.display_name}
                 </p>
-                <p className="text-xs text-indigo-600 dark:text-indigo-400 font-medium truncate">
+                <p className="text-xs text-[#D0A56A] font-medium truncate">
                   @{user.username}
                 </p>
               </div>
@@ -175,7 +175,7 @@ export const SettingsPage: React.FC = () => {
         </div>
 
         {/* Tab Navigation Pill Strip */}
-        <div className="mt-6 flex flex-wrap gap-2 border-t border-slate-200/60 dark:border-slate-800/60 pt-4">
+        <div className="mt-6 flex flex-wrap gap-2 border-t border-[#3A4B4D] pt-4">
           {tabs.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -185,10 +185,10 @@ export const SettingsPage: React.FC = () => {
                 type="button"
                 onClick={() => setActiveTab(tab.id)}
                 className={cn(
-                  'flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all',
+                  'flex items-center gap-2 px-4 py-2 rounded-[10px] text-xs sm:text-sm font-semibold transition-all',
                   isActive
-                    ? 'bg-indigo-600 text-white shadow-sm shadow-indigo-500/30'
-                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/60'
+                    ? 'bg-[#496D6B] text-[#D9D0B8] shadow-xs font-bold'
+                    : 'text-[#A8AAA0] hover:text-[#D9D0B8] hover:bg-[#2B3940]'
                 )}
               >
                 <Icon className="h-4 w-4" />
@@ -199,45 +199,46 @@ export const SettingsPage: React.FC = () => {
         </div>
       </div>
 
+
       {/* Profile Details Tab */}
       {activeTab === 'profile' && (
-        <div className="rounded-3xl border border-slate-200/80 dark:border-slate-800/80 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-xs space-y-6">
-          <div className="border-b border-slate-100 dark:border-slate-800/80 pb-4">
-            <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-              <User className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+        <div className="rounded-3xl border border-[#3A4B4D] bg-[#202A2D] p-6 sm:p-8 shadow-xs space-y-6">
+          <div className="border-b border-[#3A4B4D] pb-4">
+            <h2 className="text-lg font-bold text-[#D9D0B8] flex items-center gap-2">
+              <User className="h-5 w-5 text-[#D0A56A]" />
               <span>Profile Identity</span>
             </h2>
-            <p className="text-xs text-slate-400 mt-0.5">
+            <p className="text-xs text-[#A8AAA0] mt-0.5">
               This information is visible on your profile and story updates.
             </p>
           </div>
 
           {profileMsg && (
-            <div className="flex items-center gap-2.5 p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200/60 dark:border-emerald-800/50 text-emerald-700 dark:text-emerald-300 text-xs font-semibold animate-in fade-in">
-              <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" />
+            <div className="flex items-center gap-2.5 p-4 rounded-2xl bg-[#71877B]/15 border border-[#71877B]/30 text-[#71877B] text-xs font-semibold animate-in fade-in">
+              <CheckCircle2 className="h-4 w-4 shrink-0 text-[#71877B]" />
               <span>{profileMsg}</span>
             </div>
           )}
 
           {profileError && (
-            <div className="flex items-center gap-2.5 p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200/60 dark:border-rose-800/50 text-rose-700 dark:text-rose-300 text-xs font-semibold animate-in fade-in">
-              <AlertCircle className="h-4 w-4 shrink-0 text-rose-600" />
+            <div className="flex items-center gap-2.5 p-4 rounded-2xl bg-[#B87568]/15 border border-[#B87568]/30 text-[#B87568] text-xs font-semibold animate-in fade-in">
+              <AlertCircle className="h-4 w-4 shrink-0 text-[#B87568]" />
               <span>{profileError}</span>
             </div>
           )}
 
           <form onSubmit={handleUpdateProfile} className="space-y-5">
             <div className="space-y-1.5">
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400">
+              <label className="block text-xs font-bold uppercase tracking-wider text-[#A8AAA0]">
                 Display Name
               </label>
               <div className="relative">
-                <User className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                <User className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#7F8B86]" />
                 <Input
                   type="text"
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
-                  className="pl-10 h-11 rounded-xl bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700/80 focus:bg-white dark:focus:bg-slate-900 transition-colors"
+                  className="pl-10 h-11 rounded-[10px] bg-[#2B3940] border-[#3A4B4D] text-[#D9D0B8] focus:ring-2 focus:ring-[#496D6B]"
                   placeholder="Your full name"
                   required
                 />
@@ -246,10 +247,10 @@ export const SettingsPage: React.FC = () => {
 
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
-                <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400">
+                <label className="block text-xs font-bold uppercase tracking-wider text-[#A8AAA0]">
                   Bio / Status
                 </label>
-                <span className="text-[11px] text-slate-400 font-medium">
+                <span className="text-[11px] text-[#7F8B86] font-medium">
                   {bio.length}/180 characters
                 </span>
               </div>
@@ -258,26 +259,26 @@ export const SettingsPage: React.FC = () => {
                 maxLength={180}
                 onChange={(e) => setBio(e.target.value)}
                 placeholder="Share a short bio or status with your circle..."
-                className="min-h-[90px] rounded-xl bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700/80 focus:bg-white dark:focus:bg-slate-900 transition-colors p-3.5 text-sm"
+                className="min-h-[90px] rounded-[10px] bg-[#2B3940] border-[#3A4B4D] text-[#D9D0B8] focus:ring-2 focus:ring-[#496D6B] p-3.5 text-sm font-serif"
               />
             </div>
 
             <div className="space-y-1.5">
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400">
-                Phone Number <span className="text-slate-400 font-normal normal-case">(Optional)</span>
+              <label className="block text-xs font-bold uppercase tracking-wider text-[#A8AAA0]">
+                Phone Number <span className="text-[#7F8B86] font-normal normal-case">(Optional)</span>
               </label>
               <div className="relative">
-                <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#7F8B86]" />
                 <Input
                   type="tel"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   placeholder="+1 555 019 2831"
-                  className="pl-10 h-11 rounded-xl bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700/80 focus:bg-white dark:focus:bg-slate-900 transition-colors"
+                  className="pl-10 h-11 rounded-[10px] bg-[#2B3940] border-[#3A4B4D] text-[#D9D0B8] focus:ring-2 focus:ring-[#496D6B]"
                 />
               </div>
-              <p className="text-[11px] text-slate-400">
-                Encrypted in your self-hosted SQLite store. Only friends you accept can see this.
+              <p className="text-[11px] text-[#7F8B86]">
+                Encrypted in your self-hosted database. Only friends you accept can see this.
               </p>
             </div>
 
@@ -285,7 +286,7 @@ export const SettingsPage: React.FC = () => {
               <Button
                 type="submit"
                 isLoading={isUpdatingProfile}
-                className="h-11 px-6 rounded-xl font-semibold bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-md shadow-indigo-500/25"
+                className="h-11 px-6 rounded-[10px] font-semibold bg-[#D0A56A] hover:bg-[#E0B779] text-[#171A1C] shadow-xs"
               >
                 Save Profile
               </Button>
@@ -296,50 +297,50 @@ export const SettingsPage: React.FC = () => {
 
       {/* Security & Password Tab */}
       {activeTab === 'security' && (
-        <div className="rounded-3xl border border-slate-200/80 dark:border-slate-800/80 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-xs space-y-6">
-          <div className="border-b border-slate-100 dark:border-slate-800/80 pb-4">
-            <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-              <Lock className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+        <div className="rounded-3xl border border-[#3A4B4D] bg-[#202A2D] p-6 sm:p-8 shadow-xs space-y-6">
+          <div className="border-b border-[#3A4B4D] pb-4">
+            <h2 className="text-lg font-bold text-[#D9D0B8] flex items-center gap-2">
+              <Lock className="h-5 w-5 text-[#D0A56A]" />
               <span>Password & Authentication</span>
             </h2>
-            <p className="text-xs text-slate-400 mt-0.5">
+            <p className="text-xs text-[#A8AAA0] mt-0.5">
               Securely hashed with bcrypt algorithm with salt rounds.
             </p>
           </div>
 
           {passwordMsg && (
-            <div className="flex items-center gap-2.5 p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200/60 dark:border-emerald-800/50 text-emerald-700 dark:text-emerald-300 text-xs font-semibold animate-in fade-in">
-              <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" />
+            <div className="flex items-center gap-2.5 p-4 rounded-2xl bg-[#71877B]/15 border border-[#71877B]/30 text-[#71877B] text-xs font-semibold animate-in fade-in">
+              <CheckCircle2 className="h-4 w-4 shrink-0 text-[#71877B]" />
               <span>{passwordMsg}</span>
             </div>
           )}
 
           {passwordError && (
-            <div className="flex items-center gap-2.5 p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200/60 dark:border-rose-800/50 text-rose-700 dark:text-rose-300 text-xs font-semibold animate-in fade-in">
-              <AlertCircle className="h-4 w-4 shrink-0 text-rose-600" />
+            <div className="flex items-center gap-2.5 p-4 rounded-2xl bg-[#B87568]/15 border border-[#B87568]/30 text-[#B87568] text-xs font-semibold animate-in fade-in">
+              <AlertCircle className="h-4 w-4 shrink-0 text-[#B87568]" />
               <span>{passwordError}</span>
             </div>
           )}
 
           <form onSubmit={handleChangePassword} className="space-y-5 max-w-lg">
             <div className="space-y-1.5">
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400">
+              <label className="block text-xs font-bold uppercase tracking-wider text-[#A8AAA0]">
                 Current Password
               </label>
               <div className="relative">
-                <KeyRound className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                <KeyRound className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#7F8B86]" />
                 <Input
                   type={showCurrentPass ? 'text' : 'password'}
                   value={currentPassword}
                   onChange={(e) => setCurrentPassword(e.target.value)}
-                  className="pl-10 pr-10 h-11 rounded-xl bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700/80 focus:bg-white dark:focus:bg-slate-900"
+                  className="pl-10 pr-10 h-11 rounded-[10px] bg-[#2B3940] border-[#3A4B4D] text-[#D9D0B8] focus:ring-2 focus:ring-[#496D6B]"
                   placeholder="••••••••••••"
                   required
                 />
                 <button
                   type="button"
                   onClick={() => setShowCurrentPass(!showCurrentPass)}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#7F8B86] hover:text-[#D9D0B8]"
                 >
                   {showCurrentPass ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
@@ -347,23 +348,23 @@ export const SettingsPage: React.FC = () => {
             </div>
 
             <div className="space-y-1.5">
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400">
+              <label className="block text-xs font-bold uppercase tracking-wider text-[#A8AAA0]">
                 New Password
               </label>
               <div className="relative">
-                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#7F8B86]" />
                 <Input
                   type={showNewPass ? 'text' : 'password'}
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
-                  className="pl-10 pr-10 h-11 rounded-xl bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700/80 focus:bg-white dark:focus:bg-slate-900"
+                  className="pl-10 pr-10 h-11 rounded-[10px] bg-[#2B3940] border-[#3A4B4D] text-[#D9D0B8] focus:ring-2 focus:ring-[#496D6B]"
                   placeholder="Min 6 characters"
                   required
                 />
                 <button
                   type="button"
                   onClick={() => setShowNewPass(!showNewPass)}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#7F8B86] hover:text-[#D9D0B8]"
                 >
                   {showNewPass ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
@@ -371,16 +372,16 @@ export const SettingsPage: React.FC = () => {
             </div>
 
             <div className="space-y-1.5">
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400">
+              <label className="block text-xs font-bold uppercase tracking-wider text-[#A8AAA0]">
                 Confirm New Password
               </label>
               <div className="relative">
-                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#7F8B86]" />
                 <Input
                   type={showNewPass ? 'text' : 'password'}
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="pl-10 h-11 rounded-xl bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700/80 focus:bg-white dark:focus:bg-slate-900"
+                  className="pl-10 h-11 rounded-[10px] bg-[#2B3940] border-[#3A4B4D] text-[#D9D0B8] focus:ring-2 focus:ring-[#496D6B]"
                   placeholder="Re-enter new password"
                   required
                 />
@@ -391,7 +392,7 @@ export const SettingsPage: React.FC = () => {
               <Button
                 type="submit"
                 isLoading={isChangingPass}
-                className="h-11 px-6 rounded-xl font-semibold bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-md shadow-indigo-500/25"
+                className="h-11 px-6 rounded-[10px] font-semibold bg-[#D0A56A] hover:bg-[#E0B779] text-[#171A1C] shadow-xs"
               >
                 Update Password
               </Button>
@@ -402,41 +403,18 @@ export const SettingsPage: React.FC = () => {
 
       {/* Appearance & Themes Tab */}
       {activeTab === 'appearance' && (
-        <div className="rounded-3xl border border-slate-200/80 dark:border-slate-800/80 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-xs space-y-6">
-          <div className="border-b border-slate-100 dark:border-slate-800/80 pb-4">
-            <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-              <Palette className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+        <div className="rounded-3xl border border-[#3A4B4D] bg-[#202A2D] p-6 sm:p-8 shadow-xs space-y-6">
+          <div className="border-b border-[#3A4B4D] pb-4">
+            <h2 className="text-lg font-bold text-[#D9D0B8] flex items-center gap-2">
+              <Palette className="h-5 w-5 text-[#D0A56A]" />
               <span>Appearance & Themes</span>
             </h2>
-            <p className="text-xs text-slate-400 mt-0.5">
+            <p className="text-xs text-[#A8AAA0] mt-0.5">
               Choose your preferred visual presentation mode across all devices.
             </p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            {/* Light Mode Card */}
-            <button
-              type="button"
-              onClick={() => setTheme('light')}
-              className={cn(
-                'group relative flex flex-col items-start p-5 rounded-2xl border text-left transition-all',
-                theme === 'light'
-                  ? 'border-indigo-600 bg-indigo-50/50 dark:bg-indigo-950/40 ring-2 ring-indigo-500/30'
-                  : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 bg-slate-50/50 dark:bg-slate-800/30'
-              )}
-            >
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 mb-3">
-                <Sun className="h-5 w-5" />
-              </div>
-              <p className="text-sm font-bold text-slate-900 dark:text-slate-100">Light Mode</p>
-              <p className="text-xs text-slate-400 mt-1">Crisp high contrast on clean ivory surfaces</p>
-              {theme === 'light' && (
-                <div className="absolute top-4 right-4 flex h-5 w-5 items-center justify-center rounded-full bg-indigo-600 text-white">
-                  <CheckCircle2 className="h-3.5 w-3.5" />
-                </div>
-              )}
-            </button>
-
             {/* Dark Mode Card */}
             <button
               type="button"
@@ -444,17 +422,17 @@ export const SettingsPage: React.FC = () => {
               className={cn(
                 'group relative flex flex-col items-start p-5 rounded-2xl border text-left transition-all',
                 theme === 'dark'
-                  ? 'border-indigo-600 bg-indigo-50/50 dark:bg-indigo-950/40 ring-2 ring-indigo-500/30'
-                  : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 bg-slate-50/50 dark:bg-slate-800/30'
+                  ? 'border-[#496D6B] bg-[#2B3940] ring-2 ring-[#496D6B]/30'
+                  : 'border-[#3A4B4D] hover:border-[#496D6B]/50 bg-[#202A2D]'
               )}
             >
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 mb-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#202A2D] text-[#D0A56A] mb-3 border border-[#3A4B4D]">
                 <Moon className="h-5 w-5" />
               </div>
-              <p className="text-sm font-bold text-slate-900 dark:text-slate-100">Dark Mode</p>
-              <p className="text-xs text-slate-400 mt-1">Deep slate background with neon-toned accents</p>
+              <p className="text-sm font-bold text-[#D9D0B8]">Dark Mode</p>
+              <p className="text-xs text-[#A8AAA0] mt-1">Deep quiet-room charcoal with warm cream accents</p>
               {theme === 'dark' && (
-                <div className="absolute top-4 right-4 flex h-5 w-5 items-center justify-center rounded-full bg-indigo-600 text-white">
+                <div className="absolute top-4 right-4 flex h-5 w-5 items-center justify-center rounded-full bg-[#D0A56A] text-[#171A1C]">
                   <CheckCircle2 className="h-3.5 w-3.5" />
                 </div>
               )}
@@ -467,17 +445,17 @@ export const SettingsPage: React.FC = () => {
               className={cn(
                 'group relative flex flex-col items-start p-5 rounded-2xl border text-left transition-all',
                 theme === 'system'
-                  ? 'border-indigo-600 bg-indigo-50/50 dark:bg-indigo-950/40 ring-2 ring-indigo-500/30'
-                  : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 bg-slate-50/50 dark:bg-slate-800/30'
+                  ? 'border-[#496D6B] bg-[#2B3940] ring-2 ring-[#496D6B]/30'
+                  : 'border-[#3A4B4D] hover:border-[#496D6B]/50 bg-[#202A2D]'
               )}
             >
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-sky-500/10 text-sky-600 dark:text-sky-400 mb-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#202A2D] text-[#496D6B] mb-3 border border-[#3A4B4D]">
                 <Laptop className="h-5 w-5" />
               </div>
-              <p className="text-sm font-bold text-slate-900 dark:text-slate-100">System Match</p>
-              <p className="text-xs text-slate-400 mt-1">Automatically switches based on OS setting</p>
+              <p className="text-sm font-bold text-[#D9D0B8]">System Match</p>
+              <p className="text-xs text-[#A8AAA0] mt-1">Automatically switches based on OS setting</p>
               {theme === 'system' && (
-                <div className="absolute top-4 right-4 flex h-5 w-5 items-center justify-center rounded-full bg-indigo-600 text-white">
+                <div className="absolute top-4 right-4 flex h-5 w-5 items-center justify-center rounded-full bg-[#D0A56A] text-[#171A1C]">
                   <CheckCircle2 className="h-3.5 w-3.5" />
                 </div>
               )}
@@ -488,45 +466,45 @@ export const SettingsPage: React.FC = () => {
 
       {/* Privacy & Data Ownership Tab */}
       {activeTab === 'data' && (
-        <div className="rounded-3xl border border-slate-200/80 dark:border-slate-800/80 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-xs space-y-6">
-          <div className="border-b border-slate-100 dark:border-slate-800/80 pb-4">
-            <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-              <HardDrive className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+        <div className="rounded-3xl border border-[#3A4B4D] bg-[#202A2D] p-6 sm:p-8 shadow-xs space-y-6">
+          <div className="border-b border-[#3A4B4D] pb-4">
+            <h2 className="text-lg font-bold text-[#D9D0B8] flex items-center gap-2">
+              <HardDrive className="h-5 w-5 text-[#D0A56A]" />
               <span>Data Ownership & Privacy</span>
             </h2>
-            <p className="text-xs text-slate-400 mt-0.5">
+            <p className="text-xs text-[#A8AAA0] mt-0.5">
               Orbit runs without third-party tracking, profiling scripts, or ad networks.
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="p-5 rounded-2xl bg-indigo-50/50 dark:bg-indigo-950/30 border border-indigo-200/60 dark:border-indigo-900/40 space-y-2">
-              <div className="flex items-center gap-2 text-indigo-600 dark:text-indigo-400 font-bold text-sm">
+            <div className="p-5 rounded-2xl bg-[#2B3940] border border-[#3A4B4D] space-y-2">
+              <div className="flex items-center gap-2 text-[#71877B] font-bold text-sm">
                 <ShieldCheck className="h-5 w-5" />
                 <span>Zero Tracking Guarantee</span>
               </div>
-              <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+              <p className="text-xs text-[#A8AAA0] leading-relaxed">
                 All your chats, posts, and call handshakes are routed directly over encrypted WebSockets and peer-to-peer WebRTC channels.
               </p>
             </div>
 
-            <div className="p-5 rounded-2xl bg-emerald-50/50 dark:bg-emerald-950/30 border border-emerald-200/60 dark:border-emerald-900/40 space-y-2">
-              <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 font-bold text-sm">
+            <div className="p-5 rounded-2xl bg-[#2B3940] border border-[#3A4B4D] space-y-2">
+              <div className="flex items-center gap-2 text-[#496D6B] font-bold text-sm">
                 <Database className="h-5 w-5" />
                 <span>Local SQLite Portability</span>
               </div>
-              <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+              <p className="text-xs text-[#A8AAA0] leading-relaxed">
                 Your database is stored in standard relational tables. You can export and migrate your full social graph at any time.
               </p>
             </div>
           </div>
 
-          <div className="p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-800/40 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="p-5 rounded-2xl border border-[#3A4B4D] bg-[#2B3940] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h4 className="text-sm font-bold text-slate-900 dark:text-slate-100">
+              <h4 className="text-sm font-bold text-[#D9D0B8]">
                 Export Full Social Archive
               </h4>
-              <p className="text-xs text-slate-400 mt-0.5 max-w-md">
+              <p className="text-xs text-[#A8AAA0] mt-0.5 max-w-md">
                 Download a clean `.json` file of all your posts, friendships, direct messages, and media references.
               </p>
             </div>
@@ -534,9 +512,9 @@ export const SettingsPage: React.FC = () => {
               type="button"
               variant="outline"
               onClick={handleExportData}
-              className="h-10 px-4 rounded-xl border-slate-300 dark:border-slate-700 font-semibold text-xs shrink-0"
+              className="h-10 px-4 rounded-[10px] border-[#3A4B4D] bg-[#202A2D] text-[#D9D0B8] hover:bg-[#314048] font-semibold text-xs shrink-0"
             >
-              <Download className="h-4 w-4 mr-2 text-indigo-600 dark:text-indigo-400" />
+              <Download className="h-4 w-4 mr-2 text-[#D0A56A]" />
               <span>Export Archive (.JSON)</span>
             </Button>
           </div>

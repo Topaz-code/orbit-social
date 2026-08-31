@@ -7,7 +7,7 @@ export const FeedSkeleton: React.FC = () => {
       {[1, 2, 3].map((i) => (
         <div
           key={i}
-          className="rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-white dark:bg-slate-900 p-5 shadow-xs"
+          className="rounded-2xl border border-[#3A4B4D] bg-[#202A2D] p-5 shadow-xs"
         >
           {/* Header */}
           <div className="flex items-center gap-3 mb-4">
@@ -29,7 +29,7 @@ export const FeedSkeleton: React.FC = () => {
           {i % 2 === 1 && <Skeleton className="h-64 w-full rounded-2xl mb-4" />}
 
           {/* Footer Actions */}
-          <div className="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-slate-800">
+          <div className="flex items-center justify-between pt-3 border-t border-[#3A4B4D]">
             <div className="flex items-center gap-4">
               <Skeleton className="h-6 w-12 rounded-full" />
               <Skeleton className="h-6 w-12 rounded-full" />
@@ -42,3 +42,4 @@ export const FeedSkeleton: React.FC = () => {
     </div>
   );
 };
+

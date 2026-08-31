@@ -160,13 +160,23 @@
 .skeleton-shimmer {
   background: linear-gradient(
     90deg,
-    rgba(32, 42, 45, 0.6) 0%,
-    rgba(43, 57, 64, 0.9) 50%,
-    rgba(32, 42, 45, 0.6) 100%
+    #202A2D 0%,
+    #2B3940 50%,
+    #202A2D 100%
   );
   background-size: 200% 100%;
-  animation: shimmer 1.5s infinite;
+  animation: shimmer 1.6s ease-in-out infinite;
 }
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
 
 @keyframes wiggle {
   0%, 100% { transform: rotate(0deg); }
