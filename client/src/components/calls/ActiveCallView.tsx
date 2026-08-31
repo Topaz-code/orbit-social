@@ -40,8 +40,12 @@ export const ActiveCallView: React.FC = () => {
   useEffect(() => {
     if (remoteVideoRef.current && remoteStream) {
       remoteVideoRef.current.srcObject = remoteStream;
+      remoteVideoRef.current.play?.().catch((err) => {
+        console.warn('[Call] Autoplay blocked, user interaction required:', err);
+      });
     }
   }, [remoteStream]);
+
 
   if (!activeCall) return null;
 
