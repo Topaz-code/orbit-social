@@ -28,23 +28,100 @@ export const ActiveCallView: React.FC = () => {
 
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
+  const remoteAudioRef = useRef<HTMLAudioElement>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const audioSourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
 
-  // Attach local stream
+  // Attach local stream to preview
   useEffect(() => {
     if (localVideoRef.current && localStream) {
       localVideoRef.current.srcObject = localStream;
     }
   }, [localStream]);
 
-  // Attach remote stream
+  // Ultra-low-latency remote audio playback via Web Audio API
   useEffect(() => {
-    if (remoteVideoRef.current && remoteStream) {
-      remoteVideoRef.current.srcObject = remoteStream;
-      remoteVideoRef.current.play?.().catch((err) => {
-        console.warn('[Call] Autoplay blocked, user interaction required:', err);
+    if (!remoteStream) return;
+
+    let ctx: AudioContext | null = null;
+    try {
+      ctx = new (window.AudioContext || (window as any).webkitAudioContext)({
+        latencyHint: 'interactive',
       });
+      audioContextRef.current = ctx;
+
+      if (ctx.state === 'suspended') {
+        ctx.resume().catch(() => {});
+      }
+
+      const source = ctx.createMediaStreamSource(remoteStream);
+      audioSourceRef.current = source;
+      source.connect(ctx.destination);
+    } catch (e) {
+      console.warn('[Call] Web Audio direct routing fallback to HTML5 audio:', e);
+      if (remoteAudioRef.current) {
+        remoteAudioRef.current.srcObject = remoteStream;
+        remoteAudioRef.current.play().catch(() => {});
+      }
     }
+
+    if (remoteVideoRef.current) {
+      remoteVideoRef.current.srcObject = remoteStream;
+      remoteVideoRef.current.play().catch(() => {});
+    }
+
+    return () => {
+      try {
+        audioSourceRef.current?.disconnect();
+        audioSourceRef.current = null;
+        if (ctx && ctx.state !== 'closed') {
+          ctx.close().catch(() => {});
+        }
+      } catch {}
+    };
   }, [remoteStream]);
+
+  // Outgoing ringing dial tone
+  useEffect(() => {
+    if (!activeCall || activeCall.status !== 'ringing' || !activeCall.isCaller) return;
+
+    let ctx: AudioContext | null = null;
+    let osc: OscillatorNode | null = null;
+    let gain: GainNode | null = null;
+    let interval: any = null;
+
+    try {
+      ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const playDialTone = () => {
+        if (!ctx || ctx.state === 'closed') return;
+        osc = ctx.createOscillator();
+        gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(425, ctx.currentTime);
+        gain.gain.setValueAtTime(0.06, ctx.currentTime);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        setTimeout(() => {
+          try {
+            osc?.stop();
+          } catch {}
+        }, 1000);
+      };
+
+      playDialTone();
+      interval = setInterval(playDialTone, 3000);
+    } catch {}
+
+    return () => {
+      if (interval) clearInterval(interval);
+      try {
+        osc?.stop();
+        ctx?.close().catch(() => {});
+      } catch {}
+    };
+  }, [activeCall?.status, activeCall?.isCaller]);
+
 
 
   if (!activeCall) return null;
@@ -132,9 +209,10 @@ export const ActiveCallView: React.FC = () => {
               <p className="text-sm text-[#A8AAA0] mt-1">
                 {activeCall.status === 'ringing' ? 'Calling...' : 'Voice Call Active'}
               </p>
-              {/* Hidden audio element for remote audio track */}
-              <audio ref={remoteVideoRef} autoPlay playsInline />
+              {/* Fallback audio element for remote audio track */}
+              <audio ref={remoteAudioRef} autoPlay playsInline />
             </div>
+
           )}
         </div>
 
