@@ -9,9 +9,12 @@ import { PhoneIncoming, PhoneOutgoing, PhoneMissed, Trash2 } from 'lucide-react'
 import { SolidStartCallIcon, SolidVideoIcon } from './CallIcons.js';
 import { useCall } from '../../hooks/useCall.js';
 
+import { useDialogStore, confirmAction } from '../../stores/dialogStore.js';
+
 export const CallHistory: React.FC = () => {
   const { startCall } = useCall();
   const queryClient = useQueryClient();
+  const { toast } = useDialogStore();
 
   const { data: calls = [], isLoading } = useQuery({
     queryKey: ['calls', 'history'],
@@ -25,6 +28,10 @@ export const CallHistory: React.FC = () => {
     mutationFn: (callId: string) => api.delete(`/calls/${callId}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['calls', 'history'] });
+      toast.success('Call log deleted');
+    },
+    onError: () => {
+      toast.error('Failed to delete call log');
     },
   });
 
@@ -32,19 +39,31 @@ export const CallHistory: React.FC = () => {
     mutationFn: () => api.delete('/calls/history/clear'),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['calls', 'history'] });
+      toast.success('Call history cleared');
+    },
+    onError: () => {
+      toast.error('Failed to clear call history');
     },
   });
 
-  const handleDelete = (e: React.MouseEvent, callId: string) => {
+  const handleDelete = async (e: React.MouseEvent, callId: string) => {
     e.stopPropagation();
     deleteMutation.mutate(callId);
   };
 
-  const handleClearAll = () => {
-    if (window.confirm('Are you sure you want to clear your entire call history?')) {
+  const handleClearAll = async () => {
+    const ok = await confirmAction({
+      title: 'Clear Call History',
+      message: 'Are you sure you want to clear your entire call history? This action cannot be undone.',
+      confirmText: 'Clear All',
+      cancelText: 'Cancel',
+      variant: 'danger',
+    });
+    if (ok) {
       clearAllMutation.mutate();
     }
   };
+
 
   return (
     <div className="space-y-3 text-[#D9D0B8]">

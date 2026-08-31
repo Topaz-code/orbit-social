@@ -7,8 +7,10 @@ import { Avatar } from '../ui/avatar.js';
 import { MessageBubble } from './MessageBubble.js';
 import { ChatInput } from './ChatInput.js';
 import { TypingIndicator } from './TypingIndicator.js';
-import { Phone, Video, Users, ArrowLeft } from 'lucide-react';
+import { Users, ArrowLeft } from 'lucide-react';
+import { SolidStartCallIcon, SolidVideoIcon } from '../calls/CallIcons.js';
 import { api } from '../../lib/api.js';
+import { useDialogStore } from '../../stores/dialogStore.js';
 
 interface ChatViewProps {
   conversation: Conversation;
@@ -19,6 +21,7 @@ export const ChatView: React.FC<ChatViewProps> = ({ conversation, onBack }) => {
   const { user } = useAuthStore();
   const { messages, typingUsers, sendMessage, emitTyping, isSending } = useChat();
   const { startCall } = useCall();
+  const { toast } = useDialogStore();
 
   const [replyingMessage, setReplyingMessage] = useState<Message | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -40,9 +43,11 @@ export const ChatView: React.FC<ChatViewProps> = ({ conversation, onBack }) => {
     if (conversation.type === 'direct' && conversation.other_user) {
       startCall(conversation.other_user, type, conversation.id);
     } else {
-      alert('Group audio/video calls are available in direct chats');
+      toast.info('Group audio/video calls are available in direct chats');
     }
   };
+
+
 
   return (
     <div className="flex flex-col h-full bg-[#171A1C]">
@@ -90,7 +95,7 @@ export const ChatView: React.FC<ChatViewProps> = ({ conversation, onBack }) => {
               className="flex h-9 w-9 items-center justify-center rounded-[10px] hover:bg-[#2B3940] text-[#D9D0B8] hover:text-[#71877B] transition-colors"
               title="Voice Call"
             >
-              <Phone className="h-4 w-4" />
+              <SolidStartCallIcon className="h-4 w-4" />
             </button>
             <button
               type="button"
@@ -98,10 +103,11 @@ export const ChatView: React.FC<ChatViewProps> = ({ conversation, onBack }) => {
               className="flex h-9 w-9 items-center justify-center rounded-[10px] hover:bg-[#2B3940] text-[#D9D0B8] hover:text-[#71877B] transition-colors"
               title="Video Call"
             >
-              <Video className="h-4 w-4" />
+              <SolidVideoIcon className="h-4 w-4" />
             </button>
           </div>
         )}
+
       </div>
 
       {/* Messages Stream */}
@@ -109,7 +115,7 @@ export const ChatView: React.FC<ChatViewProps> = ({ conversation, onBack }) => {
         {messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center text-xs text-[#7F8B86]">
             <div className="h-12 w-12 rounded-full bg-[#202A2D] border border-[#3A4B4D] flex items-center justify-center text-[#496D6B] mb-2">
-              <Phone className="h-5 w-5" />
+              <SolidStartCallIcon className="h-5 w-5" />
             </div>
             <p className="font-semibold text-[#D9D0B8]">Direct Chat</p>
             <p className="max-w-xs mt-1 text-[#A8AAA0]">
@@ -117,6 +123,7 @@ export const ChatView: React.FC<ChatViewProps> = ({ conversation, onBack }) => {
             </p>
           </div>
         ) : (
+
           messages.map((msg) => (
             <MessageBubble
               key={msg.id}

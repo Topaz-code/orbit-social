@@ -4,6 +4,8 @@ import { useAuthStore } from '../stores/authStore.js';
 import { PeerManager, CallMetadata } from '../lib/webrtc.js';
 import { api } from '../lib/api.js';
 import { MediaConnection } from 'peerjs';
+import { useDialogStore } from '../stores/dialogStore.js';
+
 
 // Hold single MediaConnection reference for incoming call answering
 let currentIncomingMediaConnection: MediaConnection | null = null;
@@ -182,10 +184,11 @@ export function useCall() {
       }
     } catch (error: any) {
       console.error('[Call] Failed to start call:', error);
-      alert(error.message || 'Could not access microphone/camera');
+      useDialogStore.getState().toast.error(error.message || 'Could not access microphone/camera');
       endCall();
     }
   };
+
 
   // Accept incoming call
   const acceptCall = async () => {

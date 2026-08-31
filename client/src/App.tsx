@@ -65,6 +65,8 @@ const PublicRoute: React.FC<{ children: React.ReactElement }> = ({ children }) =
 };
 
 
+import { InAppDialog } from './components/ui/InAppDialog.js';
+
 export const App: React.FC = () => {
   const { initializeAuth } = useAuthStore();
   const { theme } = useThemeStore();
@@ -75,51 +77,55 @@ export const App: React.FC = () => {
   }, [initializeAuth, theme]);
 
   return (
-    <Suspense fallback={<PageLoader />}>
-      <Routes>
-        {/* Public Auth Routes */}
-        <Route
-          path="/login"
-          element={
-            <PublicRoute>
-              <LoginPage />
-            </PublicRoute>
-          }
-        />
-        <Route
-          path="/register"
-          element={
-            <PublicRoute>
-              <RegisterPage />
-            </PublicRoute>
-          }
-        />
+    <>
+      <InAppDialog />
+      <Suspense fallback={<PageLoader />}>
+        <Routes>
+          {/* Public Auth Routes */}
+          <Route
+            path="/login"
+            element={
+              <PublicRoute>
+                <LoginPage />
+              </PublicRoute>
+            }
+          />
+          <Route
+            path="/register"
+            element={
+              <PublicRoute>
+                <RegisterPage />
+              </PublicRoute>
+            }
+          />
 
-        {/* Protected Dashboard Routes */}
-        <Route
-          path="/"
-          element={
-            <ProtectedRoute>
-              <DashboardLayout />
-            </ProtectedRoute>
-          }
-        >
-          <Route index element={<FeedPage />} />
-          <Route path="explore" element={<ExplorePage />} />
-          <Route path="profile" element={<ProfilePage />} />
-          <Route path="profile/:id" element={<ProfilePage />} />
-          <Route path="messages" element={<MessagesPage />} />
-          <Route path="stories" element={<StoriesPage />} />
-          <Route path="groups" element={<GroupsPage />} />
-          <Route path="groups/:id" element={<GroupDetailPage />} />
-          <Route path="calls" element={<CallsPage />} />
-          <Route path="notifications" element={<NotificationsPage />} />
-          <Route path="search" element={<SearchPage />} />
-          <Route path="settings" element={<SettingsPage />} />
-          {/* Fallback */}
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Route>
-      </Routes>
-    </Suspense>
+          {/* Protected Dashboard Routes */}
+          <Route
+            path="/"
+            element={
+              <ProtectedRoute>
+                <DashboardLayout />
+              </ProtectedRoute>
+            }
+          >
+            <Route index element={<FeedPage />} />
+            <Route path="explore" element={<ExplorePage />} />
+            <Route path="profile" element={<ProfilePage />} />
+            <Route path="profile/:id" element={<ProfilePage />} />
+            <Route path="messages" element={<MessagesPage />} />
+            <Route path="stories" element={<StoriesPage />} />
+            <Route path="groups" element={<GroupsPage />} />
+            <Route path="groups/:id" element={<GroupDetailPage />} />
+            <Route path="calls" element={<CallsPage />} />
+            <Route path="notifications" element={<NotificationsPage />} />
+            <Route path="search" element={<SearchPage />} />
+            <Route path="settings" element={<SettingsPage />} />
+            {/* Fallback */}
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Route>
+        </Routes>
+      </Suspense>
+    </>
   );
 };
+

@@ -18,7 +18,7 @@ export const MobileNav: React.FC = () => {
     { label: 'Feed', to: '/', iconName: 'home' },
     { label: 'Explore', to: '/explore', iconName: 'compass' },
     { label: 'Messages', to: '/messages', iconName: 'chat' },
-    { label: 'Groups', to: '/groups', iconName: 'users' },
+    { label: 'Calls', to: '/calls', iconName: 'phone' },
     {
       label: 'Alerts',
       to: '/notifications',
@@ -29,31 +29,33 @@ export const MobileNav: React.FC = () => {
   ];
 
   return (
-    <nav className="sticky top-16 z-20 flex lg:hidden h-13 items-center justify-around border-b border-[#3A4B4D] bg-[#141819] px-1 shadow-xs">
+    <nav className="sticky top-16 z-20 flex lg:hidden h-12 w-full items-center justify-between border-b border-[#3A4B4D] bg-[#141819] px-0 shadow-xs select-none">
       {navItems.map((item) => (
         <NavLink
           key={item.to}
           to={item.to}
           className={({ isActive }) =>
             cn(
-              'relative flex flex-col items-center justify-center py-1.5 px-2.5 rounded-[10px] text-[11px] font-medium transition-all',
+              'relative flex flex-1 h-full flex-col items-center justify-center transition-all',
               isActive
-                ? 'text-[#D9D0B8] font-bold bg-[#496D6B]'
-                : 'text-[#A8AAA0] hover:text-[#D9D0B8]'
+                ? 'text-[#D9D0B8] font-bold after:absolute after:bottom-0 after:left-2 after:right-2 after:h-0.75 after:bg-[#496D6B] after:rounded-full'
+                : 'text-[#7F8B86] hover:text-[#D9D0B8]'
             )
           }
         >
-          <AnimatedIcon name={item.iconName} size={18} className="mb-0.5" />
-          <span>{item.label}</span>
-          {item.badge !== undefined && (
-            <span className="absolute -top-0.5 right-1 flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-[#D0A56A] px-1 text-[9px] font-bold text-[#171A1C] shadow-xs">
-              {item.badge > 9 ? '9+' : item.badge}
-            </span>
-          )}
+          <div className="relative flex items-center justify-center">
+            <AnimatedIcon name={item.iconName} size={20} />
+            {item.badge !== undefined && (
+              <span className="absolute -top-1.5 -right-2.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#B87568] px-1 text-[10px] font-bold text-white shadow-xs animate-pulse">
+                {item.badge > 9 ? '9+' : item.badge}
+              </span>
+            )}
+          </div>
         </NavLink>
       ))}
     </nav>
   );
 };
+
 
 
