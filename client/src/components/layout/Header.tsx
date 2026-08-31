@@ -41,22 +41,22 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewPost, onOpenNewStory })
   };
 
   return (
-    <header className="sticky top-0 z-20 flex h-20 w-full items-center justify-between border-b-0 lg:border-b border-[#3A4B4D] bg-[#141819] px-4 sm:px-8">
+    <header className="sticky top-0 z-20 flex h-14 lg:h-16 w-full items-center justify-between border-b-0 lg:border-b border-[#3A4B4D] bg-[#141819] px-3 sm:px-6 lg:px-8">
       {/* Mobile Logo Brand */}
-      <div className="flex items-center gap-3 lg:hidden">
-        <img src="/orbit-logo.svg" alt="Orbit" className="h-8 w-8 cursor-pointer" onClick={() => navigate('/')} />
+      <div className="flex items-center gap-2 lg:hidden shrink-0">
+        <img src="/orbit-logo.svg" alt="Orbit" className="h-7 w-7 cursor-pointer" onClick={() => navigate('/')} />
       </div>
 
       {/* Global Search Bar */}
-      <form onSubmit={handleSearchSubmit} className="flex-1 max-w-md mx-4 sm:mx-6">
+      <form onSubmit={handleSearchSubmit} className="flex-1 max-w-md mx-2 sm:mx-4 lg:mx-6">
         <div className="relative">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#7F8B86]" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#7F8B86]" />
           <input
             type="text"
             placeholder="Search people, posts, or groups..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full h-10 rounded-[10px] border border-[#3A4B4D] bg-[#2B3940] pl-10 pr-4 text-sm text-[#D9D0B8] placeholder:text-[#7F8B86] focus:outline-none focus:ring-2 focus:ring-[#496D6B] transition-all"
+            className="w-full h-9 sm:h-10 rounded-[10px] border border-[#3A4B4D] bg-[#2B3940] pl-9 sm:pl-10 pr-3.5 text-xs sm:text-sm text-[#D9D0B8] placeholder:text-[#7F8B86] focus:outline-none focus:ring-2 focus:ring-[#496D6B] transition-all"
           />
         </div>
       </form>
