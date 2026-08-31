@@ -78,6 +78,9 @@ jobs:
         working-directory: mobile
         run: npm install --legacy-peer-deps
 
+      - name: Ensure Android assets directory exists
+        run: mkdir -p mobile/android/app/src/main/assets
+
       - name: Generate Android debug.keystore if missing
         working-directory: mobile/android/app
         run: |
