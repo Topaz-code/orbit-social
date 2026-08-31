@@ -29,7 +29,7 @@ export const MobileNav: React.FC = () => {
   ];
 
   return (
-    <nav className="sticky top-20 z-20 flex lg:hidden h-14 w-full items-center border-b border-[#3A4B4D] bg-[#141819] select-none">
+    <nav className="sticky top-14 z-20 flex lg:hidden h-11 w-full items-center border-b border-[#3A4B4D] bg-[#141819] select-none">
       {navItems.map((item) => (
         <NavLink
           key={item.to}
@@ -37,17 +37,17 @@ export const MobileNav: React.FC = () => {
           end={item.to === '/'}
           className={({ isActive }) =>
             cn(
-              'relative flex flex-1 h-full flex-col items-center justify-center py-2 transition-colors',
+              'relative flex flex-1 h-full flex-col items-center justify-center transition-colors',
               isActive
-                ? 'text-[#D9D0B8] after:absolute after:bottom-0 after:left-3 after:right-3 after:h-[2px] after:bg-[#496D6B] after:rounded-full'
+                ? 'text-[#D9D0B8] after:absolute after:bottom-0 after:left-2.5 after:right-2.5 after:h-[2px] after:bg-[#496D6B] after:rounded-full'
                 : 'text-[#7F8B86] hover:text-[#A8AAA0]'
             )
           }
         >
           <div className="relative flex items-center justify-center">
-            <AnimatedIcon name={item.iconName} size={22} />
+            <AnimatedIcon name={item.iconName} size={20} />
             {item.badge !== undefined && (
-              <span className="absolute -top-1.5 -right-2.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#B87568] px-1 text-[10px] font-bold text-white shadow-sm">
+              <span className="absolute -top-1.5 -right-2.5 flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-[#B87568] px-0.5 text-[9px] font-bold text-white shadow-sm">
                 {item.badge > 9 ? '9+' : item.badge}
               </span>
             )}
