@@ -29,7 +29,7 @@ export const MobileNav: React.FC = () => {
   ];
 
   return (
-    <nav className="sticky top-16 z-20 flex lg:hidden h-12 w-full items-center border-b border-[#3A4B4D] bg-[#141819] select-none">
+    <nav className="sticky top-16 z-20 flex lg:hidden h-14 w-full items-center border-b border-[#3A4B4D] bg-[#141819] select-none">
       {navItems.map((item) => (
         <NavLink
           key={item.to}
@@ -37,7 +37,7 @@ export const MobileNav: React.FC = () => {
           end={item.to === '/'}
           className={({ isActive }) =>
             cn(
-              'relative flex flex-1 h-full flex-col items-center justify-center transition-colors',
+              'relative flex flex-1 h-full flex-col items-center justify-center py-2 transition-colors',
               isActive
                 ? 'text-[#D9D0B8] after:absolute after:bottom-0 after:left-3 after:right-3 after:h-[2px] after:bg-[#496D6B] after:rounded-full'
                 : 'text-[#7F8B86] hover:text-[#A8AAA0]'
