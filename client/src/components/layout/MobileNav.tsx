@@ -29,7 +29,7 @@ export const MobileNav: React.FC = () => {
   ];
 
   return (
-    <nav className="sticky top-14 z-20 flex lg:hidden h-14 w-full items-center border-b border-[#3A4B4D] bg-[#141819] select-none">
+    <nav className="flex lg:hidden h-14 w-full items-center border-b border-[#3A4B4D] bg-[#141819] select-none">
       {navItems.map((item) => (
         <NavLink
           key={item.to}
