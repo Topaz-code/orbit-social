@@ -151,4 +151,26 @@ export const callsService = {
 
     return updated;
   },
+
+  async deleteCall(callId: string, userId: string) {
+    const call = await prisma.call.findUnique({ where: { id: callId } });
+    if (!call) throw new Error('Call not found');
+
+    if (call.caller_id !== userId && call.receiver_id !== userId) {
+      throw new Error('Unauthorized to delete this call log');
+    }
+
+    await prisma.call.delete({ where: { id: callId } });
+    return { success: true };
+  },
+
+  async clearCallHistory(userId: string) {
+    await prisma.call.deleteMany({
+      where: {
+        OR: [{ caller_id: userId }, { receiver_id: userId }],
+      },
+    });
+    return { success: true };
+  },
 };
+

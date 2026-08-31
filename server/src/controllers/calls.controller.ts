@@ -34,4 +34,23 @@ export const callsController = {
       res.status(400).json({ success: false, message: error.message });
     }
   },
+
+  async deleteCall(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+      await callsService.deleteCall(req.params.id, req.user!.userId);
+      res.json({ success: true, message: 'Call log deleted successfully' });
+    } catch (error: any) {
+      res.status(400).json({ success: false, message: error.message });
+    }
+  },
+
+  async clearCallHistory(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+      await callsService.clearCallHistory(req.user!.userId);
+      res.json({ success: true, message: 'Call history cleared successfully' });
+    } catch (error: any) {
+      res.status(500).json({ success: false, message: error.message });
+    }
+  },
 };
+
