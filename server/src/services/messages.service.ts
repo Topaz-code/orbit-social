@@ -1,5 +1,6 @@
 import { prisma } from '../config/database.js';
 import { mqttService } from './mqtt.service.js';
+import { pushService } from './push.service.js';
 
 export const messagesService = {
   async getMessages(conversationId: string, userId: string, limit = 50, cursor?: string) {
@@ -140,7 +141,7 @@ export const messagesService = {
 
     for (const mem of member.conversation.members) {
       if (mem.user_id !== senderId) {
-        // Send MQTT push notification
+        // Send MQTT real-time notification
         const notification = {
           type: 'new_message',
           reference_id: conversationId,
@@ -150,6 +151,18 @@ export const messagesService = {
           message_id: message.id,
         };
         mqttService.sendNotification(mem.user_id, notification);
+
+        // Send Mobile Push Notification (FCM v1)
+        pushService.sendToUser(mem.user_id, {
+          title: senderName,
+          body: previewContent,
+          data: {
+            type: 'CHAT_MESSAGE',
+            conversationId,
+            messageId: message.id,
+            senderId,
+          },
+        }).catch((err) => console.error('[Message] Push notification error:', err));
       }
     }
 
