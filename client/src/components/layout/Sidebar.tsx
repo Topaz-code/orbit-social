@@ -38,9 +38,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ onOpenNewPost }) => {
   ];
 
   return (
-    <aside className="hidden lg:flex flex-col w-64 h-screen sticky top-0 border-r border-[#3A4B4D] bg-[#202A2D] p-4 select-none z-30">
+    <aside className="hidden lg:flex flex-col w-64 h-screen fixed left-0 top-0 bottom-0 border-r border-[#3A4B4D] bg-[#202A2D] p-4 select-none z-30">
       {/* Brand Logo */}
-      <NavLink to="/" className="flex items-center gap-3 px-3 py-3 mb-4 group">
+      <NavLink to="/" className="flex items-center gap-3 px-3 py-3 mb-4 group shrink-0">
         <img
           src="/orbit-logo.svg"
           alt="Orbit"
@@ -88,7 +88,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onOpenNewPost }) => {
       {onOpenNewPost && (
         <button
           onClick={onOpenNewPost}
-          className="my-3 flex items-center justify-center gap-2 w-full py-2.5 px-4 rounded-[10px] font-semibold text-sm text-[#171A1C] bg-[#D0A56A] hover:bg-[#E0B779] active:scale-[0.98] transition-all"
+          className="my-3 shrink-0 flex items-center justify-center gap-2 w-full py-2.5 px-4 rounded-[10px] font-semibold text-sm text-[#171A1C] bg-[#D0A56A] hover:bg-[#E0B779] active:scale-[0.98] transition-all"
         >
           <PlusCircle className="h-4 w-4" />
           <span>New Post</span>
@@ -99,7 +99,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onOpenNewPost }) => {
       {user && (
         <NavLink
           to={`/profile/${user.id}`}
-          className="flex items-center gap-3 p-2.5 rounded-[10px] hover:bg-[#2B3940] transition-colors mt-auto border border-[#3A4B4D]"
+          className="flex items-center gap-3 p-2.5 rounded-[10px] hover:bg-[#2B3940] transition-colors mt-auto shrink-0 border border-[#3A4B4D]"
         >
           <Avatar
             src={user.avatar_url}
@@ -117,6 +117,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onOpenNewPost }) => {
         </NavLink>
       )}
     </aside>
+
   );
 };
 

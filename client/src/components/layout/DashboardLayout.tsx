@@ -53,7 +53,7 @@ export const DashboardLayout: React.FC = () => {
 
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 lg:pl-64">
         <Header
           onOpenNewPost={() => setIsNewPostOpen(true)}
           onOpenNewStory={() => setIsNewStoryOpen(true)}
@@ -66,6 +66,7 @@ export const DashboardLayout: React.FC = () => {
           <Outlet />
         </main>
       </div>
+
 
       {/* Global Modals for Quick Post & Story */}
       <PostComposerModal open={isNewPostOpen} onOpenChange={setIsNewPostOpen} />
