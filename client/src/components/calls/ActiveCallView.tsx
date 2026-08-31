@@ -253,84 +253,85 @@ export const ActiveCallView: React.FC = () => {
           )}
         </div>
 
-        {/* Bottom Control Actions Bar (Matching User Call Icon Types & Labels) */}
-        <div className="flex items-center justify-center gap-6 sm:gap-10 z-20 py-2">
+        {/* Bottom Control Actions Bar (Flaticon Style & Generous Spacing) */}
+        <div className="flex items-center justify-center gap-7 sm:gap-12 md:gap-16 z-20 py-4 px-2">
           {/* Screencast */}
-          <div className="flex flex-col items-center gap-1.5">
+          <div className="flex flex-col items-center gap-2">
             <button
               type="button"
               onClick={handleToggleScreenShare}
-              className={`flex h-13 w-13 items-center justify-center rounded-full transition-all border shadow-lg ${
+              className={`flex h-15 w-15 sm:h-16 sm:w-16 items-center justify-center rounded-full transition-all border shadow-xl active:scale-95 ${
                 isSharingScreen
                   ? 'bg-[#496D6B] text-[#D9D0B8] border-[#71877B]'
-                  : 'bg-[#2B3940] hover:bg-[#34444c] text-[#D9D0B8] border-[#3A4B4D]'
+                  : 'bg-[#202A2D] hover:bg-[#2B3940] text-[#D9D0B8] border-[#3A4B4D]'
               }`}
               title="Screencast"
             >
-              <ScreencastIcon className="h-5 w-5" />
+              <ScreencastIcon className="h-6 w-6 sm:h-7 sm:w-7" />
             </button>
-            <span className="text-xs font-medium text-[#D9D0B8]">Screencast</span>
+            <span className="text-xs font-medium text-[#D9D0B8] tracking-wide">Screencast</span>
           </div>
 
           {/* Start Video / Stop Video */}
-          <div className="flex flex-col items-center gap-1.5">
+          <div className="flex flex-col items-center gap-2">
             <button
               type="button"
               onClick={toggleVideo}
-              className={`flex h-13 w-13 items-center justify-center rounded-full transition-all border shadow-lg ${
+              className={`flex h-15 w-15 sm:h-16 sm:w-16 items-center justify-center rounded-full transition-all border shadow-xl active:scale-95 ${
                 activeCall.isVideoOff
-                  ? 'bg-[#2B3940] text-[#A8AAA0] border-[#3A4B4D] hover:bg-[#34444c]'
+                  ? 'bg-[#202A2D] text-[#A8AAA0] border-[#3A4B4D] hover:bg-[#2B3940]'
                   : 'bg-[#496D6B] text-[#D9D0B8] border-[#71877B] hover:bg-[#5a7d78]'
               }`}
               title={activeCall.isVideoOff ? 'Start Video' : 'Stop Video'}
             >
               {activeCall.isVideoOff ? (
-                <SolidVideoOffIcon className="h-5 w-5" />
+                <SolidVideoOffIcon className="h-6 w-6 sm:h-7 sm:w-7" />
               ) : (
-                <SolidVideoIcon className="h-5 w-5" />
+                <SolidVideoIcon className="h-6 w-6 sm:h-7 sm:w-7" />
               )}
             </button>
-            <span className="text-xs font-medium text-[#D9D0B8]">
+            <span className="text-xs font-medium text-[#D9D0B8] tracking-wide">
               {activeCall.isVideoOff ? 'Start Video' : 'Stop Video'}
             </span>
           </div>
 
           {/* End Call */}
-          <div className="flex flex-col items-center gap-1.5">
+          <div className="flex flex-col items-center gap-2">
             <button
               type="button"
               onClick={endCall}
-              className="flex h-13 w-13 items-center justify-center rounded-full bg-[#B87568] hover:bg-[#C98679] text-[#171A1C] shadow-xl transition-transform active:scale-95 border border-[#B87568]"
+              className="flex h-15 w-15 sm:h-16 sm:w-16 items-center justify-center rounded-full bg-[#B87568] hover:bg-[#C98679] text-[#171A1C] shadow-2xl transition-transform active:scale-90 border-2 border-[#B87568]"
               title="End Call"
             >
-              <SolidEndCallIcon className="h-6 w-6" />
+              <SolidEndCallIcon className="h-7 w-7 sm:h-8 sm:w-8" />
             </button>
-            <span className="text-xs font-medium text-[#D9D0B8]">End Call</span>
+            <span className="text-xs font-semibold text-[#B87568] tracking-wide">End Call</span>
           </div>
 
           {/* Mute */}
-          <div className="flex flex-col items-center gap-1.5">
+          <div className="flex flex-col items-center gap-2">
             <button
               type="button"
               onClick={toggleMute}
-              className={`flex h-13 w-13 items-center justify-center rounded-full transition-all border shadow-lg ${
+              className={`flex h-15 w-15 sm:h-16 sm:w-16 items-center justify-center rounded-full transition-all border shadow-xl active:scale-95 ${
                 activeCall.isMuted
                   ? 'bg-[#B87568] text-[#171A1C] border-[#B87568]'
-                  : 'bg-[#2B3940] hover:bg-[#34444c] text-[#D9D0B8] border-[#3A4B4D]'
+                  : 'bg-[#202A2D] hover:bg-[#2B3940] text-[#D9D0B8] border-[#3A4B4D]'
               }`}
               title={activeCall.isMuted ? 'Unmute' : 'Mute'}
             >
               {activeCall.isMuted ? (
-                <SolidMicOffIcon className="h-5 w-5" />
+                <SolidMicOffIcon className="h-6 w-6 sm:h-7 sm:w-7" />
               ) : (
-                <SolidMicIcon className="h-5 w-5" />
+                <SolidMicIcon className="h-6 w-6 sm:h-7 sm:w-7" />
               )}
             </button>
-            <span className="text-xs font-medium text-[#D9D0B8]">
+            <span className="text-xs font-medium text-[#D9D0B8] tracking-wide">
               {activeCall.isMuted ? 'Unmute' : 'Mute'}
             </span>
           </div>
         </div>
+
 
       </div>
     </div>

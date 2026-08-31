@@ -7,6 +7,8 @@ import { Avatar } from '../ui/avatar.js';
 import { getMediaUrl, formatRelativeTime } from '../../lib/utils.js';
 import { X, ChevronLeft, ChevronRight, Send, Eye, Trash2 } from 'lucide-react';
 import { STORY_DURATION_MS } from '../../lib/constants.js';
+import { confirmAction } from '../../stores/dialogStore.js';
+
 
 interface StoryViewerProps {
   storyGroups: UserStoryGroup[];
@@ -118,11 +120,20 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
 
 
   const handleDelete = async () => {
-    if (currentStory && confirm('Are you sure you want to delete this story?')) {
+    if (!currentStory) return;
+    const ok = await confirmAction({
+      title: 'Delete Story',
+      message: 'Are you sure you want to delete this story? It will no longer be visible.',
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      variant: 'danger',
+    });
+    if (ok) {
       await deleteStory(currentStory.id);
       handleNext();
     }
   };
+
 
   if (!currentGroup || !currentStory) return null;
 

@@ -29,6 +29,8 @@ import {
 } from 'lucide-react';
 import { api } from '../lib/api.js';
 import { cn } from '../lib/utils.js';
+import { useDialogStore } from '../stores/dialogStore.js';
+
 
 type SettingsTab = 'profile' | 'security' | 'appearance' | 'data';
 
@@ -124,9 +126,10 @@ export const SettingsPage: React.FC = () => {
       a.click();
       URL.revokeObjectURL(url);
     } catch {
-      alert('Data export generated from SQLite local database.');
+      useDialogStore.getState().toast.info('Data export generated from SQLite local database.');
     }
   };
+
 
   const tabs: Array<{ id: SettingsTab; label: string; icon: React.ComponentType<{ className?: string }> }> = [
     { id: 'profile', label: 'Profile Details', icon: User },

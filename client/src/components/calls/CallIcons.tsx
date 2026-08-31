@@ -1,81 +1,154 @@
 import React from 'react';
 
 /**
- * Screencast Icon: Overlapping display screens with share arrow
+ * Screencast Icon: Outline dual screens with share/broadcast arrow
  */
-export const ScreencastIcon: React.FC<{ className?: string }> = ({ className = 'w-5 h-5' }) => (
-  <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
-    {/* Back screen */}
-    <path d="M4 3C2.89543 3 2 3.89543 2 5V15C2 16.1046 2.89543 17 4 17H5V15H4V5H16V6H18V5C18 3.89543 17.1046 3 16 3H4Z" />
-    {/* Front screen with share arrow */}
-    <path
-      fillRule="evenodd"
-      clipRule="evenodd"
-      d="M8 7C6.89543 7 6 7.89543 6 9V19C6 20.1046 6.89543 21 8 21H20C21.1046 21 22 20.1046 22 19V9C22 7.89543 21.1046 7 20 7H8ZM14.2929 11.2929C14.6834 10.9024 15.3166 10.9024 15.7071 11.2929L18.7071 14.2929C19.0976 14.6834 19.0976 15.3166 18.7071 15.7071L15.7071 18.7071C15.3166 19.0976 14.6834 19.0976 14.2929 18.7071C13.9024 18.3166 13.9024 17.6834 14.2929 17.2929L15.5858 16H13C11.3431 16 10 14.6569 10 13V12C10 11.4477 10.4477 11 11 11C11.5523 11 12 11.4477 12 12V13C12 13.5523 12.4477 14 13 14H15.5858L14.2929 12.7071C13.9024 12.3166 13.9024 11.6834 14.2929 11.2929Z"
-    />
+export const ScreencastIcon: React.FC<{ className?: string }> = ({ className = 'w-6 h-6' }) => (
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+  >
+    {/* Rear monitor */}
+    <path d="M4 6V4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-2" />
+    {/* Front screen */}
+    <rect x="2" y="8" width="14" height="12" rx="2" />
+    {/* Share arrow */}
+    <path d="M18 18l4-4-4-4" />
+    <path d="M22 14h-8" />
   </svg>
 );
 
 /**
- * Solid Video Camera Icon
+ * Outline Video Camera Icon (Flaticon Style)
  */
-export const SolidVideoIcon: React.FC<{ className?: string }> = ({ className = 'w-5 h-5' }) => (
-  <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
-    <path d="M4 5C2.89543 5 2 5.89543 2 7V17C2 18.1046 2.89543 19 4 19H14C15.1046 19 16 18.1046 16 17V14.5L20.4472 17.8354C21.1114 18.3336 22 17.8601 22 17.0279V6.97213C22 6.13993 21.1114 5.66642 20.4472 6.16459L16 9.5V7C16 5.89543 15.1046 5 14 5H4Z" />
+export const SolidVideoIcon: React.FC<{ className?: string }> = ({ className = 'w-6 h-6' }) => (
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+  >
+    <path d="M15 10l5-3.5v11L15 14" />
+    <rect x="2" y="6" width="13" height="12" rx="3" />
   </svg>
 );
 
 /**
- * Solid Video Camera Off Icon
+ * Outline Video Camera Off Icon
  */
-export const SolidVideoOffIcon: React.FC<{ className?: string }> = ({ className = 'w-5 h-5' }) => (
-  <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
-    <path d="M2.70711 2.29289C2.31658 1.90237 1.68342 1.90237 1.29289 2.29289C0.902369 2.68342 0.902369 3.31658 1.29289 3.70711L3.58579 6H4C2.89543 6 2 6.89543 2 8V17C2 18.1046 2.89543 19 4 19H16.5858L20.2929 22.7071C20.6834 23.0976 21.3166 23.0976 21.7071 22.7071C22.0976 22.3166 22.0976 21.6834 21.7071 21.2929L2.70711 2.29289ZM16 14.5V17C16 17.1537 15.9827 17.3033 15.95 17.4468L12.5032 14H14V14.5L16 14.5ZM8.50324 10L5.50324 7H14C15.1046 7 16 7.89543 16 9V11.4968L8.50324 10ZM18 10.9936L20.4472 9.16459C21.1114 8.66642 22 9.13993 22 9.97213V17.0279C22 17.4267 21.7824 17.7779 21.4398 17.9431L18 14.5033V10.9936Z" />
+export const SolidVideoOffIcon: React.FC<{ className?: string }> = ({ className = 'w-6 h-6' }) => (
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+  >
+    <path d="M10.5 6H12a3 3 0 0 1 3 3v1.5l5-3.5v11l-2.5-1.75" />
+    <path d="M2 9a3 3 0 0 1 3-3h1" />
+    <path d="M2 6.5v8.5a3 3 0 0 0 3 3h8a3 3 0 0 0 2.5-1.35" />
+    <line x1="2" y1="2" x2="22" y2="22" />
   </svg>
 );
 
 /**
- * Solid End Call Icon: Classic arched downward phone handset (Skype / Zoom style)
+ * End Call Icon: Flaticon styled downward curved telephone receiver
  */
 export const SolidEndCallIcon: React.FC<{ className?: string }> = ({ className = 'w-6 h-6' }) => (
-  <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
+  <svg
+    viewBox="0 0 24 24"
+    fill="currentColor"
+    className={className}
+  >
     <path d="M12 4C7.8 4 3.9 5.5 0.8 8.1C0.2 8.6 0.1 9.5 0.6 10.1L2.8 12.3C3.3 12.8 4.2 12.9 4.8 12.4C6.5 11.1 7.6 10.4 9.8 9.9C10.5 9.7 11 9.1 11 8.3V5.5C11.3 5.5 11.7 5.5 12 5.5C12.3 5.5 12.7 5.5 13 5.5V8.3C13 9.1 13.5 9.7 14.2 9.9C16.4 10.4 17.5 11.1 19.2 12.4C19.8 12.9 20.7 12.8 21.2 12.3L23.4 10.1C23.9 9.5 23.8 8.6 23.2 8.1C20.1 5.5 16.2 4 12 4Z" />
   </svg>
 );
 
 /**
- * Solid Start Call Icon: Phone handset tilted upright
+ * Start Call Icon: Flaticon styled upright phone receiver
  */
-export const SolidStartCallIcon: React.FC<{ className?: string }> = ({ className = 'w-5 h-5' }) => (
-  <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
-    <path d="M6.62 10.79C8.06 13.62 10.38 15.94 13.21 17.38L15.41 15.18C15.69 14.9 16.08 14.82 16.43 14.94C17.55 15.31 18.76 15.51 20 15.51C20.55 15.51 21 15.96 21 16.51V20C21 20.55 20.55 21 20 21C10.61 21 3 13.39 3 4C3 3.45 3.45 3 4 3H7.5C8.05 3 8.5 3.45 8.5 4C8.5 5.25 8.7 6.45 9.07 7.57C9.18 7.92 9.1 8.31 8.82 8.59L6.62 10.79Z" />
+export const SolidStartCallIcon: React.FC<{ className?: string }> = ({ className = 'w-6 h-6' }) => (
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+  >
+    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
   </svg>
 );
 
 /**
- * Solid Mic Icon: Capsule microphone with stand
+ * Outline Studio Microphone (Flaticon Style)
  */
-export const SolidMicIcon: React.FC<{ className?: string }> = ({ className = 'w-5 h-5' }) => (
-  <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
-    <path d="M12 2C10.3431 2 9 3.34315 9 5V11C9 12.6569 10.3431 14 12 14C13.6569 14 15 12.6569 15 11V5C15 3.34315 13.6569 2 12 2Z" />
-    <path d="M5 10C5 9.44772 5.44772 9 6 9C6.55228 9 7 9.44772 7 10C7 12.7614 9.23858 15 12 15C14.7614 15 17 12.7614 17 10C17 9.44772 17.4477 9 18 9C18.5523 9 19 9.44772 19 10C19 13.5283 16.3756 16.4442 13 16.9297V20H16C16.5523 20 17 20.4477 17 21C17 21.5523 16.5523 22 16 22H8C7.44772 22 7 21.5523 7 21C7 20.4477 7.44772 20 8 20H11V16.9297C7.62441 16.4442 5 13.5283 5 10Z" />
+export const SolidMicIcon: React.FC<{ className?: string }> = ({ className = 'w-6 h-6' }) => (
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+  >
+    <rect x="8" y="2" width="8" height="12" rx="4" />
+    <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+    <line x1="12" y1="19" x2="12" y2="22" />
+    <line x1="8" y1="22" x2="16" y2="22" />
   </svg>
 );
 
 /**
- * Solid Mic Off Icon
+ * Outline Studio Microphone Off / Muted
  */
-export const SolidMicOffIcon: React.FC<{ className?: string }> = ({ className = 'w-5 h-5' }) => (
-  <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
-    <path d="M2.70711 2.29289C2.31658 1.90237 1.68342 1.90237 1.29289 2.29289C0.902369 2.68342 0.902369 3.31658 1.29289 3.70711L7.15174 9.56596C7.05315 10.024 7 10.5054 7 11V11.2L9 13.2V11C9 10.6697 9.05354 10.3516 9.15243 10.0536L11 11.9011V12.5C11 13.0523 11.4477 13.5 12 13.5C12.2155 13.5 12.4149 13.4318 12.5786 13.3167L14.7391 15.4772C13.9169 16.0962 12.9863 16.5 12 16.5C8.96243 16.5 6.5 14.0376 6.5 11C6.5 10.4477 6.05228 10 5.5 10C4.94772 10 4.5 10.4477 4.5 11C4.5 14.7645 7.33644 17.8687 11 18.4239V21H8C7.44772 21 7 21.4477 7 22C7 22.5523 7.44772 23 8 23H16C16.5523 23 17 22.5523 17 22C17 21.4477 16.5523 21 16 21H13V18.4239C13.9482 18.2819 14.8437 17.9547 15.6457 17.478L20.2929 22.1252C20.6834 22.5157 21.3166 22.5157 21.7071 22.1252C22.0976 21.7347 22.0976 21.1015 21.7071 20.711L2.70711 2.29289ZM15 7.5V11C15 11.3303 14.9465 11.6484 14.8476 11.9464L17 14.0988V11C17 7.96243 14.5376 5.5 11.5 5.5C10.7411 5.5 10.0215 5.65385 9.3684 5.93175L10.8711 7.43447C11.0729 7.47775 11.2838 7.5 11.5 7.5H15Z" />
+export const SolidMicOffIcon: React.FC<{ className?: string }> = ({ className = 'w-6 h-6' }) => (
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+  >
+    <line x1="2" y1="2" x2="22" y2="22" />
+    <path d="M18.89 13.23A7.12 7.12 0 0 0 19 12v-2" />
+    <path d="M5 10v2a7 7 0 0 0 10.74 5.92" />
+    <path d="M15 9.34V5a3 3 0 0 0-5.68-1.33" />
+    <path d="M9 9v3a3 3 0 0 0 5.12 2.12" />
+    <line x1="12" y1="19" x2="12" y2="22" />
+    <line x1="8" y1="22" x2="16" y2="22" />
   </svg>
 );
 
 /**
- * Solid Cancel / Close X Icon
+ * Outline Cancel / Close Icon
  */
 export const SolidCancelIcon: React.FC<{ className?: string }> = ({ className = 'w-5 h-5' }) => (
-  <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
-    <path d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12L19 6.41Z" />
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+  >
+    <line x1="18" y1="6" x2="6" y2="18" />
+    <line x1="6" y1="6" x2="18" y2="18" />
   </svg>
 );
+
