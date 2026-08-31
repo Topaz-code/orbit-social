@@ -1,24 +1,54 @@
-import React, { useEffect } from 'react';
-import { SafeAreaView, StatusBar, StyleSheet, Text, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { SafeAreaView, StatusBar, StyleSheet, ActivityIndicator, View, Text } from 'react-native';
 import { setupNotificationChannels, registerDeviceToken } from './services/notificationService';
 import { initializeCallKeep } from './services/callService';
 import { useNativeCall } from './hooks/useNativeCall';
 import { useCallStore } from './stores/callStore';
+import { useAuthStore } from './stores/authStore';
+import { socketService } from './services/socketService';
 import { NativeActiveCallView } from './components/calls/NativeActiveCallView';
+import { LoginScreen } from './screens/auth/LoginScreen';
+import { RegisterScreen } from './screens/auth/RegisterScreen';
+import { MainNavigator } from './navigation/MainNavigator';
 
 export const App: React.FC = () => {
   const { activeCall } = useCallStore();
+  const { isAuthenticated, isLoading, checkAuth } = useAuthStore();
+  const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
+
   useNativeCall();
 
   useEffect(() => {
     async function bootstrap() {
+      await checkAuth();
       await setupNotificationChannels();
       await registerDeviceToken();
       await initializeCallKeep();
     }
 
     bootstrap();
-  }, []);
+  }, [checkAuth]);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      socketService.connect();
+    } else {
+      socketService.disconnect();
+    }
+  }, [isAuthenticated]);
+
+  if (isLoading) {
+    return (
+      <SafeAreaView style={styles.loadingContainer}>
+        <StatusBar barStyle="light-content" backgroundColor="#171A1C" />
+        <View style={styles.centerBox}>
+          <Text style={styles.loadingLogo}>🪐</Text>
+          <Text style={styles.loadingTitle}>Orbit</Text>
+          <ActivityIndicator size="large" color="#D0A56A" style={styles.spinner} />
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -26,11 +56,12 @@ export const App: React.FC = () => {
 
       {activeCall ? (
         <NativeActiveCallView />
+      ) : isAuthenticated ? (
+        <MainNavigator />
+      ) : authMode === 'login' ? (
+        <LoginScreen onSwitchToRegister={() => setAuthMode('register')} />
       ) : (
-        <View style={styles.content}>
-          <Text style={styles.title}>Orbit Social</Text>
-          <Text style={styles.subtitle}>Privacy-first real-time network</Text>
-        </View>
+        <RegisterScreen onSwitchToLogin={() => setAuthMode('login')} />
       )}
     </SafeAreaView>
   );
@@ -41,21 +72,26 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#171A1C',
   },
-  content: {
+  loadingContainer: {
     flex: 1,
+    backgroundColor: '#171A1C',
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 24,
   },
-  title: {
-    fontSize: 32,
-    fontWeight: 'bold',
+  centerBox: {
+    alignItems: 'center',
+  },
+  loadingLogo: {
+    fontSize: 48,
+    marginBottom: 12,
+  },
+  loadingTitle: {
+    fontSize: 28,
+    fontWeight: '800',
     color: '#D9D0B8',
-    marginBottom: 8,
   },
-  subtitle: {
-    fontSize: 16,
-    color: '#A8AAA0',
+  spinner: {
+    marginTop: 24,
   },
 });
 
