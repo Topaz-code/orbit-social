@@ -3,23 +3,27 @@ import notifee, { AndroidImportance } from '@notifee/react-native';
 import { api } from './api';
 
 export async function setupNotificationChannels(): Promise<void> {
-  // Direct & Group Messages Channel
-  await notifee.createChannel({
-    id: 'messages',
-    name: 'Direct & Group Messages',
-    importance: AndroidImportance.HIGH,
-    sound: 'default',
-    vibration: true,
-  });
+  try {
+    // Direct & Group Messages Channel
+    await notifee.createChannel({
+      id: 'messages',
+      name: 'Direct & Group Messages',
+      importance: AndroidImportance.HIGH,
+      sound: 'default',
+      vibration: true,
+    });
 
-  // Voice & Video Calls Channel (High Priority with Call Category)
-  await notifee.createChannel({
-    id: 'calls',
-    name: 'Voice & Video Calls',
-    importance: AndroidImportance.HIGH,
-    sound: 'default',
-    vibration: true,
-  });
+    // Voice & Video Calls Channel (High Priority with Call Category)
+    await notifee.createChannel({
+      id: 'calls',
+      name: 'Voice & Video Calls',
+      importance: AndroidImportance.HIGH,
+      sound: 'default',
+      vibration: true,
+    });
+  } catch (err) {
+    console.warn('[Notifee] Channel creation warning:', err);
+  }
 }
 
 export async function registerDeviceToken(): Promise<string | null> {

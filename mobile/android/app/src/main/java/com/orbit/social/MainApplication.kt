@@ -17,7 +17,7 @@ class MainApplication : Application(), ReactApplication {
 
         override fun getJSMainModuleName(): String = "index"
 
-        override fun getUseDeveloperSupport(): Boolean = BuildConfig.DEBUG
+        override fun getUseDeveloperSupport(): Boolean = false
 
         override val isNewArchEnabled: Boolean = false
         override val isHermesEnabled: Boolean = true

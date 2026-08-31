@@ -34,21 +34,25 @@ export async function initializeCallKeep(onCallAnswered?: (callUUID: string) => 
   };
 
   try {
-    await RNCallKeep.setup(options);
-    RNCallKeep.setAvailable(true);
+    if (RNCallKeep && typeof RNCallKeep.setup === 'function') {
+      await RNCallKeep.setup(options);
+      RNCallKeep.setAvailable?.(true);
 
-    // Cold-start event replay for calls answered before JS loaded
-    const initialEvents = await RNCallKeep.getInitialEvents();
-    if (initialEvents && initialEvents.length > 0) {
-      for (const event of initialEvents) {
-        if (event.name === 'RNCallKeepPerformAnswerCallAction') {
-          RNCallKeep.backToForeground();
-          onCallAnswered?.(event.data.callUUID);
+      // Cold-start event replay for calls answered before JS loaded
+      if (typeof RNCallKeep.getInitialEvents === 'function') {
+        const initialEvents = await RNCallKeep.getInitialEvents();
+        if (initialEvents && initialEvents.length > 0) {
+          for (const event of initialEvents) {
+            if (event.name === 'RNCallKeepPerformAnswerCallAction') {
+              RNCallKeep.backToForeground?.();
+              onCallAnswered?.(event.data.callUUID);
+            }
+          }
+          RNCallKeep.clearInitialEvents?.();
         }
       }
-      RNCallKeep.clearInitialEvents();
     }
   } catch (error) {
-    console.error('[CallKeep] Initialization Error:', error);
+    console.warn('[CallKeep] Initialization Warning:', error);
   }
 }

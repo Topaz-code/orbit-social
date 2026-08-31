@@ -20,10 +20,29 @@ export const App: React.FC = () => {
 
   useEffect(() => {
     async function bootstrap() {
-      await checkAuth();
-      await setupNotificationChannels();
-      await registerDeviceToken();
-      await initializeCallKeep();
+      try {
+        await checkAuth();
+      } catch (e) {
+        console.warn('[App] checkAuth warning:', e);
+      }
+
+      try {
+        await setupNotificationChannels();
+      } catch (e) {
+        console.warn('[App] setupNotificationChannels warning:', e);
+      }
+
+      try {
+        await registerDeviceToken();
+      } catch (e) {
+        console.warn('[App] registerDeviceToken warning:', e);
+      }
+
+      try {
+        await initializeCallKeep();
+      } catch (e) {
+        console.warn('[App] initializeCallKeep warning:', e);
+      }
     }
 
     bootstrap();
