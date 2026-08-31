@@ -103,22 +103,22 @@ export const StoryUploadModal: React.FC<StoryUploadModalProps> = ({ open, onOpen
         {!mediaUrl ? (
           <div
             onClick={() => fileInputRef.current?.click()}
-            className="flex flex-col items-center justify-center h-64 rounded-2xl border-2 border-dashed border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/40 hover:bg-slate-100 dark:hover:bg-slate-800/80 cursor-pointer transition-colors p-4 text-center"
+            className="flex flex-col items-center justify-center h-64 rounded-2xl border-2 border-dashed border-[#3A4B4D] bg-[#2B3940] hover:bg-[#314048] cursor-pointer transition-colors p-4 text-center"
           >
             {isUploading ? (
               <div className="flex flex-col items-center gap-2">
-                <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
-                <p className="text-xs text-slate-500">Uploading media...</p>
+                <Loader2 className="h-8 w-8 animate-spin text-[#D0A56A]" />
+                <p className="text-xs text-[#A8AAA0]">Uploading media...</p>
               </div>
             ) : (
               <>
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 mb-3 shadow-sm">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#202A2D] text-[#D0A56A] mb-3 border border-[#3A4B4D] shadow-sm">
                   <Upload className="h-6 w-6" />
                 </div>
-                <p className="text-sm font-bold text-slate-900 dark:text-slate-100">
+                <p className="text-sm font-bold text-[#D9D0B8]">
                   Select Photo or Video
                 </p>
-                <p className="text-xs text-slate-400 mt-1">Supports JPG, PNG, MP4, WEBM</p>
+                <p className="text-xs text-[#A8AAA0] mt-1">Supports JPG, PNG, MP4, WEBM</p>
               </>
             )}
             <input
@@ -161,26 +161,26 @@ export const StoryUploadModal: React.FC<StoryUploadModalProps> = ({ open, onOpen
           </div>
         )}
 
-        {/* Text Overlay Controls */}
+        {/* Text overlay options when media is selected */}
         {mediaUrl && (
-          <div className="space-y-3 bg-slate-50 dark:bg-slate-800/60 p-3.5 rounded-2xl border border-slate-200/60 dark:border-slate-800">
+          <div className="space-y-3 bg-[#2B3940] p-3.5 rounded-2xl border border-[#3A4B4D]">
             <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                Text Overlay (Optional)
+              <label className="block text-xs font-semibold text-[#A8AAA0] mb-1">
+                Text Overlay <span className="font-normal">(optional)</span>
               </label>
               <Input
                 type="text"
-                placeholder="Add text over your story..."
+                placeholder="Type on top of your story..."
                 value={overlayText}
                 onChange={(e) => setOverlayText(e.target.value)}
-                icon={<Type className="h-4 w-4" />}
+                maxLength={100}
               />
             </div>
 
             {overlayText && (
               <div className="flex items-center justify-between gap-2 pt-1">
                 {/* Position */}
-                <div className="flex items-center gap-1 bg-white dark:bg-slate-900 rounded-lg p-1 text-[11px]">
+                <div className="flex items-center gap-1 bg-[#202A2D] border border-[#3A4B4D] rounded-lg p-1 text-[11px]">
                   {(['top', 'center', 'bottom'] as const).map((pos) => (
                     <button
                       key={pos}
@@ -188,8 +188,8 @@ export const StoryUploadModal: React.FC<StoryUploadModalProps> = ({ open, onOpen
                       onClick={() => setOverlayPos(pos)}
                       className={`px-2 py-1 rounded capitalize font-medium ${
                         overlayPos === pos
-                          ? 'bg-indigo-600 text-white'
-                          : 'text-slate-600 dark:text-slate-400'
+                          ? 'bg-[#D0A56A] text-[#171A1C]'
+                          : 'text-[#A8AAA0]'
                       }`}
                     >
                       {pos}
@@ -205,7 +205,7 @@ export const StoryUploadModal: React.FC<StoryUploadModalProps> = ({ open, onOpen
                       type="button"
                       onClick={() => setOverlayColor(c)}
                       className={`h-5 w-5 rounded-full border border-white/40 shadow-sm ${
-                        overlayColor === c ? 'ring-2 ring-indigo-500 scale-110' : ''
+                        overlayColor === c ? 'ring-2 ring-[#D0A56A] scale-110' : ''
                       }`}
                       style={{ backgroundColor: c }}
                     />

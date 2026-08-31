@@ -99,10 +99,10 @@ export const NewConversationModal: React.FC<NewConversationModalProps> = ({
           <button
             type="button"
             onClick={() => setMode('direct')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+            className={`px-3 py-1.5 rounded-[8px] text-xs font-semibold transition-colors ${
               mode === 'direct'
-                ? 'bg-indigo-600 text-white'
-                : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
+                ? 'bg-[#D0A56A] text-[#171A1C]'
+                : 'bg-[#2B3940] text-[#A8AAA0] hover:text-[#D9D0B8]'
             }`}
           >
             Direct Message
@@ -110,10 +110,10 @@ export const NewConversationModal: React.FC<NewConversationModalProps> = ({
           <button
             type="button"
             onClick={() => setMode('group')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors flex items-center gap-1 ${
+            className={`px-3 py-1.5 rounded-[8px] text-xs font-semibold transition-colors flex items-center gap-1 ${
               mode === 'group'
-                ? 'bg-indigo-600 text-white'
-                : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
+                ? 'bg-[#D0A56A] text-[#171A1C]'
+                : 'bg-[#2B3940] text-[#A8AAA0] hover:text-[#D9D0B8]'
             }`}
           >
             <Users className="h-3 w-3" /> Group Chat (Max 10)
@@ -124,7 +124,7 @@ export const NewConversationModal: React.FC<NewConversationModalProps> = ({
       <div className="space-y-4">
         {mode === 'group' && (
           <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+            <label className="block text-xs font-semibold text-[#A8AAA0] mb-1">
               Group Name
             </label>
             <Input
@@ -137,7 +137,7 @@ export const NewConversationModal: React.FC<NewConversationModalProps> = ({
         )}
 
         <div>
-          <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+          <label className="block text-xs font-semibold text-[#A8AAA0] mb-1">
             Search Users by Name, Username or Phone
           </label>
           <Input
@@ -152,9 +152,9 @@ export const NewConversationModal: React.FC<NewConversationModalProps> = ({
         {/* User Search Results List */}
         <div className="max-h-60 overflow-y-auto space-y-1.5 pr-1">
           {isLoading ? (
-            <div className="py-4 text-center text-xs text-slate-400">Searching users...</div>
+            <div className="py-4 text-center text-xs text-[#7F8B86]">Searching users...</div>
           ) : searchResults.filter((u) => u.id !== user?.id).length === 0 ? (
-            <div className="py-4 text-center text-xs text-slate-400">No users found</div>
+            <div className="py-4 text-center text-xs text-[#7F8B86]">No users found</div>
           ) : (
             searchResults
               .filter((u) => u.id !== user?.id)
@@ -166,38 +166,39 @@ export const NewConversationModal: React.FC<NewConversationModalProps> = ({
                     onClick={() => toggleSelectUser(u.id)}
                     className={`flex items-center justify-between p-2.5 rounded-xl cursor-pointer transition-all ${
                       isSelected
-                        ? 'bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-500/40'
-                        : 'hover:bg-slate-100 dark:hover:bg-slate-800'
+                        ? 'bg-[#496D6B]/20 border border-[#496D6B]'
+                        : 'hover:bg-[#2B3940]'
                     }`}
                   >
                     <div className="flex items-center gap-3">
                       <Avatar src={u.avatar_url} fallback={u.display_name} size="sm" isOnline={u.is_online} showStatus />
                       <div>
-                        <p className="text-xs font-bold text-slate-900 dark:text-slate-100">
+                        <p className="text-xs font-bold text-[#D9D0B8]">
                           {u.display_name}
                         </p>
-                        <p className="text-[11px] text-slate-400">@{u.username}</p>
+                        <p className="text-[11px] text-[#A8AAA0]">@{u.username}</p>
                       </div>
                     </div>
 
                     {mode === 'group' ? (
                       <div
-                        className={`flex h-5 w-5 items-center justify-center rounded-md border ${
+                        className={`flex h-5 w-5 items-center justify-center rounded-[6px] border ${
                           isSelected
-                            ? 'bg-indigo-600 border-indigo-600 text-white'
-                            : 'border-slate-300 dark:border-slate-700'
+                            ? 'bg-[#D0A56A] border-[#D0A56A] text-[#171A1C]'
+                            : 'border-[#3A4B4D]'
                         }`}
                       >
                         {isSelected && <Check className="h-3.5 w-3.5" />}
                       </div>
                     ) : (
-                      <UserPlus className="h-4 w-4 text-slate-400" />
+                      <UserPlus className="h-4 w-4 text-[#7F8B86]" />
                     )}
                   </div>
                 );
               })
           )}
         </div>
+
       </div>
 
       {mode === 'group' && (

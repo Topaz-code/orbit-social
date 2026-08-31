@@ -203,8 +203,9 @@ export const GroupDetailPage: React.FC = () => {
             </>
           ) : (
             <EmptyState
-              icon={<Lock className="h-8 w-8 text-indigo-600" />}
+              icon={<Lock className="h-8 w-8 text-[#D0A56A]" />}
               title="Members Only"
+
               description="Join this group to view and participate in discussions."
               actionLabel={isFull ? 'Group Full' : 'Join Group'}
               onAction={isFull ? undefined : () => joinMutation.mutate()}
