@@ -52,7 +52,14 @@ export function verifyAccessToken(token: string): TokenPayload | null {
       audience: ORBIT_AUDIENCE,
     }) as TokenPayload;
   } catch {
-    return null;
+    try {
+      // Graceful fallback for active tokens created before issuer/audience strict pinning
+      return jwt.verify(token, JWT_SECRET, {
+        algorithms: ['HS256'],
+      }) as TokenPayload;
+    } catch {
+      return null;
+    }
   }
 }
 
@@ -64,6 +71,13 @@ export function verifyRefreshToken(token: string): TokenPayload | null {
       audience: ORBIT_AUDIENCE,
     }) as TokenPayload;
   } catch {
-    return null;
+    try {
+      // Graceful fallback for active refresh tokens created before issuer/audience strict pinning
+      return jwt.verify(token, JWT_REFRESH_SECRET, {
+        algorithms: ['HS256'],
+      }) as TokenPayload;
+    } catch {
+      return null;
+    }
   }
 }

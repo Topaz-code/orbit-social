@@ -9,6 +9,7 @@ import { EmptyState } from '../components/shared/EmptyState.js';
 import { Avatar } from '../components/ui/avatar.js';
 import { Button } from '../components/ui/button.js';
 import { Compass, Users, Newspaper, Search, UserPlus, Check, Clock, MessageSquare, Loader2 } from 'lucide-react';
+import { useAuthStore } from '../stores/authStore.js';
 import { Post } from '../types/index.js';
 
 interface DiscoverUser {
@@ -29,6 +30,7 @@ export const ExplorePage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { user: currentUser } = useAuthStore();
 
   const { posts, isLoading: isPostsLoading, toggleLike, deletePost } = usePosts(true);
 
@@ -64,8 +66,9 @@ export const ExplorePage: React.FC = () => {
     },
   });
 
-  // Filtered Users based on search
+  // Filtered Users based on search and excluding self
   const filteredUsers = discoverUsers.filter((u) => {
+    if (currentUser?.id && u.id === currentUser.id) return false;
     const q = searchTerm.toLowerCase();
     return (
       u.display_name.toLowerCase().includes(q) ||
