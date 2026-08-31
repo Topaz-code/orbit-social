@@ -4,7 +4,8 @@ import { cn } from '../../lib/utils.js';
 export const Skeleton: React.FC<{ className?: string }> = ({ className }) => {
   return (
     <div
-      className={cn('rounded-xl skeleton-shimmer bg-slate-200 dark:bg-slate-800', className)}
+      className={cn('rounded-xl skeleton-shimmer bg-[#2B3940] border border-[#3A4B4D]/30', className)}
     />
   );
 };
+

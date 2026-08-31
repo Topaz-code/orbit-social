@@ -81,11 +81,11 @@ export const NewCallModal: React.FC<NewCallModalProps> = ({ isOpen, onClose }) =
           {isLoading ? (
             <div className="space-y-3">
               {[1, 2, 3].map((n) => (
-                <div key={n} className="flex animate-pulse items-center gap-3 rounded-xl p-2 bg-[#2B3940]/50">
-                  <div className="h-10 w-10 shrink-0 rounded-full bg-[#2B3940]" />
+                <div key={n} className="flex items-center gap-3 rounded-xl p-2 bg-[#202A2D] border border-[#3A4B4D]">
+                  <div className="h-10 w-10 shrink-0 rounded-full skeleton-shimmer bg-[#2B3940]" />
                   <div className="flex-1 space-y-2">
-                    <div className="h-3 w-32 rounded bg-[#2B3940]" />
-                    <div className="h-2.5 w-20 rounded bg-[#2B3940]" />
+                    <div className="h-3.5 w-32 rounded skeleton-shimmer bg-[#2B3940]" />
+                    <div className="h-2.5 w-20 rounded skeleton-shimmer bg-[#2B3940]" />
                   </div>
                 </div>
               ))}

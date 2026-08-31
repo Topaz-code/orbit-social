@@ -19,11 +19,11 @@ export const MemberList: React.FC<MemberListProps> = ({
   currentUserId,
 }) => {
   return (
-    <div className="divide-y divide-slate-100 dark:divide-slate-800 rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-2">
+    <div className="divide-y divide-[#3A4B4D] rounded-2xl border border-[#3A4B4D] bg-[#202A2D] p-2 text-[#D9D0B8]">
       {members.map((m) => (
         <div
           key={m.id}
-          className="flex items-center justify-between p-3 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-xl transition-colors"
+          className="flex items-center justify-between p-3 hover:bg-[#2B3940] rounded-xl transition-colors"
         >
           <NavLink
             to={`/profile/${m.user.id}`}
@@ -38,11 +38,11 @@ export const MemberList: React.FC<MemberListProps> = ({
             />
             <div className="min-w-0">
               <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-slate-900 dark:text-slate-100 group-hover:text-indigo-600 transition-colors truncate">
+                <span className="text-xs font-bold text-[#D9D0B8] group-hover:text-[#D0A56A] transition-colors truncate">
                   {m.user.display_name}
                 </span>
                 {m.role === 'admin' ? (
-                  <Badge variant="default" className="text-[10px] px-1.5 py-0 flex items-center gap-1 bg-indigo-600">
+                  <Badge variant="default" className="text-[10px] px-1.5 py-0 flex items-center gap-1 bg-[#D0A56A] text-[#171A1C]">
                     <Crown className="h-2.5 w-2.5" /> Admin
                   </Badge>
                 ) : m.role === 'moderator' ? (
@@ -51,7 +51,7 @@ export const MemberList: React.FC<MemberListProps> = ({
                   </Badge>
                 ) : null}
               </div>
-              <p className="text-[11px] text-slate-400 truncate">@{m.user.username}</p>
+              <p className="text-[11px] text-[#A8AAA0] truncate">@{m.user.username}</p>
             </div>
           </NavLink>
 
@@ -59,7 +59,7 @@ export const MemberList: React.FC<MemberListProps> = ({
             <button
               type="button"
               onClick={() => onRemoveMember(m.user_id)}
-              className="p-1.5 text-slate-400 hover:text-rose-500 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors"
+              className="p-1.5 text-[#7F8B86] hover:text-[#B87568] rounded-[8px] hover:bg-[#2B3940] transition-colors"
               title="Remove from group"
             >
               <UserMinus className="h-4 w-4" />
@@ -69,4 +69,5 @@ export const MemberList: React.FC<MemberListProps> = ({
       ))}
     </div>
   );
+
 };

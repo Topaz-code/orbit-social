@@ -20,11 +20,11 @@ export const CallHistory: React.FC = () => {
   });
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3 text-[#D9D0B8]">
       {isLoading ? (
-        <div className="py-6 text-center text-xs text-slate-400">Loading call history...</div>
+        <div className="py-6 text-center text-xs text-[#7F8B86]">Loading call history...</div>
       ) : calls.length === 0 ? (
-        <div className="py-12 text-center text-xs text-slate-400">
+        <div className="py-12 text-center text-xs text-[#A8AAA0]">
           No past calls. Tap the call icon in any profile or chat to start a call!
         </div>
       ) : (
@@ -34,7 +34,7 @@ export const CallHistory: React.FC = () => {
           return (
             <div
               key={call.id}
-              className="flex items-center justify-between p-3.5 rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs hover:border-slate-300 dark:hover:border-slate-700 transition-all"
+              className="flex items-center justify-between p-3.5 rounded-2xl border border-[#3A4B4D] bg-[#202A2D] shadow-xs hover:border-[#496D6B]/50 transition-all"
             >
               <div className="flex items-center gap-3 min-w-0">
                 <Avatar
@@ -44,17 +44,17 @@ export const CallHistory: React.FC = () => {
                 />
 
                 <div className="min-w-0">
-                  <h4 className="text-sm font-bold text-slate-900 dark:text-slate-100 truncate">
+                  <h4 className="text-sm font-bold text-[#D9D0B8] truncate">
                     {call.other_user.display_name}
                   </h4>
 
-                  <div className="flex items-center gap-1.5 text-xs text-slate-400 mt-0.5">
+                  <div className="flex items-center gap-1.5 text-xs text-[#A8AAA0] mt-0.5">
                     {isMissed ? (
-                      <PhoneMissed className="h-3.5 w-3.5 text-rose-500" />
+                      <PhoneMissed className="h-3.5 w-3.5 text-[#B87568]" />
                     ) : call.is_outgoing ? (
-                      <PhoneOutgoing className="h-3.5 w-3.5 text-indigo-500" />
+                      <PhoneOutgoing className="h-3.5 w-3.5 text-[#496D6B]" />
                     ) : (
-                      <PhoneIncoming className="h-3.5 w-3.5 text-emerald-500" />
+                      <PhoneIncoming className="h-3.5 w-3.5 text-[#71877B]" />
                     )}
 
                     <span className="capitalize">
@@ -75,16 +75,18 @@ export const CallHistory: React.FC = () => {
                   size="icon-sm"
                   onClick={() => startCall(call.other_user, 'voice')}
                   title="Voice Call"
+                  className="rounded-[10px] text-[#71877B] hover:bg-[#2B3940]"
                 >
-                  <Phone className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+                  <Phone className="h-4 w-4" />
                 </Button>
                 <Button
                   variant="ghost"
                   size="icon-sm"
                   onClick={() => startCall(call.other_user, 'video')}
                   title="Video Call"
+                  className="rounded-[10px] text-[#496D6B] hover:bg-[#2B3940]"
                 >
-                  <Video className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+                  <Video className="h-4 w-4" />
                 </Button>
               </div>
             </div>
@@ -93,4 +95,5 @@ export const CallHistory: React.FC = () => {
       )}
     </div>
   );
+
 };
