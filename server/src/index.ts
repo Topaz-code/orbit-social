@@ -3,6 +3,7 @@ import http from 'http';
 import cors from 'cors';
 import path from 'path';
 import dotenv from 'dotenv';
+import { v4 as uuidv4 } from 'uuid';
 import { ExpressPeerServer } from 'peer';
 
 // Load environment variables
@@ -13,6 +14,7 @@ import { initMQTTBroker } from './config/mqtt.js';
 import { JWT_SECRET } from './config/auth.js';
 import { startStoryCleanupCron } from './utils/storyCleanup.js';
 import { errorHandler, notFoundHandler } from './middleware/error.middleware.js';
+import { sanitizeInput } from './middleware/sanitize.middleware.js';
 
 // Route imports
 import authRoutes from './routes/auth.routes.js';
@@ -34,6 +36,17 @@ import { auditService } from './services/audit.service.js';
 
 import rateLimit from 'express-rate-limit';
 
+// ── CORS Allowlist ─────────────────────────────────────────────────────────────
+// Add your Render front-end URL and any custom domains here
+const ALLOWED_ORIGINS: (string | RegExp)[] = [
+  'http://localhost:5173',
+  'http://localhost:4173',
+  'https://orbit-web-6z3b.onrender.com',
+  // Allow any *.onrender.com subdomain (for preview deploys)
+  /^https:\/\/[\w-]+\.onrender\.com$/,
+  ...(process.env.CLIENT_URL ? [process.env.CLIENT_URL] : []),
+];
+
 
 const app = express();
 const server = http.createServer(app);
@@ -43,18 +56,53 @@ const CLIENT_URL = process.env.CLIENT_URL || 'http://localhost:5173';
 // 0. Disable banner leakage
 app.disable('x-powered-by');
 
-// 1. Enterprise Security Headers Middleware (CMMC L2 / OWASP)
+// 1. Request tracing — inject unique request ID for log correlation
 app.use((req, res, next) => {
-  res.setHeader('X-Content-Type-Options', 'nosniff');
-  res.setHeader('X-Frame-Options', 'DENY');
-  res.setHeader('X-XSS-Protection', '1; mode=block');
-  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
-  res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
-  res.setHeader('Permissions-Policy', 'camera=(self), microphone=(self), geolocation=()');
+  const requestId = uuidv4();
+  res.setHeader('X-Request-ID', requestId);
+  (req as any).requestId = requestId;
   next();
 });
 
-// 2. Gateway Threat & Bot Scanner Blocker (WAF rules)
+// 2. Enterprise Security Headers (CMMC L2 / OWASP / Zero-Trust)
+app.use((req, res, next) => {
+  // Prevent clickjacking
+  res.setHeader('X-Frame-Options', 'DENY');
+  // Prevent MIME sniffing — critical for upload endpoints
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  // Legacy XSS filter (browsers that still honor it)
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  // Referrer — only send origin on cross-site
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  // HSTS — enforce HTTPS for 1 year including subdomains
+  res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
+  // Restrict browser feature access — camera/mic for calls only
+  res.setHeader('Permissions-Policy', 'camera=(self), microphone=(self), geolocation=()');
+  // Cross-Origin policies (Zero-Trust network isolation)
+  res.setHeader('Cross-Origin-Resource-Policy', 'same-site');
+  res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
+  res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp');
+  // Content Security Policy — allow self + WebSocket + CDN assets
+  res.setHeader(
+    'Content-Security-Policy',
+    [
+      "default-src 'self'",
+      "script-src 'self'",
+      "style-src 'self' 'unsafe-inline'",                        // Tailwind inline styles
+      "img-src 'self' data: https: blob:",                       // Avatars, uploads, external images
+      "media-src 'self' blob:",                                  // WebRTC streams
+      "connect-src 'self' wss: https:",                          // API + MQTT WebSocket + Render
+      "font-src 'self' data:",
+      "frame-ancestors 'none'",                                  // Reinforces X-Frame-Options
+      "base-uri 'self'",
+      "form-action 'self'",
+      "upgrade-insecure-requests",
+    ].join('; ')
+  );
+  next();
+});
+
+// 3. Gateway Threat & Bot Scanner Blocker (WAF rules)
 app.use((req, res, next) => {
   const userAgent = (req.headers['user-agent'] || '').toLowerCase();
   const blockedScanners = ['sqlmap', 'nikto', 'masscan', 'dirbuster', 'nmap', 'zgrab', 'gobuster', 'wpscan'];
@@ -64,7 +112,7 @@ app.use((req, res, next) => {
   next();
 });
 
-// 3. Global API Rate Limiter
+// 4. Global API Rate Limiter
 const globalLimiter = rateLimit({
   windowMs: 60 * 1000, // 1 minute
   max: 120, // 120 requests per minute per IP
@@ -74,20 +122,36 @@ const globalLimiter = rateLimit({
 });
 app.use('/api', globalLimiter);
 
-// 4. Configure CORS
+// 5. Configure CORS — allowlisted origins only (Zero-Trust network access control)
 app.use(
   cors({
-    origin: true, // Allow any incoming origin (including onrender.com and custom domains)
+    origin: (origin, callback) => {
+      // Allow server-to-server requests (no Origin header) and health checks
+      if (!origin) return callback(null, true);
+      const allowed = ALLOWED_ORIGINS.some((pattern) =>
+        typeof pattern === 'string' ? pattern === origin : pattern.test(origin)
+      );
+      if (allowed) {
+        callback(null, true);
+      } else {
+        callback(new Error(`CORS: Origin '${origin}' not allowed`));
+      }
+    },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'X-Request-ID'],
+    exposedHeaders: ['X-Request-ID'],
   })
 );
 app.options('*', cors());
 
-// 5. Request body parsing with strict size limits
+// 6. Request body parsing with strict size limits
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// 7. Input sanitization — strip HTML from all body fields (stored XSS prevention)
+app.use(sanitizeInput);
+
 
 // 6. Static uploads serving with security headers
 const uploadsPath = path.resolve(process.cwd(), 'uploads');
