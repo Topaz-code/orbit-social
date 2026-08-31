@@ -7,6 +7,9 @@ yarn-error.log*
 # Build outputs
 dist/
 build/
+mobile/android/.gradle/
+mobile/android/app/build/
+mobile/android/build/
 
 # Local databases and uploads
 *.db
@@ -16,10 +19,19 @@ build/
 uploads/*
 !uploads/.gitkeep
 
-# Environment files
+# Secrets & Environment Files (DLP & Secret Leak Prevention)
 .env
-.env.local
-.env.production
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+*.keystore
+*service-account*.json
+*firebase-service-account*.json
+google-services.json
 
 # IDE and OS files
 .DS_Store
