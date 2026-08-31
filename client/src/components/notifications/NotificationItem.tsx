@@ -30,22 +30,22 @@ export const NotificationItem: React.FC<NotificationItemProps> = ({
   const getIcon = () => {
     switch (notification.type) {
       case 'post_like':
-        return <Heart className="h-4 w-4 text-rose-500 fill-rose-500" />;
+        return <Heart className="h-4 w-4 text-[#B87568] fill-[#B87568]" />;
       case 'post_comment':
       case 'new_message':
-        return <MessageCircle className="h-4 w-4 text-indigo-500" />;
+        return <MessageCircle className="h-4 w-4 text-[#496D6B]" />;
       case 'friend_request':
       case 'friend_accept':
-        return <UserPlus className="h-4 w-4 text-emerald-500" />;
+        return <UserPlus className="h-4 w-4 text-[#71877B]" />;
       case 'missed_call':
-        return <PhoneMissed className="h-4 w-4 text-rose-500" />;
+        return <PhoneMissed className="h-4 w-4 text-[#B87568]" />;
       case 'group_invite':
       case 'group_post':
-        return <Users className="h-4 w-4 text-purple-500" />;
+        return <Users className="h-4 w-4 text-[#496D6B]" />;
       case 'story_reply':
-        return <Flame className="h-4 w-4 text-amber-500" />;
+        return <Flame className="h-4 w-4 text-[#D0A56A]" />;
       default:
-        return <Bell className="h-4 w-4 text-slate-400" />;
+        return <Bell className="h-4 w-4 text-[#7F8B86]" />;
     }
   };
 
@@ -72,20 +72,20 @@ export const NotificationItem: React.FC<NotificationItemProps> = ({
       onClick={handleClick}
       className={`flex items-start justify-between gap-3 p-4 rounded-2xl border transition-all cursor-pointer ${
         notification.is_read
-          ? 'border-slate-100 dark:border-slate-800/80 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-850'
-          : 'border-indigo-500/20 bg-indigo-50/60 dark:bg-indigo-950/40 hover:bg-indigo-50 dark:hover:bg-indigo-950/60 font-medium'
+          ? 'border-[#3A4B4D] bg-[#202A2D] hover:bg-[#2B3940]'
+          : 'border-[#496D6B]/50 bg-[#496D6B]/15 hover:bg-[#496D6B]/25 font-medium'
       }`}
     >
       <div className="flex items-start gap-3 min-w-0">
-        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-800 flex-shrink-0 shadow-inner">
+        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#2B3940] border border-[#3A4B4D] flex-shrink-0 shadow-xs">
           {getIcon()}
         </div>
 
         <div className="min-w-0">
-          <p className="text-xs text-slate-800 dark:text-slate-200 leading-snug break-words">
+          <p className="text-xs text-[#D9D0B8] leading-snug break-words">
             {notification.content}
           </p>
-          <span className="text-[10px] text-slate-400 mt-1 block">
+          <span className="text-[10px] text-[#A8AAA0] mt-1 block">
             {formatRelativeTime(notification.created_at)}
           </span>
         </div>
@@ -96,7 +96,7 @@ export const NotificationItem: React.FC<NotificationItemProps> = ({
           <button
             type="button"
             onClick={() => onMarkRead(notification.id)}
-            className="p-1 rounded-md text-indigo-600 hover:bg-indigo-100 dark:hover:bg-indigo-900/60"
+            className="p-1 rounded-[6px] text-[#D0A56A] hover:bg-[#2B3940]"
             title="Mark as read"
           >
             <Check className="h-4 w-4" />
@@ -107,7 +107,7 @@ export const NotificationItem: React.FC<NotificationItemProps> = ({
           <button
             type="button"
             onClick={() => onDelete(notification.id)}
-            className="p-1 rounded-md text-slate-400 hover:text-rose-500 hover:bg-slate-100 dark:hover:bg-slate-800"
+            className="p-1 rounded-[6px] text-[#7F8B86] hover:text-[#B87568] hover:bg-[#2B3940]"
             title="Delete notification"
           >
             <Trash2 className="h-3.5 w-3.5" />
@@ -117,3 +117,4 @@ export const NotificationItem: React.FC<NotificationItemProps> = ({
     </div>
   );
 };
+

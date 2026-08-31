@@ -71,9 +71,9 @@ export const FeedPage: React.FC = () => {
       {/* Right Sidebar Column (Trending & Suggested) */}
       <div className="hidden lg:block lg:col-span-4 space-y-6 sticky top-20">
         {/* Trending Hashtags */}
-        <div className="rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-xs">
-          <div className="flex items-center gap-2 mb-3 text-slate-900 dark:text-slate-100 font-bold text-sm">
-            <TrendingUp className="h-4 w-4 text-indigo-600" />
+        <div className="rounded-2xl border border-[#3A4B4D] bg-[#202A2D] p-4 shadow-xs text-[#D9D0B8]">
+          <div className="flex items-center gap-2 mb-3 text-[#D9D0B8] font-bold text-sm">
+            <TrendingUp className="h-4 w-4 text-[#D0A56A]" />
             <span>Trending in Orbit</span>
           </div>
 
@@ -82,21 +82,21 @@ export const FeedPage: React.FC = () => {
               <NavLink
                 key={idx}
                 to={`/search?q=${encodeURIComponent(item.topic)}`}
-                className="flex items-center justify-between p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                className="flex items-center justify-between p-2 rounded-[10px] hover:bg-[#2B3940] transition-colors"
               >
-                <span className="text-xs font-semibold text-indigo-600 dark:text-indigo-400">
+                <span className="text-xs font-semibold text-[#D0A56A]">
                   {item.topic}
                 </span>
-                <span className="text-[11px] text-slate-400">{item.count} posts</span>
+                <span className="text-[11px] text-[#A8AAA0]">{item.count} posts</span>
               </NavLink>
             ))}
           </div>
         </div>
 
         {/* Suggested Friends */}
-        <div className="rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-xs">
-          <div className="flex items-center gap-2 mb-3 text-slate-900 dark:text-slate-100 font-bold text-sm">
-            <Users className="h-4 w-4 text-purple-600" />
+        <div className="rounded-2xl border border-[#3A4B4D] bg-[#202A2D] p-4 shadow-xs text-[#D9D0B8]">
+          <div className="flex items-center gap-2 mb-3 text-[#D9D0B8] font-bold text-sm">
+            <Users className="h-4 w-4 text-[#71877B]" />
             <span>Suggested Connections</span>
           </div>
 
@@ -105,14 +105,14 @@ export const FeedPage: React.FC = () => {
               <NavLink
                 key={u.id}
                 to={`/profile/${u.id}`}
-                className="flex items-center gap-3 p-1.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors group"
+                className="flex items-center gap-3 p-1.5 rounded-[10px] hover:bg-[#2B3940] transition-colors group"
               >
                 <Avatar src={u.avatar_url} fallback={u.display_name} size="sm" isOnline={u.is_online} showStatus />
                 <div className="min-w-0 flex-1">
-                  <p className="text-xs font-bold text-slate-900 dark:text-slate-100 group-hover:text-indigo-600 truncate">
+                  <p className="text-xs font-bold text-[#D9D0B8] group-hover:text-[#D0A56A] truncate">
                     {u.display_name}
                   </p>
-                  <p className="text-[11px] text-slate-400 truncate">@{u.username}</p>
+                  <p className="text-[11px] text-[#A8AAA0] truncate">@{u.username}</p>
                 </div>
               </NavLink>
             ))}
@@ -122,3 +122,4 @@ export const FeedPage: React.FC = () => {
     </div>
   );
 };
+

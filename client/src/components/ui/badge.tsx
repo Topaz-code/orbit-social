@@ -3,17 +3,17 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '../../lib/utils.js';
 
 const badgeVariants = cva(
-  'inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
+  'inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-[#496D6B]',
   {
     variants: {
       variant: {
-        default: 'border-transparent bg-indigo-600 text-white shadow hover:bg-indigo-700',
-        secondary: 'border-transparent bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200',
-        destructive: 'border-transparent bg-rose-500 text-white shadow hover:bg-rose-600',
-        outline: 'text-slate-900 dark:text-slate-100 border-slate-300 dark:border-slate-700',
-        cyan: 'border-transparent bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-500/20',
-        emerald: 'border-transparent bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20',
-        amber: 'border-transparent bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20',
+        default: 'border-transparent bg-[#D0A56A] text-[#171A1C]',
+        secondary: 'border-transparent bg-[#496D6B] text-[#D9D0B8]',
+        destructive: 'border-transparent bg-[#B87568] text-[#171A1C]',
+        outline: 'text-[#D9D0B8] border-[#3A4B4D]',
+        cyan: 'bg-[#496D6B]/20 text-[#D9D0B8] border border-[#496D6B]/40',
+        emerald: 'bg-[#71877B]/20 text-[#71877B] border border-[#71877B]/40',
+        amber: 'bg-[#D0A56A]/20 text-[#D0A56A] border border-[#D0A56A]/40',
       },
     },
     defaultVariants: {
@@ -21,6 +21,7 @@ const badgeVariants = cva(
     },
   }
 );
+
 
 export interface BadgeProps
   extends React.HTMLAttributes<HTMLDivElement>,

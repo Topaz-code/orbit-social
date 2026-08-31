@@ -39,7 +39,7 @@ export const DropdownMenu: React.FC<DropdownProps> = ({
         <div
           onClick={() => setOpen(false)}
           className={cn(
-            'absolute z-[99] mt-2 min-w-[10rem] rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-1.5 shadow-2xl animate-fade-in focus:outline-none ring-1 ring-black/10 dark:ring-white/10',
+            'absolute z-[99] mt-2 min-w-[10rem] rounded-xl border border-[#3A4B4D] bg-[#202A2D] p-1.5 shadow-2xl animate-fade-in focus:outline-none ring-1 ring-black/20',
             align === 'right' ? 'right-0' : 'left-0',
             className
           )}
@@ -62,8 +62,8 @@ export const DropdownItem: React.FC<{
       type="button"
       onClick={onClick}
       className={cn(
-        'flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-left',
-        destructive && 'text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40',
+        'flex w-full items-center gap-2 rounded-lg px-3 py-2 text-xs sm:text-sm text-[#D9D0B8] hover:bg-[#2B3940] transition-colors text-left font-medium',
+        destructive && 'text-[#B87568] hover:bg-[#B87568]/15 hover:text-[#C98679]',
         className
       )}
     >
@@ -73,5 +73,6 @@ export const DropdownItem: React.FC<{
 };
 
 export const DropdownDivider = () => (
-  <div className="my-1 h-px bg-slate-100 dark:bg-slate-800" />
+  <div className="my-1 h-px bg-[#3A4B4D]" />
 );
+

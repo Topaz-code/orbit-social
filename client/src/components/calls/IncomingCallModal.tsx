@@ -60,17 +60,17 @@ export const IncomingCallModal: React.FC<IncomingCallModalProps> = ({
   }, []);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-md p-4 animate-fade-in select-none">
-      <div className="w-full max-w-sm rounded-3xl bg-white dark:bg-slate-900 p-6 text-center shadow-2xl border border-slate-200 dark:border-slate-800 animate-slide-up">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-xs p-4 animate-fade-in select-none">
+      <div className="w-full max-w-sm rounded-3xl bg-[#202A2D] p-6 text-center shadow-2xl border border-[#3A4B4D] animate-slide-up text-[#D9D0B8]">
         <div className="relative mx-auto mb-4 flex h-24 w-24 items-center justify-center">
-          <span className="absolute inset-0 rounded-full bg-indigo-500/20 animate-ping" />
+          <span className="absolute inset-0 rounded-full bg-[#D0A56A]/20 animate-ping" />
           <Avatar src={caller.avatar_url} fallback={caller.display_name} size="xl" />
         </div>
 
-        <h3 className="text-xl font-black text-slate-900 dark:text-slate-100">{caller.display_name}</h3>
-        <p className="text-xs text-slate-400 mt-0.5">@{caller.username}</p>
+        <h3 className="text-xl font-bold text-[#D9D0B8]">{caller.display_name}</h3>
+        <p className="text-xs text-[#A8AAA0] mt-0.5">@{caller.username}</p>
 
-        <div className="my-4 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-50 dark:bg-indigo-950/50 text-xs font-semibold text-indigo-600 dark:text-indigo-400">
+        <div className="my-4 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#2B3940] border border-[#3A4B4D] text-xs font-semibold text-[#D0A56A]">
           {type === 'video' ? <Video className="h-3.5 w-3.5" /> : <Phone className="h-3.5 w-3.5" />}
           <span className="capitalize">Incoming {type} Call...</span>
         </div>
@@ -80,7 +80,7 @@ export const IncomingCallModal: React.FC<IncomingCallModalProps> = ({
           <button
             type="button"
             onClick={onReject}
-            className="flex h-14 w-14 items-center justify-center rounded-full bg-rose-500 text-white hover:bg-rose-600 shadow-lg shadow-rose-500/30 transition-transform active:scale-95"
+            className="flex h-14 w-14 items-center justify-center rounded-full bg-[#B87568] text-[#171A1C] hover:bg-[#C98679] shadow-lg transition-transform active:scale-95"
             title="Decline"
           >
             <PhoneOff className="h-6 w-6" />
@@ -89,7 +89,7 @@ export const IncomingCallModal: React.FC<IncomingCallModalProps> = ({
           <button
             type="button"
             onClick={onAccept}
-            className="flex h-14 w-14 items-center justify-center rounded-full bg-emerald-500 text-white hover:bg-emerald-600 shadow-lg shadow-emerald-500/30 transition-transform active:scale-95 animate-bounce"
+            className="flex h-14 w-14 items-center justify-center rounded-full bg-[#71877B] text-[#171A1C] hover:bg-[#82998C] shadow-lg transition-transform active:scale-95 animate-bounce"
             title="Accept"
           >
             <Phone className="h-6 w-6" />
@@ -97,5 +97,6 @@ export const IncomingCallModal: React.FC<IncomingCallModalProps> = ({
         </div>
       </div>
     </div>
+
   );
 };

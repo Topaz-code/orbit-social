@@ -96,14 +96,15 @@ export const PostComposer: React.FC<PostComposerProps> = ({
 
   return (
     <div
-      className={`rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-white dark:bg-slate-900 p-3.5 sm:p-4 shadow-sm mb-4 sm:mb-6 ${
+
+      className={`rounded-2xl border border-[#3A4B4D] bg-[#202A2D] p-3.5 sm:p-4 shadow-sm mb-4 sm:mb-6 text-[#D9D0B8] ${
         className || ''
       }`}
     >
       {errorMessage && (
-        <div className="mb-3 p-2.5 text-xs font-medium text-rose-600 bg-rose-50 dark:bg-rose-950/40 dark:text-rose-400 rounded-xl border border-rose-200 dark:border-rose-800 flex items-center justify-between">
+        <div className="mb-3 p-2.5 text-xs font-medium text-[#B87568] bg-[#B87568]/15 rounded-xl border border-[#B87568]/30 flex items-center justify-between">
           <span>{errorMessage}</span>
-          <button type="button" onClick={() => setErrorMessage(null)} className="text-rose-500 hover:text-rose-700">
+          <button type="button" onClick={() => setErrorMessage(null)} className="text-[#B87568] hover:opacity-80">
             <X className="h-3.5 w-3.5" />
           </button>
         </div>
@@ -116,14 +117,14 @@ export const PostComposer: React.FC<PostComposerProps> = ({
             placeholder="What's on your mind?"
             value={contentText}
             onChange={(e) => setContentText(e.target.value)}
-            className="border-none bg-transparent p-0 text-sm focus-visible:ring-0 resize-none min-h-[60px] sm:min-h-[70px] placeholder:text-slate-400 dark:placeholder:text-slate-500"
+            className="border-none bg-transparent p-0 text-sm text-[#D9D0B8] focus-visible:ring-0 resize-none min-h-[60px] sm:min-h-[70px] placeholder:text-[#7F8B86]"
           />
 
           {/* Media Previews */}
           {mediaUrls.length > 0 && (
             <div className="flex flex-wrap gap-2 my-2">
               {mediaUrls.map((url, idx) => (
-                <div key={idx} className="relative h-20 w-20 rounded-xl overflow-hidden bg-slate-900">
+                <div key={idx} className="relative h-20 w-20 rounded-xl overflow-hidden bg-[#2B3940] border border-[#3A4B4D]">
                   <img src={getMediaUrl(url)} alt="Upload preview" className="h-full w-full object-cover" />
                   <button
                     type="button"
@@ -139,14 +140,14 @@ export const PostComposer: React.FC<PostComposerProps> = ({
 
           {/* Link Input Bar */}
           {showLinkInput && (
-            <div className="flex items-center gap-2 my-2 bg-slate-50 dark:bg-slate-800 p-2 rounded-xl">
-              <Link2 className="h-4 w-4 text-indigo-500 shrink-0" />
+            <div className="flex items-center gap-2 my-2 bg-[#2B3940] border border-[#3A4B4D] p-2 rounded-xl">
+              <Link2 className="h-4 w-4 text-[#496D6B] shrink-0" />
               <input
                 type="url"
                 placeholder="Paste link URL (https://...)"
                 value={linkUrl}
                 onChange={(e) => setLinkUrl(e.target.value)}
-                className="flex-1 bg-transparent text-xs text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none"
+                className="flex-1 bg-transparent text-xs text-[#D9D0B8] placeholder:text-[#7F8B86] focus:outline-none"
               />
               <button
                 type="button"
@@ -154,7 +155,7 @@ export const PostComposer: React.FC<PostComposerProps> = ({
                   setLinkUrl('');
                   setShowLinkInput(false);
                 }}
-                className="text-slate-400 hover:text-slate-600"
+                className="text-[#7F8B86] hover:text-[#D9D0B8]"
               >
                 <X className="h-3.5 w-3.5" />
               </button>
@@ -162,7 +163,7 @@ export const PostComposer: React.FC<PostComposerProps> = ({
           )}
 
           {/* Action Row — Mobile Single Row Toolbar */}
-          <div className="flex items-center justify-between gap-1.5 sm:gap-2 pt-2.5 border-t border-slate-100 dark:border-slate-800/80 mt-1">
+          <div className="flex items-center justify-between gap-1.5 sm:gap-2 pt-2.5 border-t border-[#3A4B4D] mt-1">
             <div className="flex items-center gap-1 min-w-0">
               <input
                 type="file"
@@ -178,9 +179,9 @@ export const PostComposer: React.FC<PostComposerProps> = ({
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isUploading}
                 title="Add photo or video"
-                className="flex items-center gap-1.5 p-1.5 sm:px-2.5 sm:py-1.5 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-indigo-600 transition-colors"
+                className="flex items-center gap-1.5 p-1.5 sm:px-2.5 sm:py-1.5 rounded-[10px] text-xs font-semibold text-[#A8AAA0] hover:bg-[#2B3940] hover:text-[#D9D0B8] transition-colors"
               >
-                {isUploading ? <Loader2 className="h-4 w-4 animate-spin text-indigo-600" /> : <Image className="h-4 w-4 text-emerald-500 shrink-0" />}
+                {isUploading ? <Loader2 className="h-4 w-4 animate-spin text-[#D0A56A]" /> : <Image className="h-4 w-4 text-[#71877B] shrink-0" />}
                 <span className="hidden sm:inline">Photo</span>
               </button>
 
@@ -188,22 +189,22 @@ export const PostComposer: React.FC<PostComposerProps> = ({
                 type="button"
                 onClick={() => setShowLinkInput(!showLinkInput)}
                 title="Attach link"
-                className="flex items-center gap-1.5 p-1.5 sm:px-2.5 sm:py-1.5 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-indigo-600 transition-colors"
+                className="flex items-center gap-1.5 p-1.5 sm:px-2.5 sm:py-1.5 rounded-[10px] text-xs font-semibold text-[#A8AAA0] hover:bg-[#2B3940] hover:text-[#D9D0B8] transition-colors"
               >
-                <Link2 className="h-4 w-4 text-indigo-500 shrink-0" />
+                <Link2 className="h-4 w-4 text-[#496D6B] shrink-0" />
                 <span className="hidden sm:inline">Link</span>
               </button>
 
               {/* Visibility Selector */}
-              <div className="flex items-center rounded-xl bg-slate-100 dark:bg-slate-800 px-2 py-1 text-xs">
+              <div className="flex items-center rounded-[8px] bg-[#2B3940] border border-[#3A4B4D] px-2 py-1 text-xs">
                 <select
                   value={visibility}
                   onChange={(e) => setVisibility(e.target.value as any)}
-                  className="bg-transparent text-xs font-medium text-slate-700 dark:text-slate-300 focus:outline-none cursor-pointer pr-0.5"
+                  className="bg-transparent text-xs font-medium text-[#D9D0B8] focus:outline-none cursor-pointer pr-0.5"
                 >
-                  <option value="public">Public</option>
-                  <option value="friends">Friends</option>
-                  <option value="private">Private</option>
+                  <option value="public" className="bg-[#202A2D] text-[#D9D0B8]">Public</option>
+                  <option value="friends" className="bg-[#202A2D] text-[#D9D0B8]">Friends</option>
+                  <option value="private" className="bg-[#202A2D] text-[#D9D0B8]">Private</option>
                 </select>
               </div>
             </div>
@@ -213,7 +214,7 @@ export const PostComposer: React.FC<PostComposerProps> = ({
               isLoading={isSubmitting || isUploading}
               disabled={(!contentText.trim() && mediaUrls.length === 0) || isUploading}
               size="sm"
-              className="px-4 py-1.5 h-8 rounded-xl font-semibold shrink-0 text-xs shadow-xs"
+              className="px-4 py-1.5 h-8 rounded-[10px] font-semibold shrink-0 text-xs shadow-xs bg-[#D0A56A] text-[#171A1C] hover:bg-[#E0B779]"
             >
               Post
             </Button>
@@ -223,3 +224,4 @@ export const PostComposer: React.FC<PostComposerProps> = ({
     </div>
   );
 };
+

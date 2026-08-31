@@ -17,15 +17,15 @@ export const NotificationsPage: React.FC = () => {
   } = useNotifications();
 
   return (
-    <div className="max-w-2xl mx-auto min-w-0 pb-16">
-      <div className="flex items-center justify-between p-4 mb-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs">
+    <div className="max-w-2xl mx-auto min-w-0 pb-16 text-[#D9D0B8]">
+      <div className="flex items-center justify-between p-4 mb-6 rounded-2xl bg-[#202A2D] border border-[#3A4B4D] shadow-xs">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#2B3940] border border-[#3A4B4D] text-[#D0A56A]">
             <Bell className="h-5 w-5" />
           </div>
           <div>
-            <h1 className="text-lg font-black text-slate-900 dark:text-slate-100">Notifications</h1>
-            <p className="text-xs text-slate-400">
+            <h1 className="text-lg font-bold text-[#D9D0B8]">Notifications</h1>
+            <p className="text-xs text-[#A8AAA0]">
               {unreadCount > 0 ? `${unreadCount} unread notification${unreadCount === 1 ? '' : 's'}` : 'You are all caught up!'}
             </p>
           </div>
@@ -33,15 +33,15 @@ export const NotificationsPage: React.FC = () => {
 
         <div className="flex items-center gap-2">
           {unreadCount > 0 && (
-            <Button variant="ghost" size="sm" onClick={markAllRead}>
-              <CheckCheck className="h-4 w-4 mr-1 text-emerald-500" />
+            <Button variant="ghost" size="sm" onClick={markAllRead} className="text-[#71877B] hover:text-[#D9D0B8] hover:bg-[#2B3940]">
+              <CheckCheck className="h-4 w-4 mr-1 text-[#71877B]" />
               <span>Mark all read</span>
             </Button>
           )}
 
           {notifications.length > 0 && (
-            <Button variant="ghost" size="icon-sm" onClick={clearAllNotifications} title="Clear all">
-              <Trash2 className="h-4 w-4 text-slate-400 hover:text-rose-500" />
+            <Button variant="ghost" size="icon-sm" onClick={clearAllNotifications} title="Clear all" className="text-[#7F8B86] hover:text-[#B87568] hover:bg-[#2B3940]">
+              <Trash2 className="h-4 w-4" />
             </Button>
           )}
         </div>
@@ -49,7 +49,6 @@ export const NotificationsPage: React.FC = () => {
 
       {notifications.length === 0 ? (
         <EmptyState
-          icon={<Bell className="h-8 w-8 text-indigo-500" />}
           title="No notifications"
           description="When friends interact with your posts or message you, notifications will show up here."
         />
@@ -67,4 +66,5 @@ export const NotificationsPage: React.FC = () => {
       )}
     </div>
   );
+
 };

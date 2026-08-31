@@ -34,7 +34,7 @@ export const FriendCard: React.FC<FriendCardProps> = ({
   };
 
   return (
-    <div className="flex items-center justify-between p-3.5 rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs hover:border-slate-300 dark:hover:border-slate-700 transition-all">
+    <div className="flex items-center justify-between p-3.5 rounded-2xl border border-[#3A4B4D] bg-[#202A2D] shadow-xs hover:border-[#496D6B]/50 transition-all text-[#D9D0B8]">
       <NavLink to={`/profile/${friend.id}`} className="flex items-center gap-3 min-w-0 group">
         <Avatar
           src={friend.avatar_url}
@@ -44,12 +44,12 @@ export const FriendCard: React.FC<FriendCardProps> = ({
           size="md"
         />
         <div className="min-w-0">
-          <p className="text-sm font-bold text-slate-900 dark:text-slate-100 group-hover:text-indigo-600 transition-colors truncate">
+          <p className="text-sm font-bold text-[#D9D0B8] group-hover:text-[#D0A56A] transition-colors truncate">
             {friend.display_name}
           </p>
-          <p className="text-xs text-slate-400 truncate">@{friend.username}</p>
+          <p className="text-xs text-[#A8AAA0] truncate">@{friend.username}</p>
           {friend.bio && (
-            <p className="text-[11px] text-slate-500 truncate mt-0.5 max-w-[180px] sm:max-w-xs">
+            <p className="text-[11px] text-[#A8AAA0] truncate mt-0.5 max-w-[180px] sm:max-w-xs">
               {friend.bio}
             </p>
           )}
@@ -57,8 +57,8 @@ export const FriendCard: React.FC<FriendCardProps> = ({
       </NavLink>
 
       <div className="flex items-center gap-1.5 flex-shrink-0 ml-2">
-        <Button variant="ghost" size="icon-sm" onClick={handleMessage} title="Message">
-          <MessageCircle className="h-4 w-4 text-indigo-500" />
+        <Button variant="ghost" size="icon-sm" onClick={handleMessage} title="Message" className="text-[#496D6B] hover:bg-[#2B3940]">
+          <MessageCircle className="h-4 w-4" />
         </Button>
 
         {isSelf && onRemoveFriend && friend.friendship_id && (
@@ -66,7 +66,7 @@ export const FriendCard: React.FC<FriendCardProps> = ({
             variant="ghost"
             size="icon-sm"
             onClick={() => onRemoveFriend(friend.friendship_id!)}
-            className="hover:text-rose-500"
+            className="text-[#7F8B86] hover:text-[#B87568] hover:bg-[#2B3940]"
             title="Remove friend"
           >
             <UserX className="h-4 w-4" />
@@ -75,4 +75,5 @@ export const FriendCard: React.FC<FriendCardProps> = ({
       </div>
     </div>
   );
+
 };

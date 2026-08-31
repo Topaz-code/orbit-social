@@ -24,23 +24,23 @@ export const PostActions: React.FC<PostActionsProps> = ({
   const [bookmarked, setBookmarked] = React.useState(false);
 
   return (
-    <div className="flex items-center justify-between pt-3 mt-3 border-t border-slate-100 dark:border-slate-800/80 text-slate-500 dark:text-slate-400">
+    <div className="flex items-center justify-between pt-3 mt-3 border-t border-[#3A4B4D] text-[#A8AAA0]">
       <div className="flex items-center gap-1 sm:gap-2">
-        {/* Like Button with Burst effect */}
+        {/* Like Button */}
         <button
           type="button"
           onClick={onToggleLike}
           className={cn(
-            'flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all group active:scale-95',
+            'flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] text-xs font-semibold transition-all group active:scale-95',
             isLiked
-              ? 'text-rose-500 bg-rose-50 dark:bg-rose-950/40'
-              : 'hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-rose-500'
+              ? 'text-[#B87568] bg-[#B87568]/15'
+              : 'hover:bg-[#2B3940] hover:text-[#B87568]'
           )}
         >
           <Heart
             className={cn(
               'h-4 w-4 transition-transform group-hover:scale-110',
-              isLiked && 'fill-rose-500 animate-heart-burst'
+              isLiked && 'fill-[#B87568] animate-heart-burst'
             )}
           />
           <span>{likesCount}</span>
@@ -51,10 +51,10 @@ export const PostActions: React.FC<PostActionsProps> = ({
           type="button"
           onClick={onToggleComments}
           className={cn(
-            'flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all group',
+            'flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] text-xs font-semibold transition-all group',
             commentsOpen
-              ? 'text-indigo-600 bg-indigo-50 dark:bg-indigo-950/40'
-              : 'hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-indigo-600'
+              ? 'text-[#D9D0B8] bg-[#496D6B]'
+              : 'hover:bg-[#2B3940] hover:text-[#D9D0B8]'
           )}
         >
           <MessageCircle className="h-4 w-4 transition-transform group-hover:scale-110" />
@@ -65,7 +65,7 @@ export const PostActions: React.FC<PostActionsProps> = ({
         <button
           type="button"
           onClick={onShare}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100 transition-all"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] text-xs font-semibold hover:bg-[#2B3940] hover:text-[#D9D0B8] transition-all"
         >
           <Share2 className="h-4 w-4" />
           <span className="hidden sm:inline">Share</span>
@@ -77,13 +77,14 @@ export const PostActions: React.FC<PostActionsProps> = ({
         type="button"
         onClick={() => setBookmarked(!bookmarked)}
         className={cn(
-          'p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors',
-          bookmarked ? 'text-amber-500' : 'text-slate-400 hover:text-slate-600'
+          'p-2 rounded-[10px] hover:bg-[#2B3940] transition-colors',
+          bookmarked ? 'text-[#D0A56A]' : 'text-[#7F8B86] hover:text-[#D9D0B8]'
         )}
         title={bookmarked ? 'Saved' : 'Save post'}
       >
-        <Bookmark className={cn('h-4 w-4', bookmarked && 'fill-amber-500')} />
+        <Bookmark className={cn('h-4 w-4', bookmarked && 'fill-[#D0A56A]')} />
       </button>
     </div>
+
   );
 };

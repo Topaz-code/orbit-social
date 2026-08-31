@@ -38,7 +38,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onOpenNewPost }) => {
   ];
 
   return (
-    <aside className="hidden lg:flex flex-col w-64 h-screen sticky top-0 border-r border-slate-200/80 dark:border-slate-800/80 bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl p-4 select-none z-30">
+    <aside className="hidden lg:flex flex-col w-64 h-screen sticky top-0 border-r border-[#3A4B4D] bg-[#202A2D] p-4 select-none z-30">
       {/* Brand Logo */}
       <NavLink to="/" className="flex items-center gap-3 px-3 py-3 mb-4 group">
         <img
@@ -47,10 +47,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ onOpenNewPost }) => {
           className="h-9 w-9 transition-transform duration-300 group-hover:rotate-12"
         />
         <div>
-          <span className="text-xl font-black tracking-tight bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 bg-clip-text text-transparent">
+          <span className="text-xl font-bold tracking-tight text-[#D9D0B8]">
             Orbit
           </span>
-          <p className="text-[10px] font-medium text-slate-400 -mt-1 tracking-wider uppercase">
+          <p className="text-[10px] font-medium text-[#7F8B86] -mt-1 tracking-wider uppercase">
             Privacy First
           </p>
         </div>
@@ -64,10 +64,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ onOpenNewPost }) => {
             to={item.to}
             className={({ isActive }) =>
               cn(
-                'flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all group',
+                'flex items-center justify-between px-3.5 py-2.5 rounded-[10px] text-sm font-medium transition-all group',
                 isActive
-                  ? 'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 font-semibold shadow-sm shadow-indigo-500/5'
-                  : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/80 hover:text-slate-900 dark:hover:text-slate-100'
+                  ? 'bg-[#496D6B] text-[#D9D0B8] font-bold shadow-xs'
+                  : 'text-[#A8AAA0] hover:bg-[#2B3940] hover:text-[#D9D0B8]'
               )
             }
           >
@@ -76,7 +76,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onOpenNewPost }) => {
               <span>{item.label}</span>
             </div>
             {item.badge !== undefined && (
-              <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-rose-500 px-1.5 text-[11px] font-bold text-white shadow-sm shadow-rose-500/30">
+              <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-[#D0A56A] px-1.5 text-[11px] font-bold text-[#171A1C]">
                 {item.badge > 99 ? '99+' : item.badge}
               </span>
             )}
@@ -88,7 +88,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onOpenNewPost }) => {
       {onOpenNewPost && (
         <button
           onClick={onOpenNewPost}
-          className="my-3 flex items-center justify-center gap-2 w-full py-3 px-4 rounded-xl font-semibold text-sm text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 shadow-md shadow-indigo-500/25 active:scale-[0.98] transition-all"
+          className="my-3 flex items-center justify-center gap-2 w-full py-2.5 px-4 rounded-[10px] font-semibold text-sm text-[#171A1C] bg-[#D0A56A] hover:bg-[#E0B779] active:scale-[0.98] transition-all"
         >
           <PlusCircle className="h-4 w-4" />
           <span>New Post</span>
@@ -99,7 +99,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onOpenNewPost }) => {
       {user && (
         <NavLink
           to={`/profile/${user.id}`}
-          className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors mt-auto border border-slate-100 dark:border-slate-800/60"
+          className="flex items-center gap-3 p-2.5 rounded-[10px] hover:bg-[#2B3940] transition-colors mt-auto border border-[#3A4B4D]"
         >
           <Avatar
             src={user.avatar_url}
@@ -109,13 +109,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ onOpenNewPost }) => {
             size="sm"
           />
           <div className="flex-1 min-w-0">
-            <p className="text-xs font-bold text-slate-900 dark:text-slate-100 truncate">
+            <p className="text-xs font-bold text-[#D9D0B8] truncate">
               {user.display_name}
             </p>
-            <p className="text-[11px] text-slate-400 truncate">@{user.username}</p>
+            <p className="text-[11px] text-[#A8AAA0] truncate">@{user.username}</p>
           </div>
         </NavLink>
       )}
     </aside>
   );
 };
+

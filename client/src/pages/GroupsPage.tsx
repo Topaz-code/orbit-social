@@ -15,28 +15,29 @@ export const GroupsPage: React.FC = () => {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
 
   return (
-    <div className="max-w-5xl mx-auto min-w-0">
+    <div className="max-w-5xl mx-auto min-w-0 text-[#D9D0B8]">
       {/* Header Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 mb-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 mb-6 rounded-3xl bg-[#202A2D] border border-[#3A4B4D] shadow-xs">
         <div className="flex items-center gap-3.5">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 shadow-inner">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#2B3940] border border-[#3A4B4D] text-[#D0A56A] shadow-inner">
             <Users className="h-6 w-6" />
           </div>
           <div>
-            <h1 className="text-xl font-black text-slate-900 dark:text-slate-100 tracking-tight">
+            <h1 className="text-xl font-bold text-[#D9D0B8] tracking-tight">
               Micro Groups
             </h1>
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-[#A8AAA0]">
               Close circles limited to a strict maximum of {MAX_GROUP_MEMBERS} members.
             </p>
           </div>
         </div>
 
-        <Button onClick={() => setIsCreateOpen(true)} size="sm">
-          <Plus className="h-4 w-4 mr-1.5" />
+        <Button onClick={() => setIsCreateOpen(true)} size="sm" className="bg-[#D0A56A] text-[#171A1C] hover:bg-[#E0B779] rounded-[10px] font-semibold">
+          <Plus className="h-4 w-4 mr-1.5 stroke-[2.5]" />
           <span>Create Group</span>
         </Button>
       </div>
+
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>

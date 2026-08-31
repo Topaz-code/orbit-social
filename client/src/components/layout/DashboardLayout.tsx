@@ -47,9 +47,10 @@ export const DashboardLayout: React.FC = () => {
 
 
   return (
-    <div className="flex min-h-screen bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100">
+    <div className="flex min-h-screen bg-[#171A1C] text-[#D9D0B8] font-sans antialiased selection:bg-[#496D6B] selection:text-[#D9D0B8]">
       {/* Persistent Left Sidebar (Desktop) */}
       <Sidebar onOpenNewPost={() => setIsNewPostOpen(true)} />
+
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0">
