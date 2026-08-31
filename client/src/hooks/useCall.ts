@@ -50,12 +50,10 @@ function getPeerManager(): PeerManager {
   return peerManagerInstance;
 }
 
-const LOW_LATENCY_AUDIO_CONSTRAINTS: MediaTrackConstraints = {
+const AUDIO_CONSTRAINTS: MediaTrackConstraints = {
   echoCancellation: true,
   noiseSuppression: true,
   autoGainControl: true,
-  channelCount: 1, // Mono stream: cuts processing latency and buffer in half
-  sampleRate: 48000,
 };
 
 
@@ -126,9 +124,9 @@ export function useCall() {
     if (!user) return;
 
     try {
-      // 1. Acquire media stream with low-latency audio constraints
+      // 1. Acquire media stream with standard high-compatibility audio constraints
       const constraints: MediaStreamConstraints = {
-        audio: LOW_LATENCY_AUDIO_CONSTRAINTS,
+        audio: AUDIO_CONSTRAINTS,
         video: type === 'video' ? { width: { ideal: 1280 }, height: { ideal: 720 } } : false,
       };
 
@@ -196,7 +194,7 @@ export function useCall() {
 
     try {
       const constraints: MediaStreamConstraints = {
-        audio: LOW_LATENCY_AUDIO_CONSTRAINTS,
+        audio: AUDIO_CONSTRAINTS,
         video: incomingCall.type === 'video' ? { width: { ideal: 1280 }, height: { ideal: 720 } } : false,
       };
 
