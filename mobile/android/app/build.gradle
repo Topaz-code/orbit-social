@@ -53,4 +53,13 @@ android {
 
 dependencies {
     implementation("com.facebook.react:react-android")
+    implementation(project(":notifee_react-native"))
+    implementation(project(":react-native-async-storage_async-storage"))
+    implementation(project(":react-native-firebase_app"))
+    implementation(project(":react-native-firebase_messaging"))
+    implementation(project(":react-native-callkeep"))
+    implementation(project(":react-native-safe-area-context"))
+    implementation(project(":react-native-screens"))
+    implementation(project(":react-native-svg"))
+    implementation(project(":react-native-webrtc"))
 }
