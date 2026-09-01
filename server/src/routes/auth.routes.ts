@@ -27,7 +27,7 @@ const loginLimiter = rateLimit({
 // Rate limiter for password reset and security questions
 const passwordResetLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 10,
+  max: 5,
   standardHeaders: true,
   legacyHeaders: false,
   message: {

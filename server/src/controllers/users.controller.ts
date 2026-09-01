@@ -127,7 +127,17 @@ export const usersController = {
   async setPresenceOfflineBeacon(req: Request, res: Response, next: NextFunction) {
     try {
       const userId = (req.query.userId || req.body?.userId) as string;
-      if (userId && typeof userId === 'string' && userId.length > 5) {
+      const token = (req.query.token || req.body?.token) as string;
+
+      if (!token) {
+        return res.status(200).json({ success: false, message: 'Missing token' });
+      }
+
+      // Verify token without throwing an error if expired, just for basic beacon auth
+      const { verifyAccessToken } = await import('../config/auth.js');
+      const decoded = verifyAccessToken(token);
+
+      if (decoded && decoded.userId === userId && typeof userId === 'string' && userId.length > 5) {
         await usersService.setPresence(userId, false);
       }
       res.json({ success: true });

@@ -19,6 +19,7 @@ const CallsPage = lazy(() => import('./pages/CallsPage.js').then((m) => ({ defau
 const NotificationsPage = lazy(() => import('./pages/NotificationsPage.js').then((m) => ({ default: m.NotificationsPage })));
 const SearchPage = lazy(() => import('./pages/SearchPage.js').then((m) => ({ default: m.SearchPage })));
 const SettingsPage = lazy(() => import('./pages/SettingsPage.js').then((m) => ({ default: m.SettingsPage })));
+const PostPage = lazy(() => import('./pages/PostPage.js').then((m) => ({ default: m.PostPage })));
 
 const PageLoader = () => (
   <div className="flex items-center justify-center p-12 min-h-[50vh]">
@@ -109,6 +110,7 @@ export const App: React.FC = () => {
             }
           >
             <Route index element={<FeedPage />} />
+            <Route path="posts/:id" element={<PostPage />} />
             <Route path="explore" element={<ExplorePage />} />
             <Route path="profile" element={<ProfilePage />} />
             <Route path="profile/:id" element={<ProfilePage />} />

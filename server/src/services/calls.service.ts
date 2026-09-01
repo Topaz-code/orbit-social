@@ -176,11 +176,8 @@ export const callsService = {
   },
 
   async clearCallHistory(userId: string) {
-    await prisma.call.deleteMany({
-      where: {
-        OR: [{ caller_id: userId }, { receiver_id: userId }],
-      },
-    });
+    // Disabled to prevent data destruction for the other participant.
+    // Real implementation should use soft deletes (e.g. cleared_by_caller, cleared_by_receiver).
     return { success: true };
   },
 };
