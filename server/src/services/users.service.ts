@@ -227,9 +227,32 @@ export const usersService = {
   },
 
   async getUserMedia(targetUserId: string, currentUserId?: string) {
+    const isSelf = currentUserId === targetUserId;
+    let isFriend = false;
+
+    if (currentUserId && !isSelf) {
+      const friendship = await prisma.friendship.findFirst({
+        where: {
+          status: 'accepted',
+          OR: [
+            { requester_id: currentUserId, addressee_id: targetUserId },
+            { requester_id: targetUserId, addressee_id: currentUserId },
+          ],
+        },
+      });
+      isFriend = !!friendship;
+    }
+
+    const allowedVisibilities = isSelf
+      ? ['public', 'friends', 'private']
+      : isFriend
+      ? ['public', 'friends']
+      : ['public'];
+
     const posts = await prisma.post.findMany({
       where: {
         user_id: targetUserId,
+        visibility: { in: allowedVisibilities },
         OR: [
           { media_url: { not: '' } },
           { media_gallery: { not: '[]' } },

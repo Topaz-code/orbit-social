@@ -42,11 +42,12 @@ export const PostCard: React.FC<PostCardProps> = ({
   };
 
   const handleShare = () => {
+    const url = `${window.location.origin}/posts/${post.id}`;
     if (navigator.share) {
       navigator.share({
         title: `Post by ${post.user.display_name} on Orbit`,
         text: post.content_text,
-        url: window.location.href,
+        url: url,
       }).catch(() => {});
     } else {
       handleCopyLink();

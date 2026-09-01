@@ -27,19 +27,12 @@ export function initMQTTBroker(httpServer?: http.Server): { tcpServer?: net.Serv
     // Authenticate via token passed in password or username
     const token = password ? password.toString() : username;
     if (token) {
-      const decoded = verifyAccessToken(token);
+      const decoded = verifyAccessToken(token as string);
       if (decoded && decoded.userId) {
         clientUserMap.set(client.id, decoded.userId);
         (client as any).userId = decoded.userId;
         return callback(null, true);
       }
-    }
-
-    // If client.id matches a registered user ID (fallback for internal dev handshake)
-    if (client.id && client.id.length > 5) {
-      clientUserMap.set(client.id, client.id);
-      (client as any).userId = client.id;
-      return callback(null, true);
     }
 
     const error = new Error('MQTT Authentication Failed') as AuthenticateError;
@@ -48,7 +41,7 @@ export function initMQTTBroker(httpServer?: http.Server): { tcpServer?: net.Serv
   };
 
   // 2. MQTT Topic Subscription Authorization Hook (Choke Point Protection)
-  aedes.authorizeSubscribe = (client: Client, sub: Subscription, callback) => {
+  aedes.authorizeSubscribe = async (client: Client, sub: Subscription, callback) => {
     if (client.id.startsWith('server-') || client.id.startsWith('internal-')) {
       return callback(null, sub);
     }
@@ -73,9 +66,14 @@ export function initMQTTBroker(httpServer?: http.Server): { tcpServer?: net.Serv
       return callback(new Error('Unauthorized MQTT subscription'), null);
     }
 
-    // Call signaling topics (orbit/call/{userId}/incoming, orbit/call/{callId}/signal)
+    // Call signaling topics
     if (topic.startsWith('orbit/call/')) {
-      return callback(null, sub);
+      const parts = topic.split('/');
+      const targetUserId = parts[2];
+      if (targetUserId === userId) {
+        return callback(null, sub);
+      }
+      return callback(new Error('Unauthorized MQTT subscription'), null);
     }
 
     // Public feeds / stories
@@ -85,7 +83,22 @@ export function initMQTTBroker(httpServer?: http.Server): { tcpServer?: net.Serv
 
     // Direct & Group Chat Topics (orbit/chat/{conversationId})
     if (topic.startsWith('orbit/chat/')) {
-      return callback(null, sub);
+      const parts = topic.split('/');
+      const conversationId = parts[2];
+      try {
+        const member = await prisma.conversationMember.findUnique({
+          where: {
+            conversation_id_user_id: { conversation_id: conversationId, user_id: userId },
+          },
+        });
+        if (member) {
+          return callback(null, sub);
+        } else {
+          return callback(new Error('Unauthorized to subscribe to this chat'), null);
+        }
+      } catch (err) {
+        return callback(new Error('Database error during authorization'), null);
+      }
     }
 
     callback(null, sub);
@@ -100,12 +113,13 @@ export function initMQTTBroker(httpServer?: http.Server): { tcpServer?: net.Serv
     const userId = (client as any).userId || clientUserMap.get(client.id) || client.id;
     const topic = packet.topic;
 
-    // Prevent clients from spoofing other users' notification channels directly
-    if (topic.startsWith('orbit/user/') && !topic.startsWith(`orbit/user/${userId}`)) {
-      return callback(new Error('Unauthorized MQTT publish spoofing attempt'));
+    // Clients can ONLY publish typing indicators
+    if (topic.startsWith('orbit/chat/') && topic.endsWith('/typing')) {
+       return callback(null);
     }
 
-    callback(null);
+    // Block ALL other client publishes (messages, calls, etc. are handled via REST)
+    return callback(new Error('Unauthorized MQTT publish attempt - clients cannot publish to this topic'));
   };
 
   // 4. TCP Server for native MQTT clients (optional in dev)
