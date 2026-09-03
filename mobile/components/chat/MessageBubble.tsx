@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { View, Text, TouchableOpacity, Modal, useWindowDimensions } from 'react-native';
 import { Image } from 'expo-image';
-import { X, CheckCheck, AlertTriangle } from 'lucide-react-native';
+import { X, CheckCheck, TriangleAlert } from 'lucide-react-native';
 import { Message } from '../../types';
 import { useAuthStore } from '../../stores/authStore';
 import { getSafeMediaUrl } from '../../lib/media';
@@ -160,7 +160,7 @@ function MessageBubbleInner({ message }: MessageBubbleProps) {
         {/* If the media failed to render, show a safe notice instead */}
         {mediaUrl && inlineFailed ? (
           <View className="mb-2 flex-row items-center rounded-xl bg-black/20 px-3 py-2">
-            <AlertTriangle size={14} color="#D0A56A" />
+            <TriangleAlert size={14} color="#D0A56A" />
             <Text className="text-[11px] text-[#D9D0B8] ml-2">
               Photo unavailable
             </Text>
@@ -199,7 +199,7 @@ function MessageBubbleInner({ message }: MessageBubbleProps) {
 
             {previewFailed ? (
               <View className="items-center justify-center px-6">
-                <AlertTriangle size={40} color="#D0A56A" />
+                <TriangleAlert size={40} color="#D0A56A" />
                 <Text className="text-sm text-[#D9D0B8] mt-3 text-center">
                   This image could not be displayed.
                 </Text>
@@ -259,7 +259,7 @@ class MessageErrorBoundary extends React.Component<EBProps, EBState> {
         <View className="mb-3 flex-col items-start">
           <View className="px-4 py-2.5 rounded-2xl bg-[#2B3940] border border-[#3A4B4D] rounded-bl-xs max-w-[80%]">
             <View className="flex-row items-center">
-              <AlertTriangle size={14} color="#D0A56A" />
+              <TriangleAlert size={14} color="#D0A56A" />
               <Text className="text-xs text-[#A8AAA0] ml-2">
                 This message can’t be displayed.
               </Text>

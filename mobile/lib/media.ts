@@ -20,7 +20,7 @@
  */
 
 /** Returns true when `value` is a usable remote/local image URI string. */
-export function isValidMediaUri(value: unknown): value is string {
+export function isValidMediaUri(value: unknown): boolean {
   if (typeof value !== 'string') return false;
   const v = value.trim();
   if (!v) return false;
