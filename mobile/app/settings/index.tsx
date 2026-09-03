@@ -1,13 +1,16 @@
 import React, { useState } from 'react';
 import { View, Text, ScrollView, Switch, TouchableOpacity, Alert } from 'react-native';
-import { router, Stack } from 'expo-router';
+import { Stack } from 'expo-router';
 import { useAuthStore } from '../../stores/authStore';
+import { useAuth } from '../../hooks/useAuth';
 import { useThemeStore } from '../../stores/themeStore';
 import api from '../../lib/api';
 import { Shield, Bell, Moon, Trash2, LogOut, ChevronRight, Lock } from 'lucide-react-native';
 
 export default function SettingsScreen() {
-  const { user, logout } = useAuthStore();
+  const { user } = useAuthStore();
+  // FIX 4 — same rule as the Profile screen: use the hook, not the store.
+  const { logout } = useAuth();
   const { theme, setTheme } = useThemeStore();
   const [pushEnabled, setPushEnabled] = useState(true);
   const [privateAccount, setPrivateAccount] = useState(
@@ -32,8 +35,14 @@ export default function SettingsScreen() {
         text: 'Logout',
         style: 'destructive',
         onPress: async () => {
-          await logout();
-          router.replace('/(auth)/login');
+          // FIX 4 — `logout()` from useAuth() already redirects to
+          // '/(auth)/login' in a `finally`, so a throw can no longer skip the
+          // navigation and strand the user on a half-cleared screen.
+          try {
+            await logout();
+          } catch (err) {
+            console.error('[Settings] logout error:', err);
+          }
         },
       },
     ]);

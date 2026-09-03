@@ -72,14 +72,28 @@ export default function CallScreen() {
         return;
       }
 
+      // FIX 5 — actually WAIT for the signaling socket.
+      //
+      // `connect()` returns immediately when an earlier attempt is still in
+      // flight, so the old `if (!isConnected())` check below frequently ran
+      // against a socket that was mid-handshake and reported "signaling (MQTT)
+      // is offline" even though the broker was fine. `waitForConnection` polls
+      // until the socket is live and the failure message carries the real
+      // reason (expired token, unreachable broker, blocked upgrade, ...).
       try {
         await mqttClient.connect(user.id);
-      } catch (mqttErr) {
-        console.error('[Orbit] MQTT connect error during call:', mqttErr);
+      } catch (mqttErr: any) {
+        console.error('[Orbit] MQTT connect error during call:', mqttErr?.message || mqttErr);
       }
 
-      if (!mqttClient.isConnected()) {
-        fail('Call Failed to Connect — signaling (MQTT) is offline.');
+      const signalingReady = await mqttClient.waitForConnection(8000);
+      if (!signalingReady) {
+        const reason = mqttClient.getLastError();
+        fail(
+          reason
+            ? `Call Failed to Connect — signaling (MQTT) is offline: ${reason}`
+            : 'Call Failed to Connect — signaling (MQTT) is offline.'
+        );
         return;
       }
 

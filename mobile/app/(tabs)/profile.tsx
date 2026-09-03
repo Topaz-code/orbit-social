@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '../../stores/authStore';
+import { useAuth } from '../../hooks/useAuth';
 import api from '../../lib/api';
 import {
   Camera,
@@ -32,8 +33,36 @@ import { SkeletonPost, SkeletonUser } from '../../components/ui/Skeleton';
 import { formatRelativeTime } from '../../lib/utils';
 
 export default function ProfileScreen() {
-  const { user, setUser, logout } = useAuthStore();
+  const { user, setUser } = useAuthStore();
+  // FIX 4 — `logout` MUST come from useAuth(). That hook performs the ordered
+  // clear-state -> await SecureStore delete -> router.replace('/(auth)/login')
+  // sequence. The raw `useAuthStore().logout` this screen used to call only
+  // cleared state and NEVER navigated, which is exactly why tapping logout
+  // here left a white screen with a blank Profile and no Login redirect.
+  const { logout } = useAuth();
   const queryClient = useQueryClient();
+
+  /**
+   * FIX 4 — confirm first, then run the guaranteed logout. The Alert's onPress
+   * is async and wrapped so a rejection can never leave the user stuck.
+   */
+  const handleLogout = () => {
+    Alert.alert('Log out', 'Are you sure you want to log out of Orbit?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Log out',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await logout();
+          } catch (err) {
+            // useAuth already redirects in its own `finally`; log only.
+            console.error('[Profile] logout error:', err);
+          }
+        },
+      },
+    ]);
+  };
 
   const [activeTab, setActiveTab] = useState<'posts' | 'friends'>('posts');
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -190,7 +219,9 @@ export default function ProfileScreen() {
 
               <TouchableOpacity
                 className="bg-[#202A2D] border border-[#B87568]/50 p-2 rounded-xl active:bg-[#B87568]/20"
-                onPress={logout}
+                onPress={handleLogout}
+                accessibilityRole="button"
+                accessibilityLabel="Log out"
               >
                 <LogOut size={16} color="#B87568" />
               </TouchableOpacity>

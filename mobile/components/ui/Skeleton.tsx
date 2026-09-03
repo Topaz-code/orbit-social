@@ -147,6 +147,19 @@ export function SkeletonConversation() {
   );
 }
 
+export function SkeletonNotification() {
+  return (
+    <View className="flex-row items-start p-3.5 mx-4 mb-2.5 rounded-2xl bg-[#202A2D] border border-[#3A4B4D]">
+      <Skeleton width={36} height={36} borderRadius={12} className="mr-3 mt-0.5" />
+      <View className="flex-1">
+        <Skeleton width="70%" height={12} borderRadius={4} className="mb-2" />
+        <Skeleton width="40%" height={10} borderRadius={4} />
+      </View>
+      <Skeleton width={8} height={8} borderRadius={4} className="mt-2 ml-2" />
+    </View>
+  );
+}
+
 export function SkeletonGroup() {
   return (
     <View className="p-4 mb-3 rounded-2xl bg-[#202A2D] border border-[#3A4B4D]">

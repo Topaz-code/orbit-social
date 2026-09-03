@@ -69,8 +69,34 @@ export function initMQTTBroker(httpServer?: http.Server): { tcpServer?: net.Serv
     // Call signaling topics
     if (topic.startsWith('orbit/call/')) {
       const parts = topic.split('/');
-      const targetUserId = parts[2];
-      if (targetUserId === userId) {
+      const segment = parts[2];
+      const kind = parts[3];
+
+      /**
+       * FIX 5 — `orbit/call/{callId}/signal` is keyed by CALL id, not user id.
+       *
+       * The previous rule compared `parts[2]` against the authenticated
+       * `userId` for every `orbit/call/...` topic. That is correct for
+       * `orbit/call/{userId}/incoming`, but for the signaling channel it meant
+       * the subscription was only allowed when the call id happened to equal
+       * the user id — i.e. never. Both peers were therefore rejected and could
+       * not receive offers, answers or ICE candidates.
+       */
+      if (kind === 'signal') {
+        try {
+          const call = await prisma.call.findUnique({ where: { id: segment } });
+          if (call && (call.caller_id === userId || call.receiver_id === userId)) {
+            return callback(null, sub);
+          }
+        } catch (err) {
+          return callback(new Error('Database error during authorization'), null);
+        }
+        return callback(new Error('Unauthorized to subscribe to this call'), null);
+      }
+
+      // Every other orbit/call/{userId}/... shape (e.g. `/incoming`) stays
+      // restricted to the owner's own channel.
+      if (segment === userId) {
         return callback(null, sub);
       }
       return callback(new Error('Unauthorized MQTT subscription'), null);
@@ -116,6 +142,40 @@ export function initMQTTBroker(httpServer?: http.Server): { tcpServer?: net.Serv
     // Clients can ONLY publish typing indicators
     if (topic.startsWith('orbit/chat/') && topic.endsWith('/typing')) {
        return callback(null);
+    }
+
+    /**
+     * FIX 5 — allow the two participants of a call to exchange WebRTC signals.
+     *
+     * This hook previously denied EVERY client publish except typing
+     * indicators. The mobile app signals calls by publishing
+     * offers/answers/ICE candidates to `orbit/call/{callId}/signal`
+     * (mobile/lib/webrtc.ts `sendSignal`), so the broker silently dropped all
+     * of them: `publish()` returned true client-side, the callee never saw the
+     * offer, and the caller timed out with "no response from the other peer".
+     *
+     * Scope is tight: only the `/signal` suffix of a call the sender actually
+     * belongs to. `authorizePublish` is synchronous in the aedes typings, so
+     * the membership check resolves asynchronously before invoking `callback`.
+     */
+    if (topic.startsWith('orbit/call/') && topic.endsWith('/signal')) {
+      const callId = topic.split('/')[2];
+      prisma.call
+        .findUnique({ where: { id: callId } })
+        // Explicit structural type: `authorizePublish` has no async signature,
+        // so this callback would otherwise be contextually `any`.
+        .then((call: { caller_id: string; receiver_id: string } | null) => {
+          if (call && (call.caller_id === userId || call.receiver_id === userId)) {
+            return callback(null);
+          }
+          return callback(
+            new Error('Unauthorized MQTT publish - not a participant of this call')
+          );
+        })
+        .catch(() => {
+          callback(new Error('Database error during publish authorization'));
+        });
+      return;
     }
 
     // Block ALL other client publishes (messages, calls, etc. are handled via REST)

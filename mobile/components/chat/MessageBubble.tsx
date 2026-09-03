@@ -5,6 +5,7 @@ import { X, CheckCheck, TriangleAlert } from 'lucide-react-native';
 import { Message } from '../../types';
 import { useAuthStore } from '../../stores/authStore';
 import { getSafeMediaUrl } from '../../lib/media';
+import AudioPlayer from '../shared/AudioPlayer';
 
 interface MessageBubbleProps {
   message: Message;
@@ -40,6 +41,20 @@ function MessageBubbleInner({ message }: MessageBubbleProps) {
   const [imagePreviewOpen, setImagePreviewOpen] = useState(false);
   const [previewFailed, setPreviewFailed] = useState(false);
   const [inlineFailed, setInlineFailed] = useState(false);
+  const [audioFailed, setAudioFailed] = useState(false);
+
+  // FIX 2 — `closePreview` used to be declared with `useCallback` *below* the
+  // `if (!message) return null` guard. That is a Rules-of-Hooks violation: the
+  // null-message render called 5 hooks and the valid render called 6. As soon
+  // as a row with a stable `key` flipped from a malformed payload to a valid
+  // one (an MQTT update landing on an existing message id), React threw
+  // "Rendered more hooks than during the previous render" and tore down the
+  // whole FlatList — i.e. reopening the conversation crashed the app.
+  // Every hook now runs before any early return.
+  const closePreview = useCallback(() => {
+    setImagePreviewOpen(false);
+    setPreviewFailed(false);
+  }, []);
 
   // ---- 1. Strict guard: no usable message object -> render nothing ----------
   if (!message || typeof message !== 'object') {
@@ -56,7 +71,36 @@ function MessageBubbleInner({ message }: MessageBubbleProps) {
   // getSafeMediaUrl returns a validated string URI or null. It is null for:
   // undefined / '' / objects / arrays / JSON strings / "[object Object]".
   const mediaUrl = getSafeMediaUrl(message.media_url);
-  const hasInlineMedia = Boolean(mediaUrl) && !inlineFailed;
+
+  // ---- 2b. Voice notes: audio must never be routed to the image player -----
+  // `media_type` arrives as 'voice' (this repo's web client + REST), 'audio'
+  // or a full mime like 'audio/mp4'. Normalise all of them.
+  const rawMediaType =
+    typeof message.media_type === 'string' ? message.media_type.toLowerCase().trim() : '';
+  const isAudioMessage =
+    rawMediaType === 'audio' ||
+    rawMediaType === 'voice' ||
+    rawMediaType === 'voice_note' ||
+    rawMediaType === 'voicenote' ||
+    rawMediaType.startsWith('audio/');
+
+  // Images only: an audio URL handed to expo-image resolves to a broken source
+  // and (on some Android builds) tears down the native view.
+  const hasInlineMedia = !isAudioMessage && Boolean(mediaUrl) && !inlineFailed;
+
+  /**
+   * FIX 2 — THE critical guard.
+   * A failed voice-note send used to persist a row with `media_type: 'audio'`
+   * and `media_url: null`. On the next visit to the conversation that row was
+   * handed straight to the audio player, whose native module dereferences the
+   * null URI and hard-crashes the app *before* React can render anything.
+   *
+   * So: an audio message either has a validated, non-empty URL (render the
+   * player) or it renders a static error bubble. A null/empty URL can never
+   * reach AudioPlayer.
+   */
+  const hasPlayableAudio = isAudioMessage && Boolean(mediaUrl) && !audioFailed;
+  const isBrokenAudio = isAudioMessage && (!mediaUrl || audioFailed);
 
   // The text content must be a string; coerce defensively.
   const textContent =
@@ -86,11 +130,6 @@ function MessageBubbleInner({ message }: MessageBubbleProps) {
     typeof message.reply_to?.content === 'string' && message.reply_to.content
       ? message.reply_to.content
       : 'Media';
-
-  const closePreview = useCallback(() => {
-    setImagePreviewOpen(false);
-    setPreviewFailed(false);
-  }, []);
 
   // Explicit, NUMERIC pixel dimensions for the full-screen viewer.
   // (Percentage strings on remote expo-image sources are a crash risk on
@@ -158,11 +197,34 @@ function MessageBubbleInner({ message }: MessageBubbleProps) {
         ) : null}
 
         {/* If the media failed to render, show a safe notice instead */}
-        {mediaUrl && inlineFailed ? (
+        {!isAudioMessage && mediaUrl && inlineFailed ? (
           <View className="mb-2 flex-row items-center rounded-xl bg-black/20 px-3 py-2">
             <TriangleAlert size={14} color="#D0A56A" />
             <Text className="text-[11px] text-[#D9D0B8] ml-2">
               Photo unavailable
+            </Text>
+          </View>
+        ) : null}
+
+        {/* Voice note — only ever rendered with a validated, non-empty URL */}
+        {hasPlayableAudio && mediaUrl ? (
+          <AudioPlayer
+            uri={mediaUrl}
+            onError={(reason) => {
+              console.warn('[MessageBubble] Voice note playback failed:', reason, mediaUrl);
+              setAudioFailed(true);
+            }}
+          />
+        ) : null}
+
+        {/* Malformed / failed voice note — static bubble, no player mounted */}
+        {isBrokenAudio ? (
+          <View className="mb-2 flex-row items-center rounded-xl bg-black/20 px-3 py-2">
+            <TriangleAlert size={14} color="#B87568" />
+            <Text className="text-[11px] text-[#D9D0B8] ml-2">
+              {mediaUrl
+                ? 'Voice note could not be played.'
+                : 'Voice note failed to send — recording unavailable.'}
             </Text>
           </View>
         ) : null}
@@ -182,7 +244,7 @@ function MessageBubbleInner({ message }: MessageBubbleProps) {
       </View>
 
       {/* Full-Screen Image Viewer Modal */}
-      {mediaUrl && imagePreviewOpen ? (
+      {!isAudioMessage && mediaUrl && imagePreviewOpen ? (
         <Modal
           visible={imagePreviewOpen}
           transparent

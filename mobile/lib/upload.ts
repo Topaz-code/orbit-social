@@ -39,20 +39,69 @@ function isSupabaseConfigured() {
   );
 }
 
+/**
+ * FIX 2 (root cause #1 — client side)
+ * ---------------------------------------------------------------------------
+ * `guessExt` used to hit the `mime.includes('mp4')` branch for ANY mime that
+ * contained the substring "mp4". expo-av on both iOS and Android records AAC
+ * audio inside an MPEG-4 container and reports `audio/mp4` (Android) or
+ * `audio/x-m4a` (iOS). `audio/mp4`.includes('mp4') === true, so a voice note
+ * was renamed to `chat-<ts>.mp4` and uploaded with `Content-Type: audio/mp4`.
+ *
+ * The server whitelist (server/src/config/upload.ts) allows the `.mp4`
+ * extension but NOT the `audio/mp4` mimetype, so the upload was rejected with
+ * exactly:  "Unsupported file type or extension: audio/mp4 (.mp4)"
+ *
+ * Audio is therefore matched FIRST and always yields an `.m4a` extension,
+ * which is what the container actually is and what every player expects.
+ */
 function guessExt(uri: string, mime?: string) {
-  if (mime?.includes('png')) return 'png';
-  if (mime?.includes('webp')) return 'webp';
-  if (mime?.includes('gif')) return 'gif';
-  if (mime?.includes('heic')) return 'heic';
-  if (mime?.includes('mp4') || mime?.includes('quicktime') || mime?.includes('video')) return 'mp4';
+  const m = (mime || '').toLowerCase();
+
+  // --- Audio must be checked BEFORE video: `audio/mp4` contains "mp4" ---
+  if (m.startsWith('audio/')) {
+    if (m.includes('webm')) return 'webm';
+    if (m.includes('ogg') || m.includes('opus')) return 'ogg';
+    if (m.includes('mpeg') || m.includes('mp3')) return 'mp3';
+    if (m.includes('wav') || m.includes('wave') || m.includes('x-wav')) return 'wav';
+    if (m.includes('amr')) return 'amr';
+    if (m.includes('aac')) return 'aac';
+    // audio/mp4, audio/x-m4a, audio/m4a -> AAC in an MPEG-4 container.
+    if (m.includes('mp4') || m.includes('m4a')) return 'm4a';
+    return 'm4a';
+  }
+
+  if (m.includes('png')) return 'png';
+  if (m.includes('webp')) return 'webp';
+  if (m.includes('gif')) return 'gif';
+  if (m.includes('heic') || m.includes('heif')) return 'heic';
+  // Trust an explicit image mime over the URI: Android `content://` URIs and
+  // camera captures sometimes carry no usable extension, and a stray suffix
+  // like `.bin` would otherwise be sent to the server and rejected.
+  if (m.includes('jpeg') || m.includes('jpg')) return 'jpg';
+  if (m.includes('mp4') || m.includes('quicktime') || m.includes('video')) return 'mp4';
   const cleaned = (uri || '').split('?')[0];
   const ext = cleaned.split('.').pop()?.toLowerCase();
   if (ext && /^[a-z0-9]{2,5}$/.test(ext)) return ext;
   return 'jpg';
 }
 
-function mimeFromExt(ext: string, mediaType: 'image' | 'video') {
+type MediaKind = 'image' | 'video' | 'audio';
+
+function mimeFromExt(ext: string, mediaType: MediaKind) {
   if (mediaType === 'video') return 'video/mp4';
+  if (mediaType === 'audio') {
+    const audioMap: Record<string, string> = {
+      m4a: 'audio/mp4',
+      aac: 'audio/aac',
+      mp3: 'audio/mpeg',
+      wav: 'audio/wav',
+      webm: 'audio/webm',
+      ogg: 'audio/ogg',
+      amr: 'audio/amr',
+    };
+    return audioMap[ext] || 'audio/mp4';
+  }
   const map: Record<string, string> = {
     jpg: 'image/jpeg',
     jpeg: 'image/jpeg',
@@ -171,10 +220,10 @@ export interface ChatMediaOptions {
 export async function uploadChatMedia(
   uri: string,
   userId: string,
-  mediaType: 'image' | 'video' = 'image',
+  mediaType: MediaKind = 'image',
   options: ChatMediaOptions = {}
 ): Promise<string> {
-  if (!uri) {
+  if (!uri || typeof uri !== 'string') {
     throw new Error('No media URI provided');
   }
 
@@ -207,11 +256,41 @@ export async function uploadChatMedia(
   return uploadViaApiFormData(uri, fileName, contentType, 'messages');
 }
 
+/**
+ * FIX 2 — dedicated voice-note uploader.
+ * Keeps the audio contract in ONE place so the extension, the Content-Type and
+ * the `media_type` stored on the message can never drift apart again (that
+ * drift is what produced the `audio/mp4 (.mp4)` rejection).
+ *
+ * Always resolves to a non-empty URL string or throws — it never resolves with
+ * `undefined`/`null`, so a caller can never persist a message with
+ * `media_url: null` and crash MessageBubble later.
+ */
+export async function uploadVoiceNote(
+  uri: string,
+  userId: string,
+  mimeType = 'audio/mp4'
+): Promise<string> {
+  if (!uri || typeof uri !== 'string') {
+    throw new Error('No voice note URI provided');
+  }
+  if (!userId) {
+    throw new Error('Voice note upload requires a signed-in user');
+  }
+
+  const url = await uploadChatMedia(uri, userId, 'audio', { mimeType });
+
+  if (!url || typeof url !== 'string') {
+    throw new Error('Voice note uploaded but the server returned no playable URL');
+  }
+  return url;
+}
+
 export async function uploadMedia(
   uri: string,
   bucket: UploadBucket,
   userId: string,
-  mediaType: 'image' | 'video'
+  mediaType: MediaKind
 ): Promise<string> {
   let workingUri = uri;
 

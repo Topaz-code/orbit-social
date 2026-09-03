@@ -16,10 +16,18 @@ import {
   PhoneCall,
   Sparkles,
 } from 'lucide-react-native';
-import { SkeletonConversation } from '../../components/ui/Skeleton';
+import { SkeletonNotification } from '../../components/ui/Skeleton';
 
 export default function NotificationsScreen() {
-  const { notifications, isLoading, refetch, markRead, markAllRead } = useNotifications();
+  const {
+    notifications,
+    isLoading,
+    isRefetching,
+    isError,
+    refetch,
+    markRead,
+    markAllRead,
+  } = useNotifications();
 
   const getNotificationIcon = (type: string) => {
     switch (type) {
@@ -55,17 +63,41 @@ export default function NotificationsScreen() {
         )}
       </View>
 
+      {/*
+        FIX 3 — the skeleton renders the INSTANT `isLoading` is true (i.e. only
+        when there is no cached data). With the 30s `staleTime` in
+        useNotifications this appears once on a cold open and then the tab is
+        served from cache, instead of blocking on the network every visit.
+      */}
       {isLoading ? (
-        <View className="p-4 space-y-2">
-          <SkeletonConversation />
-          <SkeletonConversation />
-          <SkeletonConversation />
-          <SkeletonConversation />
+        <View className="pt-4">
+          <SkeletonNotification />
+          <SkeletonNotification />
+          <SkeletonNotification />
+          <SkeletonNotification />
+          <SkeletonNotification />
+          <SkeletonNotification />
+        </View>
+      ) : isError && notifications.length === 0 ? (
+        <View className="items-center justify-center py-20 px-6">
+          <Bell size={36} color="#B87568" className="mb-3" />
+          <Text className="text-base font-bold text-[#D9D0B8]">
+            Could not load your alerts
+          </Text>
+          <TouchableOpacity
+            className="mt-4 bg-[#D0A56A] px-5 py-2.5 rounded-xl active:opacity-85"
+            onPress={() => refetch()}
+          >
+            <Text className="text-sm font-bold text-[#171A1C]">Try again</Text>
+          </TouchableOpacity>
         </View>
       ) : (
         <FlatList
           data={notifications}
-          keyExtractor={(item) => item.id}
+          // Defensive key: a missing/duplicate id must never crash the list.
+          keyExtractor={(item, index) =>
+            item?.id ? String(item.id) : `notification-${index}`
+          }
           contentContainerStyle={{ paddingVertical: 10 }}
           renderItem={({ item }) => (
             <TouchableOpacity
@@ -109,8 +141,8 @@ export default function NotificationsScreen() {
           }
           refreshControl={
             <RefreshControl
-              refreshing={false}
-              onRefresh={refetch}
+              refreshing={Boolean(isRefetching)}
+              onRefresh={() => refetch()}
               tintColor="#D0A56A"
               colors={['#D0A56A']}
             />

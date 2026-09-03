@@ -7,9 +7,16 @@ class MQTTService {
   private client: mqtt.MqttClient | null = null;
   private messageCallbacks: Map<string, ((topic: string, message: Buffer) => void)[]> = new Map();
   private connectingPromise: Promise<void> | null = null;
+  /** Set by the 'error'/'close' handlers so callers can report WHY it failed. */
+  private lastError: string | null = null;
 
   isConnected() {
     return !!this.client?.connected;
+  }
+
+  /** Human-readable reason for the most recent connection failure. */
+  getLastError() {
+    return this.lastError;
   }
 
   async connect(userId?: string, tokenOverride?: string) {
@@ -22,7 +29,33 @@ class MQTTService {
       this.client = null;
     }
 
-    const token = tokenOverride || (await SecureStore.getItemAsync('access_token'));
+    let token: string | null = null;
+    try {
+      token = tokenOverride || (await SecureStore.getItemAsync('access_token'));
+    } catch (e: any) {
+      console.warn('[Orbit] SecureStore read failed before MQTT connect:', e?.message || e);
+    }
+
+    /**
+     * FIX 5 — diagnostics.
+     * The broker authenticates with the JWT in the MQTT *password* field
+     * (server/src/config/mqtt.ts `aedes.authenticate`). If that token is
+     * missing or expired the broker answers CONNACK returnCode 4 and mqtt.js
+     * emits 'error' + 'close' — it never emits 'connect'. Previously that only
+     * produced a generic "MQTT connection timed out" six seconds later, so
+     * there was no way to tell an expired token from a wrong URL. Log the URL
+     * and whether a token was actually found on every attempt.
+     */
+    console.log(
+      `[Orbit] MQTT connecting to ${MQTT_URL} (token: ${token ? 'present' : 'MISSING'})`
+    );
+    if (!token) {
+      console.warn(
+        '[Orbit] MQTT will be rejected: no access_token. Sign in again or refresh the session.'
+      );
+    }
+
+    this.lastError = null;
 
     this.connectingPromise = new Promise<void>((resolve, reject) => {
       let settled = false;
@@ -38,7 +71,9 @@ class MQTTService {
       const onConnect = () => {
         if (settled) return;
         settled = true;
-        console.log('[Orbit] MQTT connected');
+        this.lastError = null;
+        console.log('[Orbit] MQTT connected to', MQTT_URL);
+        // Re-subscribe everything registered before the socket came up.
         Array.from(this.messageCallbacks.keys()).forEach((topic) => {
           this.client?.subscribe(topic);
         });
@@ -48,12 +83,40 @@ class MQTTService {
 
       this.client.on('connect', onConnect);
 
+      // FIX 5 — every failure mode is now logged with a reason, and the first
+      // one becomes the rejection reason instead of a bare timeout.
       this.client.on('error', (err: Error) => {
-        console.error('[Orbit] MQTT error:', err?.message || err);
+        const reason = err?.message || String(err);
+        this.lastError = reason;
+        console.error('[Orbit] MQTT error:', reason);
+
+        // "Connection refused: bad user name or password" is mqtt.js' wording
+        // for CONNACK returnCode 4 — our broker returns that for an invalid or
+        // expired JWT. Fail fast instead of retrying for 6 seconds.
+        if (!settled && /refused|not authorized|bad user/i.test(reason)) {
+          settled = true;
+          this.connectingPromise = null;
+          reject(new Error(`MQTT rejected the connection: ${reason}`));
+        }
       });
 
       this.client.on('offline', () => {
         console.warn('[Orbit] MQTT offline');
+      });
+
+      this.client.on('close', () => {
+        console.warn('[Orbit] MQTT socket closed');
+        if (!settled) {
+          this.lastError = this.lastError || 'MQTT socket closed before connecting';
+        }
+      });
+
+      this.client.on('reconnect', () => {
+        console.log('[Orbit] MQTT reconnecting...');
+      });
+
+      this.client.on('end', () => {
+        console.log('[Orbit] MQTT client ended');
       });
 
       this.client.on('message', (topic: string, message: Buffer) => {
@@ -68,7 +131,12 @@ class MQTTService {
         if (!settled && !this.client?.connected) {
           settled = true;
           this.connectingPromise = null;
-          reject(new Error('MQTT connection timed out'));
+          const reason =
+            this.lastError ||
+            `MQTT connection to ${MQTT_URL} timed out (broker unreachable, wrong URL, or a proxy blocked the WebSocket upgrade)`;
+          this.lastError = reason;
+          console.error('[Orbit] MQTT connect failed:', reason);
+          reject(new Error(reason));
         }
       }, 6000);
     }).catch((err) => {
@@ -77,6 +145,27 @@ class MQTTService {
     });
 
     return this.connectingPromise;
+  }
+
+  /**
+   * FIX 5 — wait for the socket instead of polling `isConnected()`.
+   *
+   * The call screen used to do `await mqttClient.connect(); if
+   * (!isConnected()) fail('signaling (MQTT) is offline')`. `connect()` returns
+   * immediately when a previous attempt is still in flight, so `isConnected()`
+   * was often false at that exact instant and the call died with a misleading
+   * message. This resolves as soon as the socket is live (or is already live),
+   * and rejects with the real reason.
+   */
+  async waitForConnection(timeoutMs = 8000): Promise<boolean> {
+    if (this.isConnected()) return true;
+
+    const started = Date.now();
+    while (Date.now() - started < timeoutMs) {
+      if (this.isConnected()) return true;
+      await new Promise((r) => setTimeout(r, 250));
+    }
+    return this.isConnected();
   }
 
   topicMatch(subscribed: string, actual: string) {

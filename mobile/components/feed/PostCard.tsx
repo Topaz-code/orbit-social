@@ -8,6 +8,7 @@ import {
   Modal,
   Alert,
   ActivityIndicator,
+  Platform,
 } from 'react-native';
 import {
   Heart,
@@ -104,37 +105,69 @@ export default function PostCard({ post }: { post: any }) {
    * owner and a Report action for everyone else.
    */
   const handleOpenPostMenu = () => {
-    const buttons: any[] = [];
+    // FIX 1 — the whole menu build is wrapped in try/catch so that a malformed
+    // `post` payload (missing id, non-string content_text, null user) can never
+    // take the app down from a tap on the three dots. If anything throws while
+    // we are building the button list we still show a usable sheet.
+    try {
+      const buttons: Array<{ text: string; style?: 'cancel' | 'destructive'; onPress?: () => void }> = [];
 
-    if (isOwner) {
-      buttons.push({
-        text: 'Edit Post',
-        onPress: () => {
-          setEditText(post.content_text || '');
-          setEditModalOpen(true);
-        },
-      });
-      buttons.push({
-        text: 'Delete Post',
-        style: 'destructive',
-        onPress: handleDeletePost,
-      });
-    } else {
-      buttons.push({
-        text: 'Report Post',
-        onPress: () =>
-          Alert.alert('Report submitted', 'Thanks — our team will review this post.'),
-      });
+      if (isOwner) {
+        buttons.push({
+          text: 'Edit Post',
+          onPress: () => {
+            // `post.content_text` is not guaranteed to be a string — coerce it
+            // so the TextInput never receives an object/undefined value.
+            setEditText(
+              typeof post?.content_text === 'string' ? post.content_text : ''
+            );
+            setEditModalOpen(true);
+          },
+        });
+        buttons.push({
+          text: 'Delete Post',
+          style: 'destructive',
+          onPress: handleDeletePost,
+        });
+      } else {
+        buttons.push({
+          text: 'Report Post',
+          onPress: () => {
+            try {
+              Alert.alert(
+                'Report submitted',
+                'Thanks — our team will review this post.'
+              );
+            } catch (innerErr) {
+              console.warn('[PostCard] Report alert failed:', innerErr);
+            }
+          },
+        });
+      }
+
+      // Android only supports up to 3 buttons on Alert.alert; iOS renders the
+      // rest as a scrolling sheet. Trim to the 2 most important + Cancel so an
+      // owner with extra actions can never exceed the platform limit.
+      if (Platform.OS === 'android' && buttons.length > 2) {
+        buttons.length = 2;
+      }
+
+      // A `cancel` button also gives Android its back-button dismissal.
+      buttons.push({ text: 'Cancel', style: 'cancel' });
+
+      Alert.alert('Post options', undefined, buttons, { cancelable: true });
+    } catch (err) {
+      console.error('[PostCard] Could not open post menu:', err);
+      // Absolute fallback: a plain two-button alert that cannot fail.
+      try {
+        Alert.alert(
+          'Post options',
+          isOwner ? 'What would you like to do?' : 'This post has been reported.'
+        );
+      } catch {
+        // Nothing more we can safely do — swallow so the tap never crashes.
+      }
     }
-
-    buttons.push({ text: 'Cancel', style: 'cancel' });
-
-    Alert.alert(
-      'Post options',
-      undefined,
-      buttons,
-      { cancelable: true }
-    );
   };
 
   const handleDeletePost = () => {

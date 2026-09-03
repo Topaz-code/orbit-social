@@ -8,6 +8,10 @@ const UPLOAD_ROOT = path.resolve(process.cwd(), 'uploads');
 const SUBDIRECTORIES = ['avatars', 'covers', 'posts', 'stories', 'messages', 'groups', 'audio'];
 
 // Whitelist of allowed extensions
+// FIX 2 (root cause #2 — server side): `.m4a` / `.aac` / `.amr` were missing.
+// expo-av (iOS + Android) records voice notes as AAC audio inside an MPEG-4
+// container, and browsers' MediaRecorder emits `audio/mp4` on Safari/iOS.
+// Without these, every voice note was rejected by `fileFilter` below.
 const ALLOWED_EXTENSIONS = new Set([
   '.jpg',
   '.jpeg',
@@ -20,6 +24,9 @@ const ALLOWED_EXTENSIONS = new Set([
   '.mp3',
   '.wav',
   '.ogg',
+  '.m4a',
+  '.aac',
+  '.amr',
   '.pdf',
   '.txt',
   '.doc',
@@ -89,8 +96,21 @@ const fileFilter = (req: Request, file: Express.Multer.File, cb: multer.FileFilt
     'video/quicktime',
     'audio/mpeg',
     'audio/wav',
+    'audio/x-wav',
+    'audio/wave',
     'audio/webm',
     'audio/ogg',
+    // Voice notes. AAC in an MPEG-4 container is reported as `audio/mp4`
+    // (expo-av on Android, Safari/iOS) or `audio/x-m4a` (expo-av on iOS).
+    // `.mp4` was already in ALLOWED_EXTENSIONS, so the *extension* passed while
+    // the *mimetype* did not — hence "Unsupported file type or extension:
+    // audio/mp4 (.mp4)".
+    'audio/mp4',
+    'audio/x-m4a',
+    'audio/m4a',
+    'audio/aac',
+    'audio/x-aac',
+    'audio/amr',
     'application/pdf',
     'text/plain',
     'application/msword',
@@ -100,7 +120,14 @@ const fileFilter = (req: Request, file: Express.Multer.File, cb: multer.FileFilt
   if (allowedMimeTypes.includes(file.mimetype) && ALLOWED_EXTENSIONS.has(ext)) {
     cb(null, true);
   } else {
-    cb(new Error(`Unsupported file type or extension: ${file.mimetype} (${ext})`));
+    // A rejected file is a client error (400), not a server fault (500). The
+    // global errorHandler reads `err.statusCode`, so tag it here — otherwise
+    // every voice-note rejection surfaced to the app as an HTTP 500.
+    const rejection = new Error(
+      `Unsupported file type or extension: ${file.mimetype} (${ext})`
+    ) as Error & { statusCode?: number };
+    rejection.statusCode = 400;
+    cb(rejection);
   }
 };
 
