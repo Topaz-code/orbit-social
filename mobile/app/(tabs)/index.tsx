@@ -4,7 +4,6 @@ import { useFeed } from '../../hooks/useFeed';
 import PostCard from '../../components/feed/PostCard';
 import PostComposer from '../../components/feed/PostComposer';
 import StoryList from '../../components/story/StoryList';
-import Header from '../../components/layout/Header';
 import { Sparkles, RefreshCw } from 'lucide-react-native';
 import { SkeletonPost } from '../../components/ui/Skeleton';
 
@@ -24,9 +23,6 @@ export default function FeedScreen() {
 
   return (
     <View className="flex-1 bg-[#171A1C]">
-      {/* Top Header matching web app */}
-      <Header />
-
       {isLoading ? (
         <View className="p-4">
           <StoryList />

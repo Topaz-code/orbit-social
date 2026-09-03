@@ -5,13 +5,15 @@ import {
   FlatList,
   KeyboardAvoidingView,
   Platform,
-  SafeAreaView,
   TouchableOpacity,
+  Alert,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, Stack, useRouter } from 'expo-router';
 import { Image } from 'expo-image';
 import { Phone, Video, ArrowLeft, MessageSquare } from 'lucide-react-native';
 import { useMessages, useSendMessage, useConversations } from '../../hooks/useChat';
+import { useCall } from '../../hooks/useCall';
 import { useMQTT } from '../../hooks/useMQTT';
 import { useAuthStore } from '../../stores/authStore';
 import ChatInput from '../../components/chat/ChatInput';
@@ -28,6 +30,7 @@ export default function ChatScreen() {
   const mqtt = useMQTT();
   const { user } = useAuthStore();
   const sendMessageMutation = useSendMessage();
+  const { startCall } = useCall();
   const flatListRef = useRef<FlatList>(null);
 
   const activeConv = conversations?.find((c: any) => c.id === conversationId);
@@ -102,7 +105,7 @@ export default function ChatScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-[#171A1C]">
+    <SafeAreaView className="flex-1 bg-[#171A1C]" edges={['top', 'bottom']}>
       <Stack.Screen options={{ headerShown: false }} />
 
       {/* Chat Custom Header */}
@@ -147,13 +150,27 @@ export default function ChatScreen() {
         <View className="flex-row items-center space-x-1.5">
           <TouchableOpacity
             className="w-9 h-9 items-center justify-center rounded-[10px] bg-[#202A2D] border border-[#3A4B4D] active:bg-[#2B3940]"
-            onPress={() => router.push(`/calls`)}
+            onPress={async () => {
+              if (!otherUser?.id) return;
+              try {
+                await startCall(otherUser.id, 'voice', conversationId as string);
+              } catch (err: any) {
+                Alert.alert('Call Failed to Connect', err?.message || 'Could not start voice call.');
+              }
+            }}
           >
             <Phone size={17} color="#D9D0B8" />
           </TouchableOpacity>
           <TouchableOpacity
             className="w-9 h-9 items-center justify-center rounded-[10px] bg-[#202A2D] border border-[#3A4B4D] active:bg-[#2B3940] ml-1.5"
-            onPress={() => router.push(`/calls`)}
+            onPress={async () => {
+              if (!otherUser?.id) return;
+              try {
+                await startCall(otherUser.id, 'video', conversationId as string);
+              } catch (err: any) {
+                Alert.alert('Call Failed to Connect', err?.message || 'Could not start video call.');
+              }
+            }}
           >
             <Video size={17} color="#D0A56A" />
           </TouchableOpacity>

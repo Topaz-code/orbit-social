@@ -16,7 +16,6 @@ import {
   PhoneCall,
   Sparkles,
 } from 'lucide-react-native';
-import Header from '../../components/layout/Header';
 import { SkeletonConversation } from '../../components/ui/Skeleton';
 
 export default function NotificationsScreen() {
@@ -40,8 +39,6 @@ export default function NotificationsScreen() {
 
   return (
     <View className="flex-1 bg-[#171A1C]">
-      <Header />
-
       {/* Header Actions */}
       <View className="flex-row items-center justify-between px-4 py-3 border-b border-[#3A4B4D]/60">
         <Text className="text-xs font-semibold uppercase tracking-wider text-[#A8AAA0]">

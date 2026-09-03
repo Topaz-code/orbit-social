@@ -14,7 +14,6 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Image } from 'expo-image';
 import api from '../../lib/api';
 import PostCard from '../../components/feed/PostCard';
-import Header from '../../components/layout/Header';
 import { SkeletonPost, SkeletonUser, SkeletonGroup } from '../../components/ui/Skeleton';
 import { useAuthStore } from '../../stores/authStore';
 
@@ -102,8 +101,6 @@ export default function ExploreScreen() {
 
   return (
     <View className="flex-1 bg-[#171A1C]">
-      <Header />
-
       {/* Explore Banner */}
       <View className="mx-4 mt-3 mb-3 p-3.5 rounded-2xl bg-[#202A2D] border border-[#3A4B4D] flex-row items-center space-x-3">
         <View className="w-10 h-10 rounded-xl bg-[#2B3940] border border-[#3A4B4D] items-center justify-center mr-2">
