@@ -6,15 +6,17 @@
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "orbit",
-    "userInterfaceStyle": "automatic",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#111827",
     "splash": {
       "image": "./assets/images/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#171A1C"
+      "backgroundColor": "#111827"
     },
     "ios": {
       "supportsTablet": true,
       "bitcode": false,
+      "userInterfaceStyle": "dark",
       "infoPlist": {
         "NSCameraUsageDescription": "Allow Orbit to access your camera for stories, profile photos, and video calls.",
         "NSMicrophoneUsageDescription": "Allow Orbit to access your microphone for voice notes, voice calls, and video calls.",
@@ -26,7 +28,8 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#171A1C"
+        "backgroundColor": "#111827",
+        "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "package": "com.orbit.app",
       "permissions": [

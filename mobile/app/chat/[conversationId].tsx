@@ -20,6 +20,56 @@ import ChatInput from '../../components/chat/ChatInput';
 import MessageBubble from '../../components/chat/MessageBubble';
 import { Message } from '../../types';
 import { SkeletonMessage } from '../../components/ui/Skeleton';
+import { getSafeMediaUrl } from '../../lib/media';
+
+/**
+ * Normalise a single untrusted message payload (from the API or MQTT) into a
+ * safe Message. Returns null for anything that can't be rendered. This is the
+ * second line of defence — MessageBubble itself is also fully hardened.
+ */
+function sanitizeMessage(raw: any): Message | null {
+  try {
+    if (!raw || typeof raw !== 'object') return null;
+    if (!raw.id && raw.id !== 0) return null;
+
+    // Media URL must be a usable string; otherwise drop it (never pass an
+    // object / JSON string into expo-image's source.uri).
+    const safeMedia = getSafeMediaUrl(raw.media_url);
+
+    return {
+      ...raw,
+      id: String(raw.id),
+      conversation_id: raw.conversation_id ? String(raw.conversation_id) : '',
+      content: typeof raw.content === 'string' ? raw.content : '',
+      media_url: safeMedia ?? undefined,
+      media_type: typeof raw.media_type === 'string' ? raw.media_type : safeMedia ? 'image' : 'text',
+      created_at: raw.created_at || new Date().toISOString(),
+      reply_to:
+        raw.reply_to && typeof raw.reply_to === 'object'
+          ? {
+              id: String(raw.reply_to.id ?? ''),
+              content:
+                typeof raw.reply_to.content === 'string' ? raw.reply_to.content : undefined,
+              sender:
+                raw.reply_to.sender && typeof raw.reply_to.sender === 'object'
+                  ? {
+                      display_name:
+                        typeof raw.reply_to.sender.display_name === 'string'
+                          ? raw.reply_to.sender.display_name
+                          : undefined,
+                      username:
+                        typeof raw.reply_to.sender.username === 'string'
+                          ? raw.reply_to.sender.username
+                          : undefined,
+                    }
+                  : undefined,
+            }
+          : undefined,
+    } as Message;
+  } catch {
+    return null;
+  }
+}
 
 export default function ChatScreen() {
   const { conversationId } = useLocalSearchParams();
@@ -40,7 +90,8 @@ export default function ChatScreen() {
 
   useEffect(() => {
     if (initialMessages && Array.isArray(initialMessages)) {
-      setMessages(initialMessages);
+      // Sanitize every message so a corrupt payload can't crash the FlatList.
+      setMessages(initialMessages.map(sanitizeMessage).filter(Boolean) as Message[]);
     }
   }, [initialMessages]);
 
@@ -50,7 +101,18 @@ export default function ChatScreen() {
     const topic = `orbit/chat/${conversationId}/messages`;
     const unsubscribe = mqtt.subscribe(topic, (t, messageBuf) => {
       try {
-        const msg = JSON.parse(messageBuf.toString());
+        if (!messageBuf) return;
+        const parsed = JSON.parse(messageBuf.toString());
+        // Backend broadcasts an envelope: { type: 'MESSAGE_RECEIVED', data: {...} }.
+        // Unwrap it (and tolerate other common envelope shapes) before sanitizing.
+        const raw =
+          parsed && parsed.data && typeof parsed.data === 'object'
+            ? parsed.data
+            : parsed && parsed.message && typeof parsed.message === 'object'
+            ? parsed.message
+            : parsed;
+        const msg = sanitizeMessage(raw);
+        if (!msg || !msg.id) return;
         if (msg.sender_id !== user?.id && msg.user_id !== user?.id) {
           setMessages((prev) => {
             if (prev.some((m) => m.id === msg.id)) return prev;
@@ -93,9 +155,10 @@ export default function ChatScreen() {
         media_type: mediaType,
       });
 
-      if (serverMsg && serverMsg.id) {
+      const safeServerMsg = sanitizeMessage(serverMsg);
+      if (safeServerMsg && safeServerMsg.id) {
         setMessages((prev) =>
-          prev.map((m) => (m.id === tempId ? serverMsg : m))
+          prev.map((m) => (m.id === tempId ? safeServerMsg : m))
         );
       }
     } catch (e) {
@@ -207,8 +270,27 @@ export default function ChatScreen() {
             <FlatList
               ref={flatListRef}
               data={messages}
-              keyExtractor={(item) => item.id}
-              renderItem={({ item }) => <MessageBubble message={item} />}
+              keyExtractor={(item, index) =>
+                (item && item.id ? String(item.id) : `msg-${index}`) as string
+              }
+              renderItem={({ item }) => {
+                // Generic guard: never let a single corrupted message payload
+                // crash the whole screen. MessageBubble is itself wrapped in an
+                // error boundary, but we guard here too as the final layer.
+                try {
+                  if (!item || typeof item !== 'object') return null;
+                  return <MessageBubble message={item} />;
+                } catch (renderErr) {
+                  console.error('Failed to render message:', renderErr);
+                  return (
+                    <View className="mb-3 px-4 py-3 rounded-2xl bg-[#2B3940] border border-[#3A4B4D] self-start">
+                      <Text className="text-xs text-[#A8AAA0]">
+                        This message couldn’t be displayed.
+                      </Text>
+                    </View>
+                  );
+                }
+              }}
               contentContainerStyle={{ paddingVertical: 14, paddingHorizontal: 14 }}
               style={{ flex: 1 }}
               onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}

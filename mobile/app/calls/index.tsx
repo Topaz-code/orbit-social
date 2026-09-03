@@ -1,13 +1,15 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, FlatList, TouchableOpacity } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
 import { router, Stack } from 'expo-router';
 import { Image } from 'expo-image';
 import api from '../../lib/api';
-import { PhoneMissed, PhoneOutgoing, Video, PhoneCall } from 'lucide-react-native';
+import { PhoneMissed, PhoneOutgoing, Video, PhoneCall, Phone, Plus } from 'lucide-react-native';
 import { SkeletonConversation } from '../../components/ui/Skeleton';
+import NewCallModal from '../../components/calls/NewCallModal';
 
 export default function CallHistoryScreen() {
+  const [newCallOpen, setNewCallOpen] = useState(false);
   const { data: calls, isLoading } = useQuery({
     queryKey: ['calls', 'history'],
     queryFn: async () => {
@@ -44,7 +46,7 @@ export default function CallHistoryScreen() {
         <FlatList
           data={calls || []}
           keyExtractor={(item) => item.id}
-          contentContainerStyle={{ padding: 16 }}
+          contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
           ListEmptyComponent={
             <View className="items-center justify-center py-20 px-6">
               <PhoneCall size={36} color="#496D6B" className="mb-3" />
@@ -95,6 +97,33 @@ export default function CallHistoryScreen() {
           )}
         />
       )}
+
+      {/* Floating Action Button — start a new call */}
+      <TouchableOpacity
+        onPress={() => setNewCallOpen(true)}
+        activeOpacity={0.85}
+        accessibilityLabel="Start new call"
+        accessibilityRole="button"
+        className="absolute bottom-8 right-6 w-16 h-16 rounded-full bg-[#D0A56A] items-center justify-center shadow-lg"
+        style={{
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.35,
+          shadowRadius: 6,
+          elevation: 8,
+        }}
+      >
+        {/* Phone with a plus badge = new call */}
+        <Phone size={26} color="#171A1C" strokeWidth={2.2} />
+        <View
+          className="absolute -top-0.5 -right-0.5 w-6 h-6 rounded-full bg-[#202A2D] border-2 border-[#D0A56A] items-center justify-center"
+        >
+          <Plus size={14} color="#D0A56A" strokeWidth={3} />
+        </View>
+      </TouchableOpacity>
+
+      {/* New call contact picker (bottom sheet) */}
+      <NewCallModal visible={newCallOpen} onClose={() => setNewCallOpen(false)} />
     </View>
   );
 }

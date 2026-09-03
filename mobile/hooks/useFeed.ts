@@ -69,3 +69,34 @@ export function useLikePost() {
     },
   });
 }
+
+export function useDeletePost() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (postId: string) => {
+      await api.delete(`/posts/${postId}`);
+      return postId;
+    },
+    onSuccess: () => {
+      // Refresh feed / explore / any single-post queries after removal.
+      queryClient.invalidateQueries({ queryKey: ['feed'] });
+      queryClient.invalidateQueries({ queryKey: ['exploreFeed'] });
+      queryClient.invalidateQueries({ queryKey: ['post'] });
+    },
+  });
+}
+
+export function useUpdatePost() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ postId, content_text }: { postId: string; content_text: string }) => {
+      const res = await api.put(`/posts/${postId}`, { content_text });
+      return res.data?.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['feed'] });
+      queryClient.invalidateQueries({ queryKey: ['exploreFeed'] });
+      queryClient.invalidateQueries({ queryKey: ['post'] });
+    },
+  });
+}
