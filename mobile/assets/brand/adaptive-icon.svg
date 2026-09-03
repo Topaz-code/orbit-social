@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Orbit Android Adaptive Icon — FOREGROUND
+  Export at 1024 x 1024 px -> assets/images/adaptive-icon.png
+  IMPORTANT: keep all artwork inside the centre 66% safe zone (a ~676px
+  circle/centred box). Android masks the outer area. The planet + ring here
+  are scaled to ~58% and centred.
+-->
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="planetA" cx="0.35" cy="0.30" r="0.85">
+      <stop offset="0" stop-color="#E8C58A"/>
+      <stop offset="0.45" stop-color="#D0A56A"/>
+      <stop offset="1" stop-color="#9C7644"/>
+    </radialGradient>
+    <linearGradient id="ringA" x1="330" y1="690" x2="694" y2="430" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#71877B"/>
+      <stop offset="0.5" stop-color="#D0A56A"/>
+      <stop offset="1" stop-color="#E8C58A"/>
+    </linearGradient>
+    <clipPath id="planetClipA">
+      <circle cx="512" cy="548" r="176"/>
+    </clipPath>
+  </defs>
+
+  <!-- Background is transparent (set via backgroundColor #111827 in app.json) -->
+
+  <!-- Back half of ring -->
+  <ellipse cx="512" cy="548" rx="300" ry="112" transform="rotate(-24 512 548)"
+           fill="none" stroke="url(#ringA)" stroke-width="26"
+           stroke-dasharray="700 320" stroke-dashoffset="512" stroke-linecap="round" opacity="0.9"/>
+
+  <!-- Planet (scaled down + centred for the safe zone) -->
+  <circle cx="512" cy="548" r="176" fill="url(#planetA)"/>
+  <g clip-path="url(#planetClipA)">
+    <ellipse cx="512" cy="610" rx="190" ry="86" fill="#7C5A30" opacity="0.35"/>
+    <ellipse cx="452" cy="486" rx="52" ry="34" fill="#F4DDA9" opacity="0.55"/>
+  </g>
+
+  <!-- Front half of ring -->
+  <ellipse cx="512" cy="548" rx="300" ry="112" transform="rotate(-24 512 548)"
+           fill="none" stroke="url(#ringA)" stroke-width="26"
+           stroke-dasharray="430 590" stroke-dashoffset="-48" stroke-linecap="round"/>
+
+  <!-- Moon -->
+  <circle cx="742" cy="470" r="26" fill="#E8C58A"/>
+</svg>

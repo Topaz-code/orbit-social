@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Orbit Native Splash Screen — export at 1284 x 2778 px (iPhone) / use a
+  1024 x 1024 source for Expo splash (resizeMode contain) -> assets/images/splash.png
+  Background MUST be #111827 (matches app.json splash.backgroundColor).
+  The artwork is centred and sized ~28% of the width; Expo scales it.
+-->
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgS" x1="0" y1="0" x2="1024" y2="1024" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#111827"/>
+      <stop offset="1" stop-color="#0B1120"/>
+    </linearGradient>
+    <radialGradient id="planetS" cx="0.35" cy="0.30" r="0.85">
+      <stop offset="0" stop-color="#E8C58A"/>
+      <stop offset="0.45" stop-color="#D0A56A"/>
+      <stop offset="1" stop-color="#9C7644"/>
+    </radialGradient>
+    <linearGradient id="ringS" x1="340" y1="640" x2="690" y2="420" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#71877B"/>
+      <stop offset="0.5" stop-color="#D0A56A"/>
+      <stop offset="1" stop-color="#E8C58A"/>
+    </linearGradient>
+    <radialGradient id="glowS" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#D0A56A" stop-opacity="0.25"/>
+      <stop offset="1" stop-color="#D0A56A" stop-opacity="0"/>
+    </radialGradient>
+    <clipPath id="planetClipS">
+      <circle cx="512" cy="472" r="180"/>
+    </clipPath>
+  </defs>
+
+  <!-- Background #111827 -->
+  <rect width="1024" height="1024" fill="url(#bgS)"/>
+
+  <!-- Faint stars -->
+  <g fill="#D9D0B8" opacity="0.45">
+    <circle cx="240" cy="240" r="5"/>
+    <circle cx="800" cy="210" r="4"/>
+    <circle cx="740" cy="760" r="5"/>
+    <circle cx="220" cy="720" r="4"/>
+  </g>
+
+  <circle cx="512" cy="472" r="280" fill="url(#glowS)"/>
+
+  <!-- Ring back -->
+  <ellipse cx="512" cy="472" rx="300" ry="116" transform="rotate(-24 512 472)"
+           fill="none" stroke="url(#ringS)" stroke-width="26"
+           stroke-dasharray="700 320" stroke-dashoffset="512" stroke-linecap="round" opacity="0.9"/>
+
+  <!-- Planet -->
+  <circle cx="512" cy="472" r="180" fill="url(#planetS)"/>
+  <g clip-path="url(#planetClipS)">
+    <ellipse cx="512" cy="536" rx="196" ry="90" fill="#7C5A30" opacity="0.35"/>
+    <ellipse cx="452" cy="410" rx="54" ry="36" fill="#F4DDA9" opacity="0.55"/>
+  </g>
+
+  <!-- Ring front -->
+  <ellipse cx="512" cy="472" rx="300" ry="116" transform="rotate(-24 512 472)"
+           fill="none" stroke="url(#ringS)" stroke-width="26"
+           stroke-dasharray="430 590" stroke-dashoffset="-48" stroke-linecap="round"/>
+
+  <circle cx="736" cy="392" r="26" fill="#E8C58A"/>
+
+  <!-- Wordmark -->
+  <text x="512" y="772" text-anchor="middle"
+        font-family="system-ui, -apple-system, Segoe UI, Roboto, sans-serif"
+        font-size="72" font-weight="700" letter-spacing="10" fill="#D9D0B8">ORBIT</text>
+  <text x="512" y="822" text-anchor="middle"
+        font-family="system-ui, -apple-system, Segoe UI, Roboto, sans-serif"
+        font-size="24" letter-spacing="6" fill="#7F8B86">YOUR ORBIT. YOUR VOICE.</text>
+</svg>

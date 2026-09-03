@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Orbit App Icon — export at 1024 x 1024 px  ->  assets/images/icon.png
+  Full-bleed square (the OS rounds the corners for you).
+  Cool gold/tan planet on a dark (#111827) background.
+-->
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Dark background gradient -->
+    <linearGradient id="bg" x1="0" y1="0" x2="1024" y2="1024" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#1B2430"/>
+      <stop offset="1" stop-color="#0F1620"/>
+    </linearGradient>
+
+    <!-- Planet body: gold -> tan -->
+    <radialGradient id="planet" cx="0.35" cy="0.30" r="0.85">
+      <stop offset="0" stop-color="#E8C58A"/>
+      <stop offset="0.45" stop-color="#D0A56A"/>
+      <stop offset="1" stop-color="#9C7644"/>
+    </radialGradient>
+
+    <!-- Orbit ring stroke -->
+    <linearGradient id="ring" x1="180" y1="760" x2="860" y2="300" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#71877B"/>
+      <stop offset="0.5" stop-color="#D0A56A"/>
+      <stop offset="1" stop-color="#E8C58A"/>
+    </linearGradient>
+
+    <!-- Soft glow behind planet -->
+    <radialGradient id="glow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#D0A56A" stop-opacity="0.28"/>
+      <stop offset="1" stop-color="#D0A56A" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- Clip the planet so the ring passes behind/front -->
+    <clipPath id="planetClip">
+      <circle cx="512" cy="556" r="238"/>
+    </clipPath>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1024" height="1024" fill="url(#bg)"/>
+
+  <!-- Faint stars -->
+  <g fill="#D9D0B8" opacity="0.55">
+    <circle cx="205" cy="230" r="6"/>
+    <circle cx="835" cy="190" r="5"/>
+    <circle cx="760" cy="800" r="6"/>
+    <circle cx="180" cy="760" r="5"/>
+    <circle cx="880" cy="600" r="4"/>
+    <circle cx="300" cy="860" r="4"/>
+  </g>
+
+  <!-- Glow -->
+  <circle cx="512" cy="556" r="360" fill="url(#glow)"/>
+
+  <!-- Back half of the orbit ring -->
+  <ellipse cx="512" cy="556" rx="392" ry="150" transform="rotate(-24 512 556)"
+           fill="none" stroke="url(#ring)" stroke-width="34"
+           stroke-dasharray="900 400" stroke-dashoffset="660" stroke-linecap="round" opacity="0.9"/>
+
+  <!-- Planet -->
+  <circle cx="512" cy="556" r="238" fill="url(#planet)"/>
+
+  <!-- Surface shading / bands (clipped to planet) -->
+  <g clip-path="url(#planetClip)">
+    <ellipse cx="512" cy="640" rx="260" ry="120" fill="#7C5A30" opacity="0.35"/>
+    <ellipse cx="430" cy="470" rx="70" ry="46" fill="#F4DDA9" opacity="0.55"/>
+    <path d="M300 560 Q512 700 724 560 Q512 760 300 560 Z" fill="#6E4E2A" opacity="0.25"/>
+  </g>
+
+  <!-- Front half of the orbit ring -->
+  <ellipse cx="512" cy="556" rx="392" ry="150" transform="rotate(-24 512 556)"
+           fill="none" stroke="url(#ring)" stroke-width="34"
+           stroke-dasharray="560 740" stroke-dashoffset="-60" stroke-linecap="round"/>
+
+  <!-- Orbiting moon -->
+  <circle cx="812" cy="430" r="34" fill="#E8C58A"/>
+  <circle cx="802" cy="420" r="10" fill="#F4DDA9" opacity="0.8"/>
+</svg>
