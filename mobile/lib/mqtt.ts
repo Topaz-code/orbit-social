@@ -6,35 +6,77 @@ import * as SecureStore from 'expo-secure-store';
 class MQTTService {
   private client: mqtt.MqttClient | null = null;
   private messageCallbacks: Map<string, ((topic: string, message: Buffer) => void)[]> = new Map();
+  private connectingPromise: Promise<void> | null = null;
+
+  isConnected() {
+    return !!this.client?.connected;
+  }
 
   async connect(userId?: string, tokenOverride?: string) {
     if (this.client?.connected) return;
+    if (this.connectingPromise) return this.connectingPromise;
+    if (this.client) {
+      try {
+        this.client.end(true);
+      } catch {}
+      this.client = null;
+    }
 
     const token = tokenOverride || (await SecureStore.getItemAsync('access_token'));
 
-    this.client = mqtt.connect(MQTT_URL, {
-      clientId: `orbit_client_${userId || ''}_${Math.random().toString(16).slice(3)}`,
-      clean: true,
-      connectTimeout: 5000,
-      reconnectPeriod: 2000,
-      username: 'orbit',
-      password: token || '',
-    });
-
-    this.client.on('connect', () => {
-      // Re-subscribe to all active topics
-      Array.from(this.messageCallbacks.keys()).forEach((topic) => {
-        this.client?.subscribe(topic);
+    this.connectingPromise = new Promise<void>((resolve, reject) => {
+      let settled = false;
+      this.client = mqtt.connect(MQTT_URL, {
+        clientId: `orbit_client_${userId || ''}_${Math.random().toString(16).slice(3)}`,
+        clean: true,
+        connectTimeout: 5000,
+        reconnectPeriod: 2000,
+        username: 'orbit',
+        password: token || '',
       });
-    });
 
-    this.client.on('message', (topic: string, message: Buffer) => {
-      this.messageCallbacks.forEach((callbacks, subscribedTopic) => {
-        if (this.topicMatch(subscribedTopic, topic)) {
-          callbacks.forEach((cb) => cb(topic, message));
+      const onConnect = () => {
+        if (settled) return;
+        settled = true;
+        console.log('[Orbit] MQTT connected');
+        Array.from(this.messageCallbacks.keys()).forEach((topic) => {
+          this.client?.subscribe(topic);
+        });
+        this.connectingPromise = null;
+        resolve();
+      };
+
+      this.client.on('connect', onConnect);
+
+      this.client.on('error', (err: Error) => {
+        console.error('[Orbit] MQTT error:', err?.message || err);
+      });
+
+      this.client.on('offline', () => {
+        console.warn('[Orbit] MQTT offline');
+      });
+
+      this.client.on('message', (topic: string, message: Buffer) => {
+        this.messageCallbacks.forEach((callbacks, subscribedTopic) => {
+          if (this.topicMatch(subscribedTopic, topic)) {
+            callbacks.forEach((cb) => cb(topic, message));
+          }
+        });
+      });
+
+      setTimeout(() => {
+        if (!settled && !this.client?.connected) {
+          settled = true;
+          this.connectingPromise = null;
+          reject(new Error('MQTT connection timed out'));
         }
-      });
+      }, 6000);
+    }).catch((err) => {
+      this.connectingPromise = null;
+      throw err;
     });
+
+    return this.connectingPromise;
   }
 
   topicMatch(subscribed: string, actual: string) {
@@ -74,9 +116,13 @@ class MQTTService {
   }
 
   publish(topic: string, message: string | object) {
-    if (!this.client?.connected) return;
+    if (!this.client?.connected) {
+      console.warn('[Orbit] MQTT publish skipped — not connected:', topic);
+      return false;
+    }
     const payload = typeof message === 'string' ? message : JSON.stringify(message);
     this.client.publish(topic, payload, { qos: 1 });
+    return true;
   }
 
   disconnect() {
@@ -84,6 +130,7 @@ class MQTTService {
       this.client.end();
       this.client = null;
     }
+    this.connectingPromise = null;
   }
 }
 

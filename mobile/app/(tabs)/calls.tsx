@@ -6,7 +6,7 @@ import { Image } from 'expo-image';
 import api from '../../lib/api';
 import { PhoneMissed, PhoneOutgoing, Video, PhoneCall } from 'lucide-react-native';
 import { SkeletonConversation } from '../../components/ui/Skeleton';
-import Header from '../../components/layout/Header';
+
 
 export default function CallsScreen() {
   const { data: calls, isLoading } = useQuery({
@@ -25,8 +25,6 @@ export default function CallsScreen() {
 
   return (
     <View className="flex-1 bg-[#171A1C]">
-      <Header />
-
       {isLoading ? (
         <View className="p-4 space-y-2">
           <SkeletonConversation />

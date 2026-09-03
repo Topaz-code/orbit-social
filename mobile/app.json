@@ -13,7 +13,15 @@
       "backgroundColor": "#171A1C"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bitcode": false,
+      "infoPlist": {
+        "NSCameraUsageDescription": "Allow Orbit to access your camera for stories, profile photos, and video calls.",
+        "NSMicrophoneUsageDescription": "Allow Orbit to access your microphone for voice notes, voice calls, and video calls.",
+        "NSPhotoLibraryUsageDescription": "Allow Orbit to access your photos for posts, stories, chat attachments, and profile pictures.",
+        "NSPhotoLibraryAddUsageDescription": "Allow Orbit to save media to your photo library.",
+        "UIBackgroundModes": ["audio", "voip", "remote-notification"]
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -24,6 +32,9 @@
       "permissions": [
         "CAMERA",
         "RECORD_AUDIO",
+        "MODIFY_AUDIO_SETTINGS",
+        "CHANGE_NETWORK_STATE",
+        "ACCESS_NETWORK_STATE",
         "READ_EXTERNAL_STORAGE",
         "WRITE_EXTERNAL_STORAGE",
         "READ_MEDIA_IMAGES",
@@ -36,9 +47,9 @@
         "WAKE_LOCK",
         "VIBRATE",
         "INTERNET",
-        "ACCESS_NETWORK_STATE",
         "USE_FULL_SCREEN_INTENT",
         "BLUETOOTH",
+        "BLUETOOTH_ADMIN",
         "BLUETOOTH_CONNECT"
       ],
       "googleServicesFile": "./google-services.json",
@@ -71,13 +82,16 @@
       [
         "expo-camera",
         {
-          "cameraPermission": "Allow Orbit to access your camera for stories, profile photos, and video calls."
+          "cameraPermission": "Allow Orbit to access your camera for stories, profile photos, and video calls.",
+          "microphonePermission": "Allow Orbit to access your microphone for voice notes, voice calls, and video calls.",
+          "recordAudioAndroid": true
         }
       ],
       [
         "expo-image-picker",
         {
-          "photosPermission": "Allow Orbit to access your photos for posts, stories, and profile pictures."
+          "photosPermission": "Allow Orbit to access your photos for posts, stories, chat attachments, and profile pictures.",
+          "cameraPermission": "Allow Orbit to access your camera for stories, profile photos, and chat."
         }
       ],
       [

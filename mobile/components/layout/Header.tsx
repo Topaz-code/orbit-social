@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, TextInput } from 'react-native';
+import { View, Text, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Search, Bell } from 'lucide-react-native';
 import { useAuthStore } from '../../stores/authStore';
@@ -25,44 +25,42 @@ export default function Header({ onSearchPress }: HeaderProps) {
   };
 
   return (
-    <View className="flex-row items-center justify-between px-3.5 py-2.5 bg-[#141819] border-b border-[#3A4B4D]/60">
-      {/* Left: Orbit Logo */}
+    <View className="flex-row items-center justify-between px-3 h-14 bg-[#141819]">
       <TouchableOpacity
         onPress={() => router.push('/(tabs)')}
         className="flex-row items-center mr-2 active:opacity-80"
+        accessibilityLabel="Orbit home"
       >
         <OrbitLogo size={28} />
       </TouchableOpacity>
 
-      {/* Middle: Global Search Bar */}
       <TouchableOpacity
         onPress={handleSearch}
         activeOpacity={0.85}
-        className="flex-1 flex-row items-center h-9 px-3 bg-[#2B3940] border border-[#3A4B4D] rounded-[10px] mx-1.5"
+        className="flex-1 flex-row items-center h-9 px-3 bg-[#2B3940] border border-[#3A4B4D] rounded-[10px] mx-2"
       >
-        <Search size={15} color="#7F8B86" className="mr-2" />
-        <Text className="text-xs text-[#7F8B86] flex-1 truncate" numberOfLines={1}>
+        <Search size={15} color="#7F8B86" />
+        <Text className="text-xs text-[#7F8B86] flex-1 ml-2" numberOfLines={1}>
           Search people, posts, or groups...
         </Text>
       </TouchableOpacity>
 
-      {/* Right: Notifications & Profile Avatar */}
-      <View className="flex-row items-center space-x-2 ml-1">
-        {/* Bell Button */}
+      <View className="flex-row items-center">
         <TouchableOpacity
           onPress={() => router.push('/(tabs)/notifications')}
-          className="relative w-9 h-9 items-center justify-center rounded-[10px] bg-[#202A2D] border border-[#3A4B4D]/60 active:bg-[#2B3940]"
+          className="relative w-10 h-10 items-center justify-center rounded-[10px] active:bg-[#2B3940]"
+          accessibilityLabel="Notifications"
         >
-          <Bell size={18} color="#D9D0B8" />
+          <Bell size={20} color="#D9D0B8" />
           {unreadCount > 0 && (
-            <View className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#D0A56A] ring-1 ring-[#141819]" />
+            <View className="absolute top-2 right-2 w-2.5 h-2.5 rounded-full bg-[#D0A56A] border-2 border-[#141819]" />
           )}
         </TouchableOpacity>
 
-        {/* User Avatar */}
         <TouchableOpacity
           onPress={() => router.push('/(tabs)/profile')}
-          className="relative ml-2 active:opacity-85"
+          className="relative ml-1 active:opacity-85"
+          accessibilityLabel="Your profile"
         >
           <Image
             source={{
@@ -75,7 +73,6 @@ export default function Header({ onSearchPress }: HeaderProps) {
             style={{ width: 34, height: 34, borderRadius: 17 }}
             contentFit="cover"
           />
-          {/* Green Online Dot */}
           <View className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-[#22c55e] border-2 border-[#141819]" />
         </TouchableOpacity>
       </View>

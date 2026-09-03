@@ -10,6 +10,7 @@ export class WebRTCHelper {
   callId: string;
   userId: string;
   onStream: (stream: any) => void;
+  onError?: (err: Error) => void;
   private unsubscribeSignal?: () => void;
 
   constructor(callId: string, userId: string, onStream: (stream: any) => void) {
@@ -20,7 +21,10 @@ export class WebRTCHelper {
 
   async setup() {
     this.peerConnection = new RTCPeerConnection({
-      iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
+      iceServers: [
+        { urls: 'stun:stun.l.google.com:19302' },
+        { urls: 'stun:stun1.l.google.com:19302' },
+      ],
     });
 
     (this.peerConnection as any).ontrack = (event: any) => {
@@ -35,23 +39,37 @@ export class WebRTCHelper {
       }
     };
 
-    // Listen to signaling via MQTT
+    (this.peerConnection as any).onconnectionstatechange = () => {
+      const state = (this.peerConnection as any)?.connectionState;
+      if (state === 'failed') {
+        this.onError?.(new Error('WebRTC connection failed'));
+      }
+    };
+
     this.unsubscribeSignal = mqttClient.subscribe(
       `orbit/call/${this.callId}/signal`,
-      (topic: string, message: Buffer) => {
+      (_topic: string, message: Buffer) => {
         try {
           const msg = JSON.parse(message.toString());
-          if (msg.sender_id === this.userId) return; // ignore own signals
+          if (msg.sender_id === this.userId) return;
 
           if (msg.type === 'offer') {
-            this.handleOffer(msg.payload);
+            this.handleOffer(msg.payload).catch((e) => {
+              console.error('[Orbit] handleOffer failed', e);
+              this.onError?.(e instanceof Error ? e : new Error(String(e)));
+            });
           } else if (msg.type === 'answer') {
-            this.handleAnswer(msg.payload);
+            this.handleAnswer(msg.payload).catch((e) => {
+              console.error('[Orbit] handleAnswer failed', e);
+              this.onError?.(e instanceof Error ? e : new Error(String(e)));
+            });
           } else if (msg.type === 'ice-candidate') {
-            this.handleIceCandidate(msg.payload);
+            this.handleIceCandidate(msg.payload).catch((e) => {
+              console.error('[Orbit] handleIceCandidate failed', e);
+            });
           }
         } catch (e) {
-          console.error('Failed to parse signal', e);
+          console.error('[Orbit] Failed to parse WebRTC signal', e);
         }
       }
     );
@@ -67,7 +85,10 @@ export class WebRTCHelper {
     const offer = await this.peerConnection!.createOffer({});
     await this.peerConnection!.setLocalDescription(offer);
 
-    this.sendSignal('offer', offer);
+    const sent = this.sendSignal('offer', offer);
+    if (!sent) {
+      throw new Error('Call Failed to Connect — MQTT signaling is not connected.');
+    }
   }
 
   async handleOffer(offer: any) {
@@ -89,7 +110,7 @@ export class WebRTCHelper {
   }
 
   sendSignal(type: string, payload: any) {
-    mqttClient.publish(
+    return mqttClient.publish(
       `orbit/call/${this.callId}/signal`,
       JSON.stringify({
         type,

@@ -28,7 +28,6 @@ import { Image } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
 import { uploadMedia } from '../../lib/upload';
 import PostCard from '../../components/feed/PostCard';
-import Header from '../../components/layout/Header';
 import { SkeletonPost, SkeletonUser } from '../../components/ui/Skeleton';
 import { formatRelativeTime } from '../../lib/utils';
 
@@ -138,8 +137,6 @@ export default function ProfileScreen() {
 
   return (
     <View className="flex-1 bg-[#171A1C]">
-      <Header />
-
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         {/* Cover Photo */}
         <View className="relative h-44 bg-[#202A2D]">
