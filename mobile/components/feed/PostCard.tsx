@@ -436,7 +436,7 @@ export default function PostCard({ post }: { post: any }) {
             </View>
 
             <TextInput
-              className="bg-[#2B3940] border border-[#3A4B4D] rounded-xl px-4 py-3 text-sm text-[#D9D0B8] min-h-[110px] max-h-[220px] text-start"
+              className="bg-[#2B3940] border border-[#3A4B4D] rounded-xl px-4 py-3 text-sm text-[#D9D0B8] min-h-[110px] max-h-[220px]"
               placeholder="What's on your mind?"
               placeholderTextColor="#7F8B86"
               value={editText}
