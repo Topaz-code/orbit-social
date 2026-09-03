@@ -41,6 +41,5 @@ Thumbs.db
 
 *.bundle
 *.bundle.*
-
-
+*.apk
 *.zip
