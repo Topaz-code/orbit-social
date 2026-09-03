@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, TextInput, TouchableOpacity, Alert } from 'react-native';
-import { Send, Image as ImageIcon, Camera, Mic } from 'lucide-react-native';
+import { Send, Image as ImageIcon, Camera } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
 import {
   uploadChatMedia,
@@ -18,7 +18,9 @@ interface ChatInputProps {
 export default function ChatInput({ onSend, isSending = false }: ChatInputProps) {
   const [text, setText] = useState('');
   const [uploadingMedia, setUploadingMedia] = useState(false);
-  const [isRecording, setIsRecording] = useState(false);
+  // Mirrors the recorder's internal state via onRecordingChange. Purely for
+  // layout: while recording the recorder owns the whole bar.
+  const [recording, setRecording] = useState(false);
   const [uploadingVoice, setUploadingVoice] = useState(false);
   const user = useAuthStore((state) => state.user);
 
@@ -99,8 +101,9 @@ export default function ChatInput({ onSend, isSending = false }: ChatInputProps)
       console.error('[Orbit] Voice note failed:', detail, err);
       Alert.alert('Voice note failed', detail);
     } finally {
+      // The recorder has already reported recording=false on stop; only the
+      // upload flag is ours to clear here.
       setUploadingVoice(false);
-      setIsRecording(false);
     }
   };
 
@@ -141,77 +144,76 @@ export default function ChatInput({ onSend, isSending = false }: ChatInputProps)
 
   return (
     <View className="flex-row items-end p-3 bg-[#141819] border-t border-[#3A4B4D]">
-      {isRecording ? (
-        // While recording the recorder owns the whole bar: it needs the width
-        // for the timer, and the send button must not be reachable.
-        <VoiceNoteRecorder
-          onRecorded={handleVoiceNoteRecorded}
+      {/*
+        FIX (audit) — the recorder is mounted EXACTLY ONCE and never remounts
+        when it flips idle <-> recording. The previous version swapped between
+        two branches, which (a) mounted the recorder in its idle state so the
+        user had to tap the mic twice, and (b) left this parent stuck in
+        "recording" mode after Discard because the recorder never reported the
+        state change. Now the recorder reports start/stop via
+        onRecordingChange and simply owns the whole bar while recording.
+      */}
+      {!recording ? (
+        <TouchableOpacity
+          className="p-2 mr-1 active:opacity-75"
+          onPress={handlePickImage}
           disabled={busy}
-        />
-      ) : (
-        <>
-          <TouchableOpacity
-            className="p-2 mr-1 active:opacity-75"
-            onPress={handlePickImage}
-            disabled={busy}
-          >
-            <ImageIcon size={22} color={uploadingMedia ? '#7F8B86' : '#D0A56A'} />
-          </TouchableOpacity>
+        >
+          <ImageIcon size={22} color={uploadingMedia ? '#7F8B86' : '#D0A56A'} />
+        </TouchableOpacity>
+      ) : null}
 
-          <TouchableOpacity
-            className="p-2 mr-1 active:opacity-75"
-            onPress={handleTakePhoto}
-            disabled={busy}
-          >
-            <Camera size={20} color="#7F8B86" />
-          </TouchableOpacity>
+      {!recording ? (
+        <TouchableOpacity
+          className="p-2 mr-1 active:opacity-75"
+          onPress={handleTakePhoto}
+          disabled={busy}
+        >
+          <Camera size={20} color="#7F8B86" />
+        </TouchableOpacity>
+      ) : null}
 
-          {/* Only offer the mic when there is no draft text — the send button
-              owns the bar otherwise. */}
-          {!text.trim() ? (
-            <TouchableOpacity
-              className="p-2 mr-1 active:opacity-75"
-              onPress={() => setIsRecording(true)}
-              disabled={busy}
-              accessibilityRole="button"
-              accessibilityLabel="Record voice note"
-            >
-              <Mic size={20} color={busy ? '#7F8B86' : '#D0A56A'} />
-            </TouchableOpacity>
-          ) : null}
+      <VoiceNoteRecorder
+        onRecorded={handleVoiceNoteRecorded}
+        onRecordingChange={setRecording}
+        hideWhenIdle={Boolean(text.trim())}
+        disabled={busy}
+      />
 
-          <View className="flex-1 bg-[#202A2D] border border-[#3A4B4D] rounded-2xl mx-1 min-h-[42px] max-h-32 justify-center">
-            <TextInput
-              className="px-4 py-2 text-sm text-[#D9D0B8] flex-1"
-              placeholder={
-                uploadingVoice
-                  ? 'Sending voice note...'
-                  : uploadingMedia
-                  ? 'Uploading media...'
-                  : 'Message...'
-              }
-              placeholderTextColor="#7F8B86"
-              multiline
-              value={text}
-              onChangeText={setText}
-              editable={!busy}
-            />
-          </View>
+      {!recording ? (
+        <View className="flex-1 bg-[#202A2D] border border-[#3A4B4D] rounded-2xl mx-1 min-h-[42px] max-h-32 justify-center">
+          <TextInput
+            className="px-4 py-2 text-sm text-[#D9D0B8] flex-1"
+            placeholder={
+              uploadingVoice
+                ? 'Sending voice note...'
+                : uploadingMedia
+                ? 'Uploading media...'
+                : 'Message...'
+            }
+            placeholderTextColor="#7F8B86"
+            multiline
+            value={text}
+            onChangeText={setText}
+            editable={!busy}
+          />
+        </View>
+      ) : null}
 
-          <TouchableOpacity
-            className={`p-2.5 rounded-full ml-1 active:opacity-85 ${
-              text.trim() && !busy ? 'bg-[#D0A56A]' : 'bg-[#202A2D] border border-[#3A4B4D]'
-            }`}
-            onPress={handleSend}
-            disabled={!text.trim() || busy}
-          >
-            <Send
-              size={18}
-              color={text.trim() && !busy ? '#171A1C' : '#7F8B86'}
-            />
-          </TouchableOpacity>
-        </>
-      )}
+      {!recording ? (
+        <TouchableOpacity
+          className={`p-2.5 rounded-full ml-1 active:opacity-85 ${
+            text.trim() && !busy ? 'bg-[#D0A56A]' : 'bg-[#202A2D] border border-[#3A4B4D]'
+          }`}
+          onPress={handleSend}
+          disabled={!text.trim() || busy}
+        >
+          <Send
+            size={18}
+            color={text.trim() && !busy ? '#171A1C' : '#7F8B86'}
+          />
+        </TouchableOpacity>
+      ) : null}
     </View>
   );
 }

@@ -7,6 +7,14 @@ import { requestMicrophonePermission } from '../../lib/permissions';
 interface VoiceNoteRecorderProps {
   /** Called with a local file URI plus the mime type the upload must declare. */
   onRecorded: (uri: string, mimeType: string) => void;
+  /**
+   * Lets the parent rearrange its bar (hide the text input / send button)
+   * while recording. Without this the parent had no way to know a recording
+   * ended via Discard, which left its input bar stuck in recording mode.
+   */
+  onRecordingChange?: (recording: boolean) => void;
+  /** Render nothing while idle (e.g. when the user has draft text). */
+  hideWhenIdle?: boolean;
   disabled?: boolean;
   maxDurationMs?: number;
 }
@@ -64,6 +72,8 @@ const RECORDING_OPTIONS: Audio.RecordingOptions = {
 
 export default function VoiceNoteRecorder({
   onRecorded,
+  onRecordingChange,
+  hideWhenIdle = false,
   disabled = false,
   maxDurationMs = 120000,
 }: VoiceNoteRecorderProps) {
@@ -128,6 +138,8 @@ export default function VoiceNoteRecorder({
 
       setIsRecording(true);
       setElapsed(0);
+      // Tell the parent so it can hand the whole bar to the recorder.
+      onRecordingChange?.(true);
       clearTimer();
       timerRef.current = setInterval(() => {
         setElapsed((prev) => prev + 1);
@@ -135,12 +147,13 @@ export default function VoiceNoteRecorder({
     } catch (err: any) {
       console.error('[VoiceNote] start failed:', err?.message || err);
       setIsRecording(false);
+      onRecordingChange?.(false);
       clearTimer();
       recordingRef.current = null;
     } finally {
       setIsPreparing(false);
     }
-  }, [isRecording, isPreparing]);
+  }, [isRecording, isPreparing, onRecordingChange]);
 
   const stopRecording = useCallback(
     async (discard = false) => {
@@ -149,6 +162,9 @@ export default function VoiceNoteRecorder({
       recordingRef.current = null;
       setIsRecording(false);
       setElapsed(0);
+      // ALWAYS notify the parent — including the Discard path — so the input
+      // bar can never be left stranded in recording mode.
+      onRecordingChange?.(false);
 
       // Restore the normal playback audio session before handing off.
       try {
@@ -184,7 +200,7 @@ export default function VoiceNoteRecorder({
         console.error('[VoiceNote] stop failed:', err?.message || err);
       }
     },
-    [onRecorded]
+    [onRecorded, onRecordingChange]
   );
 
   // Auto-stop at the cap so a forgotten recording cannot fill the disk.
@@ -195,6 +211,8 @@ export default function VoiceNoteRecorder({
   }, [isRecording, elapsed, maxDurationMs, stopRecording]);
 
   if (!isRecording) {
+    // Parent asked us to yield the slot (e.g. the user is typing a draft).
+    if (hideWhenIdle) return null;
     return (
       <TouchableOpacity
         className="p-2 mr-1 active:opacity-75"
