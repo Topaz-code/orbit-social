@@ -1,0 +1,111 @@
+{
+  "expo": {
+    "name": "Orbit",
+    "slug": "orbit",
+    "version": "1.0.0",
+    "scheme": "orbit",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#141819",
+    "newArchEnabled": true,
+    "icon": "./assets/icon.png",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#141819",
+      "imageWidth": 220
+    },
+    "androidStatusBar": {
+      "backgroundColor": "#141819",
+      "barStyle": "light-content",
+      "translucent": false
+    },
+    "androidNavigationBar": {
+      "backgroundColor": "#141819",
+      "barStyle": "light-content"
+    },
+    "ios": {
+      "bundleIdentifier": "com.orbit.app",
+      "supportsTablet": false,
+      "infoPlist": {
+        "NSCameraUsageDescription": "Orbit uses the camera for video calls and photo uploads.",
+        "NSMicrophoneUsageDescription": "Orbit uses the microphone for voice and video calls."
+      }
+    },
+    "android": {
+      "package": "com.orbit.app",
+      "versionCode": 1,
+      "googleServicesFile": "./google-services.json",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "monochromeImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#141819"
+      },
+      "permissions": [
+        "android.permission.INTERNET",
+        "android.permission.ACCESS_NETWORK_STATE",
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.MODIFY_AUDIO_SETTINGS",
+        "android.permission.POST_NOTIFICATIONS",
+        "android.permission.USE_FULL_SCREEN_INTENT",
+        "android.permission.READ_MEDIA_IMAGES",
+        "android.permission.VIBRATE",
+        "android.permission.WAKE_LOCK"
+      ],
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": false,
+          "data": [{ "scheme": "orbit" }],
+          "category": ["BROWSABLE", "DEFAULT"]
+        },
+        {
+          "action": "VIEW",
+          "autoVerify": false,
+          "data": [
+            { "scheme": "https", "host": "orbit-web-6z3b.onrender.com" }
+          ],
+          "category": ["BROWSABLE", "DEFAULT"]
+        }
+      ]
+    },
+    "extra": {
+      "eas": {
+        "projectId": "2cfe46e6-d818-47c8-a12d-55e1e5df3678"
+      }
+    },
+    "plugins": [
+      [
+        "expo-secure-store",
+        { "configureAndroidBackup": true }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow Orbit to access your camera for video calls and photo uploads.",
+          "microphonePermission": "Allow Orbit to access your microphone for voice and video calls."
+        }
+      ],
+      [
+        "expo-av",
+        {
+          "microphonePermission": "Allow Orbit to access your microphone for voice and video calls."
+        }
+      ],
+      [
+        "expo-notifications",
+        { "color": "#D0A56A" }
+      ],
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#141819",
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 220,
+          "resizeMode": "contain"
+        }
+      ]
+    ]
+  }
+}

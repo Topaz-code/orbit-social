@@ -6,6 +6,7 @@ import { MobileNav } from './MobileNav.js';
 import { useMQTT } from '../../hooks/useMQTT.js';
 import { useCall } from '../../hooks/useCall.js';
 import { useNotifications } from '../../hooks/useNotifications.js';
+import { useShellBridge } from '../../hooks/useShellBridge.js';
 import { IncomingCallModal } from '../calls/IncomingCallModal.js';
 import { ActiveCallView } from '../calls/ActiveCallView.js';
 import { PostComposerModal } from '../feed/PostComposerModal.js';
@@ -17,6 +18,8 @@ import { API_BASE_URL } from '../../lib/constants.js';
 
 export const DashboardLayout: React.FC = () => {
   const { user } = useAuthStore();
+  // Bridge native Android push tokens & call capabilities
+  useShellBridge();
   // Activate MQTT listeners for notifications, calls, presence & fetch notifications
   useMQTT();
   useNotifications();
