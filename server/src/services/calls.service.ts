@@ -150,6 +150,23 @@ export const callsService = {
     mqttService.sendUserCallSignal(call.caller_id, signalPayload);
     mqttService.sendUserCallSignal(call.receiver_id, signalPayload);
 
+    // Also send explicit CALL_DECLINED / CALL_CANCELLED / CALL_ENDED signal for instant client reaction
+    const explicitType =
+      data.status === 'rejected'
+        ? 'CALL_DECLINED'
+        : data.status === 'missed'
+        ? 'CALL_CANCELLED'
+        : 'CALL_ENDED';
+    const explicitPayload = {
+      type: explicitType,
+      callId,
+      status: data.status,
+      by: userId,
+    };
+    mqttService.sendCallSignal(callId, explicitPayload);
+    mqttService.sendUserCallSignal(call.caller_id, explicitPayload);
+    mqttService.sendUserCallSignal(call.receiver_id, explicitPayload);
+
     // If missed or rejected, send notification if receiver missed caller's call
     if (data.status === 'missed' && call.caller_id !== otherUserId) {
       const notification = await prisma.notification.create({
@@ -158,13 +175,37 @@ export const callsService = {
           type: 'missed_call',
           reference_id: call.id,
           reference_type: 'call',
-          content: `Missed ${call.type} call from ${call.caller_id === userId ? 'user' : 'caller'}.`,
+          content: `Missed ${call.type} call from ${updated.caller.display_name}.`,
         },
       });
       mqttService.sendNotification(call.receiver_id, notification);
+      pushService.sendToUser(call.receiver_id, {
+        title: 'Missed Call 📞',
+        body: `Missed ${call.type} call from ${updated.caller.display_name}.`,
+        data: {
+          type: 'missed_call',
+          callId: call.id,
+          url: 'orbit://calls',
+        },
+      }).catch((err) => console.error('[Push] Missed call push failed:', err));
     }
 
     return updated;
+  },
+
+  async getCallById(callId: string, userId: string) {
+    const call = await prisma.call.findUnique({
+      where: { id: callId },
+      include: {
+        caller: { select: { id: true, username: true, display_name: true, avatar_url: true } },
+        receiver: { select: { id: true, username: true, display_name: true, avatar_url: true } },
+      },
+    });
+    if (!call) return null;
+    if (call.caller_id !== userId && call.receiver_id !== userId) {
+      throw new Error('Unauthorized');
+    }
+    return call;
   },
 
   async deleteCall(callId: string, userId: string) {

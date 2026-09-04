@@ -6,9 +6,10 @@ import { APP_SCHEME, CALL_PATH_RE, ORBIT_URL } from '../config/constants';
 interface DeepLinkingOptions {
   onNavigate: (url: string) => void;
   onCallRouteDetected?: () => void;
+  onPushPayload?: (data: Record<string, unknown>) => void;
 }
 
-export function useDeepLinking({ onNavigate, onCallRouteDetected }: DeepLinkingOptions) {
+export function useDeepLinking({ onNavigate, onCallRouteDetected, onPushPayload }: DeepLinkingOptions) {
   const pendingDeepLinkRef = useRef<string | null>(null);
 
   const handleDeepLink = useCallback(
@@ -18,7 +19,8 @@ export function useDeepLinking({ onNavigate, onCallRouteDetected }: DeepLinkingO
       let url = rawUrl;
       if (url.startsWith(`${APP_SCHEME}://`)) {
         const path = url.slice(`${APP_SCHEME}://`.length).replace(/^\/+/, '');
-        url = `${ORBIT_URL}${path}`;
+        const base = ORBIT_URL.endsWith('/') ? ORBIT_URL : `${ORBIT_URL}/`;
+        url = `${base}${path}`;
       } else if (!/^https?:\/\//i.test(url)) {
         return;
       }
@@ -37,6 +39,9 @@ export function useDeepLinking({ onNavigate, onCallRouteDetected }: DeepLinkingO
       const data = response.notification.request.content.data as
         | Record<string, unknown>
         | undefined;
+      if (data) {
+        onPushPayload?.(data);
+      }
       const url = (data?.url ?? data?.deepLink ?? data?.link) as string | undefined;
       if (url) {
         handleDeepLink(url);

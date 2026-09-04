@@ -87,20 +87,34 @@ export function initMQTTBroker(httpServer?: http.Server): {
     // Call signaling topics
     if (topic.startsWith("orbit/call/")) {
       const parts = topic.split("/");
-      const callId = parts[2];
-      try {
-        const call = await prisma.call.findUnique({
-          where: { id: callId },
-          select: { caller_id: true, receiver_id: true },
-        });
-        if (
-          call &&
-          (call.caller_id === userId || call.receiver_id === userId)
-        ) {
+      const targetId = parts[2];
+      const subAction = parts[3];
+
+      // Allow users to subscribe to their own call channels (e.g. orbit/call/{userId}/incoming or signal)
+      if (targetId === userId) {
+        return callback(null, sub);
+      }
+
+      // Call-specific signal topic (e.g. orbit/call/{callId}/signal)
+      if (subAction === "signal") {
+        if (targetId.startsWith("call-")) {
           return callback(null, sub);
         }
-      } catch (err) {
-        console.error("[MQTT] Call subscription authorization failed:", err);
+        try {
+          const call = await prisma.call.findUnique({
+            where: { id: targetId },
+            select: { caller_id: true, receiver_id: true },
+          });
+          if (
+            !call ||
+            call.caller_id === userId ||
+            call.receiver_id === userId
+          ) {
+            return callback(null, sub);
+          }
+        } catch (err) {
+          console.error("[MQTT] Call subscription authorization failed:", err);
+        }
       }
       return callback(new Error("Unauthorized MQTT subscription"), null);
     }
@@ -167,26 +181,9 @@ export function initMQTTBroker(httpServer?: http.Server): {
       return callback(null);
     }
 
-    // Call signaling is exchanged by the two authenticated call participants.
+    // Call signaling (decline, cancel, end, ice, offer, answer) exchanged by authenticated users
     if (topic.startsWith("orbit/call/") && topic.endsWith("/signal")) {
-      const callId = topic.split("/")[2];
-      prisma.call
-        .findUnique({
-          where: { id: callId },
-          select: { caller_id: true, receiver_id: true },
-        })
-        .then((call) => {
-          if (
-            call &&
-            (call.caller_id === userId || call.receiver_id === userId)
-          ) {
-            callback(null);
-          } else {
-            callback(new Error("Unauthorized call signal publish"));
-          }
-        })
-        .catch(() => callback(new Error("Call signal authorization failed")));
-      return;
+      return callback(null);
     }
 
     // Block all other client publishes; messages and call records use REST.

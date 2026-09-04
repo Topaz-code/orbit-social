@@ -15,7 +15,7 @@ import { LoadingSpinner } from '../components/shared/LoadingSpinner.js';
 import { ImageCropper } from '../components/shared/ImageCropper.js';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../components/ui/tabs.js';
 import { GroupCard } from '../components/groups/GroupCard.js';
-import { getMediaUrl } from '../lib/utils.js';
+import { getMediaUrl, triggerHeartBurst } from '../lib/utils.js';
 
 export const ProfilePage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -57,6 +57,56 @@ export const ProfilePage: React.FC = () => {
       return res.data?.data as { posts: Post[] };
     },
     enabled: !!targetUserId,
+  });
+
+  // Like / Unlike Post Mutation with Optimistic Update
+  const toggleLikeMutation = useMutation({
+    mutationFn: async ({ postId, isLiked }: { postId: string; isLiked: boolean; event?: React.MouseEvent }) => {
+      if (isLiked) {
+        const res = await api.delete(`/posts/${postId}/like`);
+        return { postId, liked: false, likes_count: res.data?.data?.likes_count };
+      } else {
+        const res = await api.post(`/posts/${postId}/like`);
+        return { postId, liked: true, likes_count: res.data?.data?.likes_count };
+      }
+    },
+    onMutate: async ({ postId, isLiked, event }) => {
+      if (!isLiked && event) {
+        triggerHeartBurst(event);
+      }
+
+      await queryClient.cancelQueries({ queryKey: ['user-posts', targetUserId] });
+
+      const previousData = queryClient.getQueryData<{ posts: Post[] }>(['user-posts', targetUserId]);
+
+      queryClient.setQueryData<{ posts: Post[] }>(['user-posts', targetUserId], (old) => {
+        if (!old?.posts) return old;
+        return {
+          ...old,
+          posts: old.posts.map((p) => {
+            if (p.id === postId) {
+              return {
+                ...p,
+                is_liked: !isLiked,
+                likes_count: isLiked ? Math.max(0, p.likes_count - 1) : p.likes_count + 1,
+              };
+            }
+            return p;
+          }),
+        };
+      });
+
+      return { previousData };
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previousData) {
+        queryClient.setQueryData(['user-posts', targetUserId], context.previousData);
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['user-posts', targetUserId] });
+      queryClient.invalidateQueries({ queryKey: ['posts'] });
+    },
   });
 
   // 3. Fetch User Friends
@@ -244,7 +294,9 @@ export const ProfilePage: React.FC = () => {
                 <PostCard
                   key={post.id}
                   post={post}
-                  onToggleLike={() => refetchPosts()}
+                  onToggleLike={(postId, isLiked, e) =>
+                    toggleLikeMutation.mutate({ postId, isLiked, event: e })
+                  }
                   onDeletePost={() => refetchPosts()}
                 />
               ))}

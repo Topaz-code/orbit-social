@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../lib/api.js';
 import { User, Post, Group } from '../types/index.js';
 import { PostCard } from '../components/feed/PostCard.js';
@@ -10,6 +10,7 @@ import { EmptyState } from '../components/shared/EmptyState.js';
 import { LoadingSpinner } from '../components/shared/LoadingSpinner.js';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../components/ui/tabs.js';
 import { Search } from 'lucide-react';
+import { triggerHeartBurst } from '../lib/utils.js';
 
 export const SearchPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -46,6 +47,54 @@ export const SearchPage: React.FC = () => {
   const groups = data?.groups || [];
 
   const totalResults = people.length + posts.length + groups.length;
+
+  const queryClient = useQueryClient();
+  const currentQ = searchParams.get('q') || '';
+
+  const toggleLikeMutation = useMutation({
+    mutationFn: async ({ postId, isLiked }: { postId: string; isLiked: boolean; event?: React.MouseEvent }) => {
+      if (isLiked) {
+        const res = await api.delete(`/posts/${postId}/like`);
+        return { postId, liked: false, likes_count: res.data?.data?.likes_count };
+      } else {
+        const res = await api.post(`/posts/${postId}/like`);
+        return { postId, liked: true, likes_count: res.data?.data?.likes_count };
+      }
+    },
+    onMutate: async ({ postId, isLiked, event }) => {
+      if (!isLiked && event) {
+        triggerHeartBurst(event);
+      }
+      await queryClient.cancelQueries({ queryKey: ['search', currentQ] });
+      const previous = queryClient.getQueryData<any>(['search', currentQ]);
+      queryClient.setQueryData<any>(['search', currentQ], (old: any) => {
+        if (!old) return old;
+        return {
+          ...old,
+          posts: old.posts?.map((p: Post) => {
+            if (p.id === postId) {
+              return {
+                ...p,
+                is_liked: !isLiked,
+                likes_count: isLiked ? Math.max(0, p.likes_count - 1) : p.likes_count + 1,
+              };
+            }
+            return p;
+          }),
+        };
+      });
+      return { previous };
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(['search', currentQ], context.previous);
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['search', currentQ] });
+      queryClient.invalidateQueries({ queryKey: ['posts'] });
+    },
+  });
 
   return (
     <div className="max-w-4xl mx-auto min-w-0 text-[#D9D0B8]">
@@ -116,7 +165,13 @@ export const SearchPage: React.FC = () => {
                   </h3>
                   <div className="space-y-4">
                     {posts.map((post: Post) => (
-                      <PostCard key={post.id} post={post} onToggleLike={() => {}} />
+                      <PostCard
+                        key={post.id}
+                        post={post}
+                        onToggleLike={(postId, isLiked, e) =>
+                          toggleLikeMutation.mutate({ postId, isLiked, event: e })
+                        }
+                      />
                     ))}
                   </div>
                 </div>
@@ -136,7 +191,13 @@ export const SearchPage: React.FC = () => {
             <TabsContent value="posts">
               <div className="space-y-4">
                 {posts.map((post: Post) => (
-                  <PostCard key={post.id} post={post} onToggleLike={() => {}} />
+                  <PostCard
+                    key={post.id}
+                    post={post}
+                    onToggleLike={(postId, isLiked, e) =>
+                      toggleLikeMutation.mutate({ postId, isLiked, event: e })
+                    }
+                  />
                 ))}
               </div>
             </TabsContent>

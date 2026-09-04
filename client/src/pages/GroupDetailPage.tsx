@@ -15,6 +15,7 @@ import { LoadingSpinner } from '../components/shared/LoadingSpinner.js';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../components/ui/tabs.js';
 import { Users, Globe, Lock, LogOut, UserPlus, ArrowLeft } from 'lucide-react';
 import { MAX_GROUP_MEMBERS } from '../lib/constants.js';
+import { triggerHeartBurst } from '../lib/utils.js';
 
 export const GroupDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -44,6 +45,48 @@ export const GroupDetailPage: React.FC = () => {
       return (res.data?.data || []) as Post[];
     },
     enabled: !!id && group?.is_member,
+  });
+
+  // Like / Unlike Post Mutation with Optimistic Update
+  const toggleLikeMutation = useMutation({
+    mutationFn: async ({ postId, isLiked }: { postId: string; isLiked: boolean; event?: React.MouseEvent }) => {
+      if (isLiked) {
+        const res = await api.delete(`/posts/${postId}/like`);
+        return { postId, liked: false, likes_count: res.data?.data?.likes_count };
+      } else {
+        const res = await api.post(`/posts/${postId}/like`);
+        return { postId, liked: true, likes_count: res.data?.data?.likes_count };
+      }
+    },
+    onMutate: async ({ postId, isLiked, event }) => {
+      if (!isLiked && event) {
+        triggerHeartBurst(event);
+      }
+      await queryClient.cancelQueries({ queryKey: ['group-posts', id] });
+      const previous = queryClient.getQueryData<Post[]>(['group-posts', id]);
+      queryClient.setQueryData<Post[]>(['group-posts', id], (old) =>
+        old?.map((p) => {
+          if (p.id === postId) {
+            return {
+              ...p,
+              is_liked: !isLiked,
+              likes_count: isLiked ? Math.max(0, p.likes_count - 1) : p.likes_count + 1,
+            };
+          }
+          return p;
+        })
+      );
+      return { previous };
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(['group-posts', id], context.previous);
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['group-posts', id] });
+      queryClient.invalidateQueries({ queryKey: ['posts'] });
+    },
   });
 
   // Join Group Mutation
@@ -194,7 +237,9 @@ export const GroupDetailPage: React.FC = () => {
                     <PostCard
                       key={post.id}
                       post={post}
-                      onToggleLike={() => refetchPosts()}
+                      onToggleLike={(postId, isLiked, e) =>
+                        toggleLikeMutation.mutate({ postId, isLiked, event: e })
+                      }
                       onDeletePost={() => refetchPosts()}
                     />
                   ))}

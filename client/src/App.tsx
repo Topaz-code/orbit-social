@@ -181,6 +181,7 @@ export const App: React.FC = () => {
             <Route path="groups" element={<GroupsPage />} />
             <Route path="groups/:id" element={<GroupDetailPage />} />
             <Route path="calls" element={<CallsPage />} />
+            <Route path="call/*" element={<CallsPage />} />
             <Route path="notifications" element={<NotificationsPage />} />
             <Route path="search" element={<SearchPage />} />
             <Route path="settings" element={<SettingsPage />} />

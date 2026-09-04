@@ -1,6 +1,7 @@
 import { prisma } from '../config/database.js';
 import { mqttService } from './mqtt.service.js';
 import { moderationService } from './moderation.service.js';
+import { pushService } from './push.service.js';
 
 export const commentsService = {
   async getCommentsByPostId(postId: string) {
@@ -107,6 +108,16 @@ export const commentsService = {
       });
 
       mqttService.sendNotification(post.user_id, notification);
+
+      pushService.sendToUser(post.user_id, {
+        title: 'New Comment 💬',
+        body: `${commenter?.display_name || 'Someone'} commented on your post: "${data.content.slice(0, 40)}..."`,
+        data: {
+          type: 'post_comment',
+          postId,
+          url: `orbit://posts/${postId}`,
+        },
+      }).catch((err) => console.error('[Push] Comment push notification failed:', err));
     }
 
     return comment;
