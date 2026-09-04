@@ -108,8 +108,44 @@ export function useCall() {
     };
   }, [activeCall?.status, incrementDuration]);
 
+  // Reject incoming call
+  const rejectCall = useCallback(() => {
+    const callData = useCallStore.getState().incomingCall;
+    if (callData) {
+      // 1. Instantly broadcast decline signal over MQTT so caller stops ringing immediately
+      const payload = {
+        type: 'CALL_DECLINED',
+        callId: callData.callId,
+        callerId: callData.caller?.id,
+        by: user?.id,
+      };
+      mqttClient.publish(`orbit/call/${callData.callId}/signal`, payload);
+      if (callData.caller?.id) {
+        mqttClient.publish(`orbit/call/${callData.caller.id}/signal`, payload);
+      }
+
+      // 2. Persist to DB
+      api.put(`/calls/${callData.callId}`, { status: 'rejected' }).catch(() => {});
+
+      // 3. Teardown media connection
+      if (currentIncomingMediaConnection) {
+        try {
+          currentIncomingMediaConnection.close();
+        } catch {}
+        currentIncomingMediaConnection = null;
+      }
+      setIncomingCall(null);
+    }
+  }, [user?.id, setIncomingCall]);
+
   // End Call handler
   const endCall = useCallback(() => {
+    const currentIncoming = useCallStore.getState().incomingCall;
+    if (currentIncoming) {
+      rejectCall();
+      return;
+    }
+
     const currentActive = useCallStore.getState().activeCall;
     if (currentActive) {
       const isRinging = currentActive.status === 'ringing';
@@ -121,6 +157,7 @@ export function useCall() {
         callId: currentActive.callId,
         status: newStatus,
         by: user?.id,
+        callerId: user?.id,
       };
 
       // Notify remote peer instantly over MQTT so ringing or active call halts immediately
@@ -136,7 +173,7 @@ export function useCall() {
     }
 
     hangUpCall();
-  }, [user?.id]);
+  }, [user?.id, rejectCall]);
 
   // Listen for signals targeting the active call specifically (e.g. CALL_DECLINED)
   useEffect(() => {
@@ -166,6 +203,36 @@ export function useCall() {
       unsubs();
     };
   }, [activeCall?.callId, activeCall?.status]);
+
+  // Listen for cancellation signals while an incoming call is ringing on the receiver's side
+  useEffect(() => {
+    if (!incomingCall?.callId) return;
+
+    const unsubs = mqttClient.subscribe(
+      `orbit/call/${incomingCall.callId}/signal`,
+      (topic, payload) => {
+        if (
+          payload?.type === 'CALL_DECLINED' ||
+          payload?.type === 'CALL_CANCELLED' ||
+          payload?.type === 'CALL_ENDED' ||
+          (payload?.type === 'CALL_STATUS_CHANGED' &&
+            (payload.status === 'rejected' || payload.status === 'completed' || payload.status === 'missed'))
+        ) {
+          useCallStore.getState().setIncomingCall(null);
+          if (currentIncomingMediaConnection) {
+            try {
+              currentIncomingMediaConnection.close();
+            } catch {}
+            currentIncomingMediaConnection = null;
+          }
+        }
+      }
+    );
+
+    return () => {
+      unsubs();
+    };
+  }, [incomingCall?.callId]);
 
   // Outgoing ringing auto-timeout (45 seconds)
   useEffect(() => {
@@ -300,36 +367,7 @@ export function useCall() {
     }
   };
 
-  // Reject incoming call
-  const rejectCall = () => {
-    if (incomingCall) {
-      const callData = incomingCall;
 
-      // 1. Instantly broadcast decline signal over MQTT so caller stops ringing immediately
-      const payload = {
-        type: 'CALL_DECLINED',
-        callId: callData.callId,
-        callerId: callData.caller?.id,
-        by: user?.id,
-      };
-      mqttClient.publish(`orbit/call/${callData.callId}/signal`, payload);
-      if (callData.caller?.id) {
-        mqttClient.publish(`orbit/call/${callData.caller.id}/signal`, payload);
-      }
-
-      // 2. Persist to DB
-      api.put(`/calls/${callData.callId}`, { status: 'rejected' }).catch(() => {});
-
-      // 3. Teardown media connection
-      if (currentIncomingMediaConnection) {
-        try {
-          currentIncomingMediaConnection.close();
-        } catch {}
-        currentIncomingMediaConnection = null;
-      }
-      setIncomingCall(null);
-    }
-  };
 
   return {
     activeCall,

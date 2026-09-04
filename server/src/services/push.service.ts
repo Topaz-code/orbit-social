@@ -140,11 +140,11 @@ export class PushService {
           },
           data: payload.data || {},
           android: {
-            priority: 'high',
+            priority: 'HIGH',
             notification: {
-              channelId: 'default',
-              sound: 'default',
-              visibility: 'public',
+              channel_id: 'default',
+              default_sound: true,
+              visibility: 'PUBLIC',
             },
           },
         })
@@ -175,14 +175,14 @@ export class PushService {
             url: `orbit://call/${callData.callId}`,
           },
           android: {
-            priority: 'high',
+            priority: 'HIGH',
             ttl: '45s',
             notification: {
-              channelId: 'calls',
-              sound: 'default',
-              priority: 'max',
-              defaultVibrateTimings: true,
-              visibility: 'public',
+              channel_id: 'calls',
+              notification_priority: 'PRIORITY_MAX',
+              default_sound: true,
+              default_vibrate_timings: true,
+              visibility: 'PUBLIC',
             },
           },
         })

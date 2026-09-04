@@ -53,16 +53,33 @@ export function useMQTT() {
       (topic, payload) => {
         if (payload?.type === 'INCOMING_CALL' && payload.data) {
           const callData = payload.data;
-          // CRITICAL: Subscribe to the signal topic IMMEDIATELY before React
-          // re-renders — this prevents the SDP_OFFER from arriving before our
-          // subscription is set up (the race condition that killed calls)
-          mqttClient.subscribe(`orbit/call/${callData.callId}/signal`);
+          // Subscribe to the call-specific signal topic with a direct callback
+          mqttClient.subscribe(
+            `orbit/call/${callData.callId}/signal`,
+            (sigTopic, sigPayload) => {
+              if (
+                sigPayload?.type === 'CALL_DECLINED' ||
+                sigPayload?.type === 'CALL_CANCELLED' ||
+                sigPayload?.type === 'CALL_ENDED' ||
+                (sigPayload?.type === 'CALL_STATUS_CHANGED' &&
+                  (sigPayload.status === 'rejected' ||
+                    sigPayload.status === 'completed' ||
+                    sigPayload.status === 'missed'))
+              ) {
+                useCallStore.getState().setIncomingCall(null);
+                const active = useCallStore.getState().activeCall;
+                if (active && active.callId === callData.callId) {
+                  hangUpCall();
+                }
+              }
+            }
+          );
           setIncomingCall(callData);
         }
       }
     );
 
-    // 2b. Listen for direct call signals (declined, cancelled, ended)
+    // 2b. Listen for direct call signals (declined, cancelled, ended) on personal channel
     const unsubsCallSignal = mqttClient.subscribe(
       `orbit/call/${user.id}/signal`,
       (topic, payload) => {
@@ -76,7 +93,7 @@ export function useMQTT() {
           const active = useCallStore.getState().activeCall;
           const incoming = useCallStore.getState().incomingCall;
 
-          if (active && (!payload.callId || payload.callId === active.callId)) {
+          if (active) {
             if (active.status === 'ringing') {
               useDialogStore.getState().toast.info('Call declined');
             } else {
@@ -85,7 +102,7 @@ export function useMQTT() {
             hangUpCall();
           }
 
-          if (incoming && (!payload.callId || payload.callId === incoming.callId)) {
+          if (incoming) {
             useCallStore.getState().setIncomingCall(null);
           }
         }
