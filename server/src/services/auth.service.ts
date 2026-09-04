@@ -65,7 +65,13 @@ export const authService = {
       throw new Error('Failed to create account. Please try again.');
     }
 
-    const tokenPayload = { userId: user.id, username: user.username, email: user.email };
+    const tokenPayload = {
+      userId: user.id,
+      username: user.username,
+      email: user.email,
+      role: user.role,
+      is_banned: user.is_banned,
+    };
     const accessToken = generateAccessToken(tokenPayload);
     const refreshToken = generateRefreshToken(tokenPayload);
 
@@ -103,7 +109,13 @@ export const authService = {
       data: { is_online: true, last_seen: new Date() },
     });
 
-    const tokenPayload = { userId: user.id, username: user.username, email: user.email };
+    const tokenPayload = {
+      userId: user.id,
+      username: user.username,
+      email: user.email,
+      role: user.role,
+      is_banned: user.is_banned,
+    };
     const accessToken = generateAccessToken(tokenPayload, data.rememberMe ?? true);
     const refreshToken = generateRefreshToken(tokenPayload);
 
@@ -128,7 +140,13 @@ export const authService = {
       throw new Error('User not found');
     }
 
-    const tokenPayload = { userId: user.id, username: user.username, email: user.email };
+    const tokenPayload = {
+      userId: user.id,
+      username: user.username,
+      email: user.email,
+      role: user.role,
+      is_banned: user.is_banned,
+    };
     const accessToken = generateAccessToken(tokenPayload);
     const newRefreshToken = generateRefreshToken(tokenPayload);
 

@@ -5,9 +5,10 @@ import { useChat } from '../../hooks/useChat.js';
 import { useAuthStore } from '../../stores/authStore.js';
 import { Avatar } from '../ui/avatar.js';
 import { getMediaUrl, formatRelativeTime } from '../../lib/utils.js';
-import { X, ChevronLeft, ChevronRight, Send, Eye, Trash2 } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight, Send, Eye, Trash2, Flag } from 'lucide-react';
 import { STORY_DURATION_MS } from '../../lib/constants.js';
 import { confirmAction } from '../../stores/dialogStore.js';
+import { ReportDialog } from '../shared/ReportDialog.js';
 
 
 interface StoryViewerProps {
@@ -31,6 +32,7 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
   const [replyText, setReplyText] = useState('');
   const [isPaused, setIsPaused] = useState(false);
   const [replySent, setReplySent] = useState(false);
+  const [isReportOpen, setIsReportOpen] = useState(false);
   const isSubmittingRef = useRef(false);
 
 
@@ -196,7 +198,7 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
             </div>
           </div>
 
-          {currentGroup.is_self && (
+          {currentGroup.is_self ? (
             <button
               type="button"
               onClick={handleDelete}
@@ -204,6 +206,18 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
               title="Delete story"
             >
               <Trash2 className="h-4 w-4" />
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => {
+                setIsPaused(true);
+                setIsReportOpen(true);
+              }}
+              className="p-1.5 rounded-lg bg-black/40 text-white/80 hover:text-[#B87568] transition-colors"
+              title="Report story"
+            >
+              <Flag className="h-4 w-4" />
             </button>
           )}
         </div>
@@ -299,6 +313,20 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
       >
         <ChevronRight className="h-8 w-8" />
       </button>
+
+      {/* Report Story Dialog */}
+      {!currentGroup.is_self && (
+        <ReportDialog
+          isOpen={isReportOpen}
+          onClose={() => {
+            setIsReportOpen(false);
+            setIsPaused(false);
+          }}
+          reportedType="STORY"
+          reportedId={currentStory.id}
+          targetTitle={`Report story by @${currentGroup.user.username}`}
+        />
+      )}
     </div>
   );
 };

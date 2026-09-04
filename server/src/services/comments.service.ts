@@ -1,5 +1,6 @@
 import { prisma } from '../config/database.js';
 import { mqttService } from './mqtt.service.js';
+import { moderationService } from './moderation.service.js';
 
 export const commentsService = {
   async getCommentsByPostId(postId: string) {
@@ -7,6 +8,7 @@ export const commentsService = {
       where: {
         post_id: postId,
         parent_comment_id: null, // Top-level comments
+        status: { notIn: ['HIDDEN', 'REMOVED'] },
       },
       orderBy: { created_at: 'asc' },
       include: {
@@ -20,6 +22,9 @@ export const commentsService = {
           },
         },
         replies: {
+          where: {
+            status: { notIn: ['HIDDEN', 'REMOVED'] },
+          },
           orderBy: { created_at: 'asc' },
           include: {
             user: {
@@ -44,6 +49,11 @@ export const commentsService = {
     postId: string,
     data: { content: string; parent_comment_id?: string | null }
   ) {
+    const scanResult = await moderationService.scanContent(data.content);
+    if (!scanResult.isAllowed) {
+      throw new Error(scanResult.reason || 'Comment rejected by moderation system');
+    }
+
     const post = await prisma.post.findUnique({
       where: { id: postId },
       include: { user: true },

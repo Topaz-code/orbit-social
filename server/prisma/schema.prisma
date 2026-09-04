@@ -24,6 +24,13 @@ model User {
   security_question    String?  @default("What is your pet's name?")
   security_answer_hash String?  @default("")
 
+  // Trust & Safety
+  role                 String    @default("USER") // USER | MODERATOR | ADMIN
+  is_banned            Boolean   @default(false)
+  banned_until         DateTime?
+  ban_reason           String?   @default("")
+  strike_count         Int       @default(0)
+
   // Relations
   posts                 Post[]
   comments              Comment[]
@@ -40,6 +47,10 @@ model User {
   calls_initiated       Call[]               @relation("CallInitiator")
   calls_received        Call[]               @relation("CallReceiver")
   device_tokens         DeviceToken[]
+  reports_filed         Report[]             @relation("ReporterUser")
+  reports_against       Report[]             @relation("ReportedUser")
+  reports_resolved      Report[]             @relation("ReportResolver")
+  moderation_actions    ModerationLog[]      @relation("AdminModerator")
 
   @@map("users")
 }
@@ -58,6 +69,8 @@ model Post {
   shares_count   Int      @default(0)
   visibility     String   @default("public") // public, friends, private
   group_id       String?
+  status         String   @default("ACTIVE") // ACTIVE | FLAGGED | HIDDEN | REMOVED
+  report_count   Int      @default(0)
   created_at     DateTime @default(now())
   updated_at     DateTime @updatedAt
 
@@ -79,6 +92,8 @@ model Comment {
   user_id           String
   parent_comment_id String?
   content           String
+  status            String   @default("ACTIVE") // ACTIVE | FLAGGED | HIDDEN | REMOVED
+  report_count      Int      @default(0)
   created_at        DateTime @default(now())
 
   // Relations
@@ -117,6 +132,8 @@ model Story {
   caption      String?  @default("")
   text_overlay String?  @default("{}") // JSON string {text, color, position}
   viewers      String   @default("[]") // JSON string array of user IDs
+  status       String   @default("ACTIVE") // ACTIVE | FLAGGED | HIDDEN | REMOVED
+  report_count Int      @default(0)
   expires_at   DateTime
   created_at   DateTime @default(now())
 
@@ -302,3 +319,48 @@ model DeviceToken {
   @@index([user_id])
   @@map("device_tokens")
 }
+
+model Report {
+  id               String   @id @default(uuid())
+  reporter_id      String
+  reported_type    String   // POST | COMMENT | USER | STORY | MESSAGE
+  reported_id      String
+  reported_user_id String?
+  reason           String   // SPAM | HARASSMENT | NUDITY | VIOLENCE | HATE | ILLEGAL | OTHER
+  details          String?  @default("")
+  status           String   @default("PENDING") // PENDING | RESOLVED | DISMISSED
+  resolved_by      String?
+  created_at       DateTime @default(now())
+  updated_at       DateTime @updatedAt
+
+  // Relations
+  reporter      User  @relation("ReporterUser", fields: [reporter_id], references: [id], onDelete: Cascade)
+  reported_user User? @relation("ReportedUser", fields: [reported_user_id], references: [id], onDelete: Cascade)
+  resolver      User? @relation("ReportResolver", fields: [resolved_by], references: [id], onDelete: SetNull)
+
+  @@index([reporter_id])
+  @@index([reported_type, reported_id])
+  @@index([reported_user_id])
+  @@index([status])
+  @@index([created_at])
+  @@map("reports")
+}
+
+model ModerationLog {
+  id          String   @id @default(uuid())
+  admin_id    String
+  action      String   // BAN_USER | TIMEOUT_USER | UNBAN_USER | DELETE_CONTENT | HIDE_CONTENT | RESTORE_CONTENT | DISMISS_REPORT | RESOLVE_REPORT | UPDATE_ROLE
+  target_type String   // USER | POST | COMMENT | STORY | MESSAGE | REPORT
+  target_id   String
+  reason      String?  @default("")
+  created_at  DateTime @default(now())
+
+  // Relations
+  admin User @relation("AdminModerator", fields: [admin_id], references: [id], onDelete: Cascade)
+
+  @@index([admin_id])
+  @@index([target_type, target_id])
+  @@index([created_at])
+  @@map("moderation_logs")
+}
+

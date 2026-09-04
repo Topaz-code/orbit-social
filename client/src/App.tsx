@@ -20,6 +20,12 @@ const NotificationsPage = lazy(() => import('./pages/NotificationsPage.js').then
 const SearchPage = lazy(() => import('./pages/SearchPage.js').then((m) => ({ default: m.SearchPage })));
 const SettingsPage = lazy(() => import('./pages/SettingsPage.js').then((m) => ({ default: m.SettingsPage })));
 const PostPage = lazy(() => import('./pages/PostPage.js').then((m) => ({ default: m.PostPage })));
+const BannedPage = lazy(() => import('./pages/BannedPage.js').then((m) => ({ default: m.BannedPage })));
+const AdminLayout = lazy(() => import('./pages/admin/AdminLayout.js').then((m) => ({ default: m.AdminLayout })));
+const AdminOverviewPage = lazy(() => import('./pages/admin/AdminOverviewPage.js').then((m) => ({ default: m.AdminOverviewPage })));
+const AdminReportsPage = lazy(() => import('./pages/admin/AdminReportsPage.js').then((m) => ({ default: m.AdminReportsPage })));
+const AdminUsersPage = lazy(() => import('./pages/admin/AdminUsersPage.js').then((m) => ({ default: m.AdminUsersPage })));
+const AdminLogsPage = lazy(() => import('./pages/admin/AdminLogsPage.js').then((m) => ({ default: m.AdminLogsPage })));
 
 const PageLoader = () => (
   <div className="flex items-center justify-center p-12 min-h-[50vh]">
@@ -41,6 +47,37 @@ const ProtectedRoute: React.FC<{ children: React.ReactElement }> = ({ children }
 
   if (!accessToken || !user) {
     return <Navigate to="/login" replace />;
+  }
+
+  const isBanned =
+    user.is_banned || (user.banned_until && new Date(user.banned_until).getTime() > Date.now());
+  if (isBanned) {
+    return <Navigate to="/banned" replace />;
+  }
+
+  return children;
+};
+
+// Banned Route Guard (Only accessible by banned or timed out users)
+const BannedRoute: React.FC<{ children: React.ReactElement }> = ({ children }) => {
+  const { user, accessToken, isLoading } = useAuthStore();
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#171A1C]">
+        <LoadingSpinner size="lg" />
+      </div>
+    );
+  }
+
+  if (!accessToken || !user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  const isBanned =
+    user.is_banned || (user.banned_until && new Date(user.banned_until).getTime() > Date.now());
+  if (!isBanned) {
+    return <Navigate to="/" replace />;
   }
 
   return children;
@@ -99,6 +136,31 @@ export const App: React.FC = () => {
               </PublicRoute>
             }
           />
+
+          {/* Banned Notice Route */}
+          <Route
+            path="/banned"
+            element={
+              <BannedRoute>
+                <BannedPage />
+              </BannedRoute>
+            }
+          />
+
+          {/* Admin / Trust & Safety Routes */}
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute>
+                <AdminLayout />
+              </ProtectedRoute>
+            }
+          >
+            <Route index element={<AdminOverviewPage />} />
+            <Route path="reports" element={<AdminReportsPage />} />
+            <Route path="users" element={<AdminUsersPage />} />
+            <Route path="logs" element={<AdminLogsPage />} />
+          </Route>
 
           {/* Protected Dashboard Routes */}
           <Route

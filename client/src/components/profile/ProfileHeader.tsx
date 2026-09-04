@@ -13,11 +13,13 @@ import {
   UserCheck,
   UserX,
   Shield,
+  Flag,
 } from 'lucide-react';
 import { formatRelativeTime, getMediaUrl } from '../../lib/utils.js';
 import { useChat } from '../../hooks/useChat.js';
 import { useCall } from '../../hooks/useCall.js';
 import { useNavigate } from 'react-router-dom';
+import { ReportDialog } from '../shared/ReportDialog.js';
 
 interface ProfileHeaderProps {
   user: User;
@@ -45,6 +47,7 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
   const navigate = useNavigate();
   const { startConversation } = useChat();
   const { startCall } = useCall();
+  const [isReportOpen, setIsReportOpen] = useState(false);
 
   const handleStartDirectChat = async () => {
     const conv = await startConversation(user.id);
@@ -155,6 +158,16 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
                 >
                   <Phone className="h-4 w-4" />
                 </Button>
+
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  onClick={() => setIsReportOpen(true)}
+                  title="Report User"
+                  className="rounded-[10px] text-[#B87568] hover:bg-[#B87568]/20 hover:text-[#C98679]"
+                >
+                  <Flag className="h-4 w-4" />
+                </Button>
               </>
             )}
           </div>
@@ -163,9 +176,26 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
         {/* User Bio and Meta Stats */}
         <div className="space-y-2">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight text-[#D9D0B8]">
-              {user.display_name}
-            </h1>
+            <div className="flex items-center gap-2 flex-wrap">
+              <h1 className="text-2xl font-bold tracking-tight text-[#D9D0B8]">
+                {user.display_name}
+              </h1>
+              {user.is_banned && (
+                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-[#B87568]/20 text-[#B87568] border border-[#B87568]/40">
+                  Suspended
+                </span>
+              )}
+              {user.role === 'ADMIN' && (
+                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-[#D0A56A]/20 text-[#D0A56A] border border-[#D0A56A]/40">
+                  Admin
+                </span>
+              )}
+              {user.role === 'MODERATOR' && (
+                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-[#496D6B]/20 text-[#71877B] border border-[#496D6B]/40">
+                  Moderator
+                </span>
+              )}
+            </div>
             <p className="text-sm text-[#A8AAA0] font-medium">@{user.username}</p>
           </div>
 
@@ -199,7 +229,17 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Report User Dialog */}
+      {!isSelf && (
+        <ReportDialog
+          isOpen={isReportOpen}
+          onClose={() => setIsReportOpen(false)}
+          reportedType="USER"
+          reportedId={user.id}
+          targetTitle={`Report @${user.username}`}
+        />
+      )}
     </div>
   );
-
 };

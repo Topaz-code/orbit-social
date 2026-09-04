@@ -31,6 +31,8 @@ import callsRoutes from './routes/calls.routes.js';
 import deviceRoutes from './routes/device.routes.js';
 import searchRoutes from './routes/search.routes.js';
 import uploadRoutes from './routes/upload.routes.js';
+import reportsRoutes from './routes/reports.routes.js';
+import adminRoutes from './routes/admin.routes.js';
 import { usersService } from './services/users.service.js';
 
 import { auditService } from './services/audit.service.js';
@@ -224,6 +226,8 @@ app.use('/api/calls', callsRoutes);
 app.use('/api/device', deviceRoutes);
 app.use('/api/search', searchRoutes);
 app.use('/api/upload', uploadRoutes);
+app.use('/api/reports', reportsRoutes);
+app.use('/api/admin', adminRoutes);
 
 // 8. Error Handling Middleware
 app.use(notFoundHandler);

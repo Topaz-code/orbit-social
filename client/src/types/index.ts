@@ -18,6 +18,11 @@ export interface User {
   friendship_status?: 'none' | 'pending_sent' | 'pending_received' | 'friends' | 'blocked';
   friendship_id?: string | null;
   is_self?: boolean;
+  role?: 'USER' | 'MODERATOR' | 'ADMIN' | string;
+  is_banned?: boolean;
+  banned_until?: string | null;
+  ban_reason?: string | null;
+  strike_count?: number;
 }
 
 export interface PrivacySettings {
@@ -50,6 +55,8 @@ export interface Post {
   shares_count: number;
   visibility: 'public' | 'friends' | 'private';
   group_id?: string | null;
+  status?: 'ACTIVE' | 'FLAGGED' | 'HIDDEN' | 'REMOVED';
+  report_count?: number;
   created_at: string;
   updated_at: string;
   user: {
@@ -68,6 +75,8 @@ export interface Comment {
   user_id: string;
   parent_comment_id?: string | null;
   content: string;
+  status?: 'ACTIVE' | 'FLAGGED' | 'HIDDEN' | 'REMOVED';
+  report_count?: number;
   created_at: string;
   user: {
     id: string;
@@ -101,6 +110,8 @@ export interface Story {
     display_name: string;
     avatar_url: string;
   }>;
+  status?: 'ACTIVE' | 'FLAGGED' | 'HIDDEN' | 'REMOVED';
+  report_count?: number;
   expires_at: string;
   created_at: string;
   user: {
@@ -296,4 +307,67 @@ export interface ActiveCallState {
   isVideoOff: boolean;
   isSpeakerOn: boolean;
   duration: number;
+}
+
+export interface Report {
+  id: string;
+  reporter_id: string;
+  reported_type: 'POST' | 'COMMENT' | 'USER' | 'STORY' | 'MESSAGE';
+  reported_id: string;
+  reported_user_id?: string | null;
+  reason: 'SPAM' | 'HARASSMENT' | 'NUDITY' | 'VIOLENCE' | 'HATE' | 'ILLEGAL' | 'OTHER';
+  details?: string;
+  status: 'PENDING' | 'RESOLVED' | 'DISMISSED';
+  resolved_by?: string | null;
+  created_at: string;
+  updated_at: string;
+  reporter?: {
+    id: string;
+    username: string;
+    display_name: string;
+    avatar_url: string;
+  };
+  reported_user?: {
+    id: string;
+    username: string;
+    display_name: string;
+    avatar_url: string;
+    is_banned?: boolean;
+    strike_count?: number;
+  } | null;
+  resolver?: {
+    id: string;
+    username: string;
+    display_name: string;
+  } | null;
+  contentPreview?: {
+    text?: string;
+    media_url?: string;
+    media_type?: string;
+  } | null;
+  contentStatus?: string;
+}
+
+export interface ModerationLog {
+  id: string;
+  admin_id: string;
+  action: string;
+  target_type: string;
+  target_id: string;
+  reason?: string;
+  created_at: string;
+  admin?: {
+    id: string;
+    username: string;
+    display_name: string;
+    avatar_url: string;
+  };
+}
+
+export interface AdminMetrics {
+  pendingReportsCount: number;
+  hiddenPostsCount: number;
+  bannedUsersCount: number;
+  actionsTodayCount: number;
+  recentLogs: ModerationLog[];
 }

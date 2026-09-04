@@ -4,6 +4,8 @@ export interface TokenPayload {
   userId: string;
   username: string;
   email: string;
+  role?: 'USER' | 'MODERATOR' | 'ADMIN' | string;
+  is_banned?: boolean;
 }
 
 export interface AuthenticatedRequest extends Request {
