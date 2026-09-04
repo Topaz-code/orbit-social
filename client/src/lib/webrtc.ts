@@ -72,6 +72,21 @@ export class PeerManager {
         console.log('[PeerJS] Received incoming call from:', incomingCall.peer);
         const metadata = (incomingCall.metadata || {}) as CallMetadata;
         this.currentCall = incomingCall;
+
+        // Bind close & error listeners immediately so if the caller cuts/cancels
+        // while it's still ringing, the receiver terminates ringing right away.
+        incomingCall.on('close', () => {
+          console.log('[PeerJS] Incoming call closed/cancelled by remote peer');
+          this.cleanupCurrentCall();
+          this.callbacks.onCallEnded();
+        });
+
+        incomingCall.on('error', (err) => {
+          console.error('[PeerJS] Incoming call media connection error:', err);
+          this.cleanupCurrentCall();
+          this.callbacks.onCallEnded();
+        });
+
         this.callbacks.onIncomingCall(incomingCall, metadata);
       });
 

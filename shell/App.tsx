@@ -33,11 +33,18 @@ type WebViewMessageEvent = Parameters<NonNullable<React.ComponentProps<typeof We
 
 // Configure background vs foreground notification behavior
 Notifications.setNotificationHandler({
-  handleNotification: async () => {
+  handleNotification: async (notification) => {
+    const data = notification.request.content.data as Record<string, unknown> | undefined;
+    const isCall =
+      data?.type === 'call' ||
+      notification.request.content.categoryIdentifier === 'calls' ||
+      (notification.request.trigger as any)?.channelId === 'calls';
+
     const foreground = AppState.currentState === 'active';
+
     return {
-      shouldShowAlert: !foreground,
-      shouldPlaySound: !foreground,
+      shouldShowAlert: isCall ? true : !foreground,
+      shouldPlaySound: isCall ? true : !foreground,
       shouldSetBadge: false,
     };
   },

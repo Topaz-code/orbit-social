@@ -19,14 +19,11 @@ export function useCallPermissions() {
   }, []);
 
   const ensureNotificationPermission = useCallback(async () => {
-    if (notifPromptedRef.current) return;
-    notifPromptedRef.current = true;
     try {
       const current = await Notifications.getPermissionsAsync();
       if (!current.granted && current.canAskAgain) {
         await Notifications.requestPermissionsAsync();
       }
-      await SecureStore.setItemAsync(NOTIF_PROMPT_FLAG, '1');
     } catch {
       // Non-fatal
     }

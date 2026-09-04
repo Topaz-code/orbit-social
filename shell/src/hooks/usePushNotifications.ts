@@ -16,6 +16,16 @@ export function usePushNotifications({
 
   const registerPushToken = useCallback(async () => {
     try {
+      const { status: existingStatus } = await Notifications.getPermissionsAsync();
+      let finalStatus = existingStatus;
+      if (existingStatus !== 'granted') {
+        const { status } = await Notifications.requestPermissionsAsync();
+        finalStatus = status;
+      }
+      if (finalStatus !== 'granted') {
+        console.warn('[PushNotifications] Notification permission not granted');
+      }
+
       const deviceToken = await Notifications.getDevicePushTokenAsync();
       fcmTokenRef.current = deviceToken.data;
       console.log('[PushNotifications] FCM device token acquired:', deviceToken.data);
@@ -37,6 +47,13 @@ export function usePushNotifications({
           lightColor: THEME.colors.gold,
           sound: 'default',
           enableVibrate: true,
+          lockscreenVisibility: Notifications.AndroidNotificationVisibility.PUBLIC,
+          bypassDnd: true,
+          showBadge: true,
+          audioAttributes: {
+            usage: Notifications.AndroidAudioUsage.NOTIFICATION_RINGTONE,
+            contentType: Notifications.AndroidAudioContentType.SONIFICATION,
+          },
         });
 
         // High importance for standard messages & notifications
