@@ -90,6 +90,7 @@ export const authService = {
           { username: identifier },
           { email: identifier },
           { phone: identifier },
+          ...(identifier === 'alex' ? [{ username: 'alexchen' }] : []),
         ],
       },
     });

@@ -5,6 +5,8 @@ import { useAuthStore } from '../stores/authStore.js';
 import { useNotificationStore } from '../stores/notificationStore.js';
 import { useChatStore } from '../stores/chatStore.js';
 import { useCallStore } from '../stores/callStore.js';
+import { useDialogStore } from '../stores/dialogStore.js';
+import { hangUpCall } from './useCall.js';
 import { Post } from '../types/index.js';
 
 export function useMQTT() {
@@ -60,6 +62,36 @@ export function useMQTT() {
       }
     );
 
+    // 2b. Listen for direct call signals (declined, cancelled, ended)
+    const unsubsCallSignal = mqttClient.subscribe(
+      `orbit/call/${user.id}/signal`,
+      (topic, payload) => {
+        if (
+          payload?.type === 'CALL_DECLINED' ||
+          payload?.type === 'CALL_CANCELLED' ||
+          payload?.type === 'CALL_ENDED' ||
+          (payload?.type === 'CALL_STATUS_CHANGED' &&
+            (payload.status === 'rejected' || payload.status === 'completed' || payload.status === 'missed'))
+        ) {
+          const active = useCallStore.getState().activeCall;
+          const incoming = useCallStore.getState().incomingCall;
+
+          if (active && (!payload.callId || payload.callId === active.callId)) {
+            if (active.status === 'ringing') {
+              useDialogStore.getState().toast.info('Call declined');
+            } else {
+              useDialogStore.getState().toast.info('Call ended');
+            }
+            hangUpCall();
+          }
+
+          if (incoming && (!payload.callId || payload.callId === incoming.callId)) {
+            useCallStore.getState().setIncomingCall(null);
+          }
+        }
+      }
+    );
+
 
     // 3. Listen for global feed creations
     const unsubsNewPost = mqttClient.subscribe('orbit/feed/new', (topic, payload) => {
@@ -111,6 +143,7 @@ export function useMQTT() {
     return () => {
       unsubsNotif();
       unsubsCall();
+      unsubsCallSignal();
       unsubsNewPost();
       unsubsPostUpdate();
       unsubsPresence();

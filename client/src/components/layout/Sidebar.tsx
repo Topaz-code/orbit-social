@@ -83,7 +83,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onOpenNewPost }) => {
           </NavLink>
         ))}
 
-        {(user?.role === 'ADMIN' || user?.role === 'MODERATOR') && (
+        {(user?.role?.toUpperCase() === 'ADMIN' || user?.role?.toUpperCase() === 'MODERATOR') && (
           <NavLink
             to="/admin"
             className={({ isActive }) =>

@@ -5,13 +5,13 @@ import { PeerManager, CallMetadata } from '../lib/webrtc.js';
 import { api } from '../lib/api.js';
 import { MediaConnection } from 'peerjs';
 import { useDialogStore } from '../stores/dialogStore.js';
-
+import { mqttClient } from '../lib/mqtt.js';
 
 // Hold single MediaConnection reference for incoming call answering
 let currentIncomingMediaConnection: MediaConnection | null = null;
 let peerManagerInstance: PeerManager | null = null;
 
-function getPeerManager(): PeerManager {
+export function getPeerManager(): PeerManager {
   if (!peerManagerInstance) {
     peerManagerInstance = new PeerManager({
       onIncomingCall: (mediaConn, metadata) => {
@@ -48,6 +48,13 @@ function getPeerManager(): PeerManager {
     });
   }
   return peerManagerInstance;
+}
+
+export function hangUpCall(): void {
+  const pm = getPeerManager();
+  pm.hangUp();
+  currentIncomingMediaConnection = null;
+  useCallStore.getState().endCall();
 }
 
 const AUDIO_CONSTRAINTS: MediaTrackConstraints = {
@@ -103,17 +110,71 @@ export function useCall() {
   const endCall = useCallback(() => {
     const currentActive = useCallStore.getState().activeCall;
     if (currentActive) {
+      const isRinging = currentActive.status === 'ringing';
+      const newStatus = isRinging ? 'missed' : 'completed';
+      const signalType = isRinging ? 'CALL_CANCELLED' : 'CALL_ENDED';
+
+      const payload = {
+        type: signalType,
+        callId: currentActive.callId,
+        status: newStatus,
+        by: user?.id,
+      };
+
+      // Notify remote peer instantly over MQTT so ringing or active call halts immediately
+      mqttClient.publish(`orbit/call/${currentActive.callId}/signal`, payload);
+      if (currentActive.remoteUser?.id) {
+        mqttClient.publish(`orbit/call/${currentActive.remoteUser.id}/signal`, payload);
+      }
+
       api.put(`/calls/${currentActive.callId}`, {
-        status: 'completed',
+        status: newStatus,
         duration: currentActive.duration,
       }).catch(() => {});
     }
 
-    const pm = getPeerManager();
-    pm.hangUp();
-    currentIncomingMediaConnection = null;
-    storeEndCall();
-  }, [storeEndCall]);
+    hangUpCall();
+  }, [user?.id]);
+
+  // Listen for signals targeting the active call specifically (e.g. CALL_DECLINED)
+  useEffect(() => {
+    if (!activeCall?.callId) return;
+
+    const unsubs = mqttClient.subscribe(
+      `orbit/call/${activeCall.callId}/signal`,
+      (topic, payload) => {
+        if (
+          payload?.type === 'CALL_DECLINED' ||
+          payload?.type === 'CALL_CANCELLED' ||
+          payload?.type === 'CALL_ENDED' ||
+          (payload?.type === 'CALL_STATUS_CHANGED' &&
+            (payload.status === 'rejected' || payload.status === 'completed' || payload.status === 'missed'))
+        ) {
+          if (activeCall.status === 'ringing') {
+            useDialogStore.getState().toast.info('Call declined');
+          } else {
+            useDialogStore.getState().toast.info('Call ended');
+          }
+          hangUpCall();
+        }
+      }
+    );
+
+    return () => {
+      unsubs();
+    };
+  }, [activeCall?.callId, activeCall?.status]);
+
+  // Outgoing ringing auto-timeout (45 seconds)
+  useEffect(() => {
+    if (activeCall?.status === 'ringing') {
+      const timer = setTimeout(() => {
+        useDialogStore.getState().toast.info('No answer');
+        endCall();
+      }, 45000);
+      return () => clearTimeout(timer);
+    }
+  }, [activeCall?.status, endCall]);
 
   // Start outgoing call
   const startCall = async (
@@ -161,6 +222,9 @@ export function useCall() {
         isSpeakerOn: true,
         duration: 0,
       });
+
+      // Subscribe to signal topic for this call specifically
+      mqttClient.subscribe(`orbit/call/${callId}/signal`);
 
       // 4. Dial via PeerJS
       const pm = getPeerManager();
@@ -233,7 +297,24 @@ export function useCall() {
   // Reject incoming call
   const rejectCall = () => {
     if (incomingCall) {
-      api.put(`/calls/${incomingCall.callId}`, { status: 'rejected' }).catch(() => {});
+      const callData = incomingCall;
+
+      // 1. Instantly broadcast decline signal over MQTT so caller stops ringing immediately
+      const payload = {
+        type: 'CALL_DECLINED',
+        callId: callData.callId,
+        callerId: callData.caller?.id,
+        by: user?.id,
+      };
+      mqttClient.publish(`orbit/call/${callData.callId}/signal`, payload);
+      if (callData.caller?.id) {
+        mqttClient.publish(`orbit/call/${callData.caller.id}/signal`, payload);
+      }
+
+      // 2. Persist to DB
+      api.put(`/calls/${callData.callId}`, { status: 'rejected' }).catch(() => {});
+
+      // 3. Teardown media connection
       if (currentIncomingMediaConnection) {
         try {
           currentIncomingMediaConnection.close();

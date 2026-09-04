@@ -48,6 +48,7 @@ class OrbitMQTTClient {
         this.subscribe(`orbit/user/${userId}/status`);
         this.subscribe(`orbit/user/${userId}/notifications`);
         this.subscribe(`orbit/call/${userId}/incoming`);
+        this.subscribe(`orbit/call/${userId}/signal`);
         this.subscribe('orbit/feed/new');
         this.subscribe('orbit/feed/update');
         this.subscribe('orbit/story/new');

@@ -88,6 +88,18 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewPost, onOpenNewStory })
           </Button>
         )}
 
+        {(user?.role?.toUpperCase() === 'ADMIN' || user?.role?.toUpperCase() === 'MODERATOR') && (
+          <Button
+            size="sm"
+            onClick={() => navigate('/admin')}
+            className="bg-[#D0A56A]/15 hover:bg-[#D0A56A]/25 text-[#D0A56A] border border-[#D0A56A]/40 font-semibold flex items-center gap-1.5"
+            title="Trust & Safety Admin Dashboard"
+          >
+            <ShieldAlert className="h-4 w-4 text-[#D0A56A]" />
+            <span className="hidden md:inline">Admin</span>
+          </Button>
+        )}
+
         {/* Notifications Dropdown */}
         <DropdownMenu
           trigger={
@@ -177,7 +189,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewPost, onOpenNewStory })
               <span>Settings & Privacy</span>
             </DropdownItem>
 
-            {(user?.role === 'ADMIN' || user?.role === 'MODERATOR') && (
+            {(user?.role?.toUpperCase() === 'ADMIN' || user?.role?.toUpperCase() === 'MODERATOR') && (
               <DropdownItem onClick={() => navigate('/admin')}>
                 <ShieldAlert className="h-4 w-4 text-[#D0A56A]" />
                 <span className="text-[#D0A56A] font-semibold">Admin Dashboard</span>

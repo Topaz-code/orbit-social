@@ -290,19 +290,19 @@ async function runTests() {
       },
       json(payload: any) { return this; },
     };
-    requireAdmin({ user: { userId: authorUser.id, role: 'USER' } } as any, mockResUser, () => {});
+    await requireAdmin({ user: { userId: authorUser.id, role: 'USER' } } as any, mockResUser, () => {});
     assert(adminDenied, 'requireAdmin rejects regular USER with 403 Forbidden');
 
     // 7b. requireAdmin with ADMIN
     let adminAllowed = false;
-    requireAdmin({ user: { userId: adminUser.id, role: 'ADMIN' } } as any, {} as any, () => {
+    await requireAdmin({ user: { userId: adminUser.id, role: 'ADMIN' } } as any, {} as any, () => {
       adminAllowed = true;
     });
     assert(adminAllowed, 'requireAdmin allows ADMIN role');
 
     // 7c. requireAdmin with MODERATOR
     let modAllowed = false;
-    requireAdmin({ user: { userId: modUser.id, role: 'MODERATOR' } } as any, {} as any, () => {
+    await requireAdmin({ user: { userId: modUser.id, role: 'MODERATOR' } } as any, {} as any, () => {
       modAllowed = true;
     });
     assert(modAllowed, 'requireAdmin allows MODERATOR role');

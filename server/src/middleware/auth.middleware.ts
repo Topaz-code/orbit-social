@@ -39,13 +39,28 @@ export function optionalAuthenticate(req: AuthenticatedRequest, res: Response, n
 /**
  * Ensures user has ADMIN or MODERATOR role.
  */
-export function requireAdmin(req: AuthenticatedRequest, res: Response, next: NextFunction): void {
+export async function requireAdmin(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
   if (!req.user) {
     res.status(401).json({ success: false, message: 'Authentication required' });
     return;
   }
 
-  const role = req.user.role?.toUpperCase();
+  let role = req.user.role?.toUpperCase();
+
+  // If token was issued before role was added or role is missing, query database directly
+  if ((!role || role === 'USER') && req.user.userId) {
+    try {
+      const dbUser = await prisma.user.findUnique({
+        where: { id: req.user.userId },
+        select: { role: true },
+      });
+      if (dbUser?.role) {
+        role = dbUser.role.toUpperCase();
+        req.user.role = role;
+      }
+    } catch {}
+  }
+
   if (role !== 'ADMIN' && role !== 'MODERATOR') {
     res.status(403).json({
       success: false,
