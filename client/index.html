@@ -31,6 +31,23 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400..600;1,400..600&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+    <!-- Anti-Clickjacking Frame-Busting Defense (OWASP / Zero-Trust) -->
+    <style id="antiClickjack">
+      html {
+        display: none !important;
+      }
+    </style>
+    <script>
+      if (self === top) {
+        var antiClickjack = document.getElementById("antiClickjack");
+        if (antiClickjack && antiClickjack.parentNode) {
+          antiClickjack.parentNode.removeChild(antiClickjack);
+        }
+      } else {
+        top.location = self.location;
+      }
+    </script>
   </head>
   <body class="h-full bg-[#171A1C] text-[#D9D0B8] font-sans antialiased selection:bg-[#496D6B] selection:text-[#D9D0B8] overflow-x-hidden">
     <div id="root" class="h-full flex flex-col"></div>

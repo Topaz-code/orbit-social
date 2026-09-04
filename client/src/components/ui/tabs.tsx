@@ -52,7 +52,7 @@ export const TabsTrigger: React.FC<{
       type="button"
       onClick={() => context.onValueChange(value)}
       className={cn(
-        'inline-flex items-center justify-center whitespace-nowrap rounded-[8px] px-3.5 py-1.5 text-xs font-semibold transition-all focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50',
+        'inline-flex items-center justify-center whitespace-nowrap rounded-[8px] px-3.5 py-1.5 text-xs font-semibold transition-[background-color,color,transform] duration-150 ease-out active:scale-[0.98] focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50',
         isActive
           ? 'bg-[#496D6B] text-[#D9D0B8] shadow-xs font-bold'
           : 'text-[#A8AAA0] hover:text-[#D9D0B8]',

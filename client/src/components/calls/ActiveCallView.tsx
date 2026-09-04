@@ -169,7 +169,7 @@ export const ActiveCallView: React.FC = () => {
           <button
             type="button"
             onClick={toggleSpeaker}
-            className="flex h-9 w-9 items-center justify-center rounded-full bg-[#2B3940] hover:bg-[#34444c] text-[#D9D0B8] border border-[#3A4B4D] transition-all"
+            className="flex h-9 w-9 items-center justify-center rounded-full bg-[#2B3940] hover:bg-[#34444c] text-[#D9D0B8] border border-[#3A4B4D] transition-[background-color,transform] duration-150 ease-out active:scale-95"
             title="Toggle Speaker"
           >
             {activeCall.isSpeakerOn ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
@@ -247,7 +247,7 @@ export const ActiveCallView: React.FC = () => {
             <button
               type="button"
               onClick={handleToggleScreenShare}
-              className={`flex h-15 w-15 sm:h-16 sm:w-16 items-center justify-center rounded-full transition-all border shadow-xl active:scale-95 ${
+              className={`flex h-15 w-15 sm:h-16 sm:w-16 items-center justify-center rounded-full transition-[transform,background-color,border-color] duration-150 ease-out border shadow-xl active:scale-95 ${
                 isSharingScreen
                   ? 'bg-[#496D6B] text-[#D9D0B8] border-[#71877B]'
                   : 'bg-[#202A2D] hover:bg-[#2B3940] text-[#D9D0B8] border-[#3A4B4D]'
@@ -264,7 +264,7 @@ export const ActiveCallView: React.FC = () => {
             <button
               type="button"
               onClick={toggleVideo}
-              className={`flex h-15 w-15 sm:h-16 sm:w-16 items-center justify-center rounded-full transition-all border shadow-xl active:scale-95 ${
+              className={`flex h-15 w-15 sm:h-16 sm:w-16 items-center justify-center rounded-full transition-[transform,background-color,border-color] duration-150 ease-out border shadow-xl active:scale-95 ${
                 activeCall.isVideoOff
                   ? 'bg-[#202A2D] text-[#A8AAA0] border-[#3A4B4D] hover:bg-[#2B3940]'
                   : 'bg-[#496D6B] text-[#D9D0B8] border-[#71877B] hover:bg-[#5a7d78]'
@@ -287,7 +287,7 @@ export const ActiveCallView: React.FC = () => {
             <button
               type="button"
               onClick={endCall}
-              className="flex h-15 w-15 sm:h-16 sm:w-16 items-center justify-center rounded-full bg-[#B87568] hover:bg-[#C98679] text-[#171A1C] shadow-2xl transition-transform active:scale-90 border-2 border-[#B87568]"
+              className="flex h-15 w-15 sm:h-16 sm:w-16 items-center justify-center rounded-full bg-[#B87568] hover:bg-[#C98679] text-[#171A1C] shadow-2xl transition-[transform,background-color] duration-150 ease-out active:scale-95 border-2 border-[#B87568]"
               title="End Call"
             >
               <SolidEndCallIcon className="h-7 w-7 sm:h-8 sm:w-8" />
@@ -300,7 +300,7 @@ export const ActiveCallView: React.FC = () => {
             <button
               type="button"
               onClick={toggleMute}
-              className={`flex h-15 w-15 sm:h-16 sm:w-16 items-center justify-center rounded-full transition-all border shadow-xl active:scale-95 ${
+              className={`flex h-15 w-15 sm:h-16 sm:w-16 items-center justify-center rounded-full transition-[transform,background-color,border-color] duration-150 ease-out border shadow-xl active:scale-95 ${
                 activeCall.isMuted
                   ? 'bg-[#B87568] text-[#171A1C] border-[#B87568]'
                   : 'bg-[#202A2D] hover:bg-[#2B3940] text-[#D9D0B8] border-[#3A4B4D]'

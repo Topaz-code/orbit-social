@@ -4,7 +4,7 @@ import { cn } from '../../lib/utils.js';
 import { Loader2 } from 'lucide-react';
 
 const buttonVariants = cva(
-  'inline-flex items-center justify-center whitespace-nowrap rounded-[10px] text-sm font-semibold transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#496D6B] disabled:pointer-events-none disabled:opacity-40 active:scale-[0.98]',
+  'inline-flex items-center justify-center whitespace-nowrap rounded-[10px] text-sm font-semibold transition-[transform,background-color,border-color,color,opacity] duration-150 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#496D6B] disabled:pointer-events-none disabled:opacity-40 active:scale-[0.98]',
   {
     variants: {
       variant: {

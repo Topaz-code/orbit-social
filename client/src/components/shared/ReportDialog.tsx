@@ -142,7 +142,7 @@ export const ReportDialog: React.FC<ReportDialogProps> = ({
                   <label
                     key={r.id}
                     onClick={() => setSelectedReason(r.id)}
-                    className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
+                    className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-[background-color,border-color,color,transform] duration-150 ease-out active:scale-[0.99] ${
                       isSelected
                         ? 'bg-[#D0A56A]/10 border-[#D0A56A] text-[#D9D0B8]'
                         : 'bg-[#171A1C]/50 border-[#3A4B4D] text-[#A8AAA0] hover:bg-[#2B3940]/50 hover:text-[#D9D0B8]'

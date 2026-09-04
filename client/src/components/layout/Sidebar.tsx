@@ -64,7 +64,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onOpenNewPost }) => {
             to={item.to}
             className={({ isActive }) =>
               cn(
-                'flex items-center justify-between px-3.5 py-2.5 rounded-[10px] text-sm font-medium transition-all group',
+                'flex items-center justify-between px-3.5 py-2.5 rounded-[10px] text-sm font-medium transition-[background-color,color,transform] duration-150 ease-out active:scale-[0.98] group',
                 isActive
                   ? 'bg-[#496D6B] text-[#D9D0B8] font-bold shadow-xs'
                   : 'text-[#A8AAA0] hover:bg-[#2B3940] hover:text-[#D9D0B8]'
@@ -95,7 +95,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onOpenNewPost }) => {
             to="/admin"
             className={({ isActive }) =>
               cn(
-                'flex items-center justify-between px-3.5 py-2.5 rounded-[10px] text-sm font-medium transition-all group mt-2 border border-[#D0A56A]/30',
+                'flex items-center justify-between px-3.5 py-2.5 rounded-[10px] text-sm font-medium transition-[background-color,color,transform] duration-150 ease-out active:scale-[0.98] group mt-2 border border-[#D0A56A]/30',
                 isActive
                   ? 'bg-[#D0A56A]/20 text-[#D0A56A] font-bold shadow-xs'
                   : 'text-[#D0A56A] hover:bg-[#D0A56A]/10'
@@ -114,7 +114,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onOpenNewPost }) => {
       {onOpenNewPost && (
         <button
           onClick={onOpenNewPost}
-          className="my-3 shrink-0 flex items-center justify-center gap-2 w-full py-2.5 px-4 rounded-[10px] font-semibold text-sm text-[#171A1C] bg-[#D0A56A] hover:bg-[#E0B779] active:scale-[0.98] transition-all"
+          className="my-3 shrink-0 flex items-center justify-center gap-2 w-full py-2.5 px-4 rounded-[10px] font-semibold text-sm text-[#171A1C] bg-[#D0A56A] hover:bg-[#E0B779] active:scale-[0.98] transition-[background-color,transform] duration-150 ease-out"
         >
           <PlusCircle className="h-4 w-4" />
           <span>New Post</span>
