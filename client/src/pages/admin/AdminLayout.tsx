@@ -14,7 +14,8 @@ export const AdminLayout: React.FC = () => {
   }
 
   // Access Control: Only ADMIN or MODERATOR allowed
-  const isAuthorized = user?.role === 'ADMIN' || user?.role === 'MODERATOR';
+  const role = user?.role?.toUpperCase();
+  const isAuthorized = role === 'ADMIN' || role === 'MODERATOR';
   if (!user || !isAuthorized) {
     return <Navigate to="/" replace />;
   }

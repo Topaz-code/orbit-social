@@ -91,23 +91,6 @@ The app will be accessible at:
 
 ---
 
-## Demo Accounts
-
-All accounts share the password `orbit123` and security answer `shadow`.
-
-| Username | Name | Interests |
-|---|---|---|
-| `alexchen` | Alex Chen | Astronomy, Coding, Sci-Fi |
-| `sarahj` | Sarah Jenkins | Film Photography |
-| `emilyw` | Emily Watson | Indie Music, Vinyl Records |
-| `davidm` | David Martinez | Trail Running, Bouldering |
-| `maya_p` | Maya Patel | Robotics, Hardware |
-| `liam_k` | Liam Kowalski | Game Development, Pixel Art |
-| `zoe_r` | Zoe Rivera | Graphic Design, Typography |
-| `jordan_b` | Jordan Brooks | Coffee Roasting, Skateboarding |
-
----
-
 ## Project Structure
 
 ```

@@ -52,6 +52,10 @@ export const mqttService = {
     publishMQTT(`orbit/call/${callId}/signal`, signalData);
   },
 
+  sendUserCallSignal(userId: string, signalData: any) {
+    publishMQTT(`orbit/call/${userId}/signal`, signalData);
+  },
+
   // Incoming Call Alert
   notifyIncomingCall(userId: string, callData: any) {
     publishMQTT(`orbit/call/${userId}/incoming`, {

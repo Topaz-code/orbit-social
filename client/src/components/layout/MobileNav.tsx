@@ -4,15 +4,19 @@ import { cn } from '../../lib/utils.js';
 import { useAuthStore } from '../../stores/authStore.js';
 import { useNotificationStore } from '../../stores/notificationStore.js';
 import { AnimatedIcon, AnimatedIconName } from '../ui/AnimatedIcon.js';
+import { ShieldAlert } from 'lucide-react';
 
 export const MobileNav: React.FC = () => {
   const { user } = useAuthStore();
   const { unreadCount } = useNotificationStore();
 
+  const isAdminOrMod = user?.role?.toUpperCase() === 'ADMIN' || user?.role?.toUpperCase() === 'MODERATOR';
+
   const navItems: Array<{
     label: string;
     to: string;
-    iconName: AnimatedIconName;
+    iconName?: AnimatedIconName;
+    customIcon?: React.ElementType;
     badge?: number;
   }> = [
     { label: 'Feed', to: '/', iconName: 'home' },
@@ -25,6 +29,7 @@ export const MobileNav: React.FC = () => {
       iconName: 'bell',
       badge: unreadCount > 0 ? unreadCount : undefined,
     },
+    ...(isAdminOrMod ? [{ label: 'Admin', to: '/admin', customIcon: ShieldAlert }] : []),
     { label: 'Profile', to: user ? `/profile/${user.id}` : '/profile', iconName: 'user' },
   ];
 
@@ -45,7 +50,11 @@ export const MobileNav: React.FC = () => {
           }
         >
           <div className="relative flex items-center justify-center">
-            <AnimatedIcon name={item.iconName} size={22} />
+            {item.customIcon ? (
+              <item.customIcon className="h-5 w-5 text-[#D0A56A]" />
+            ) : (
+              <AnimatedIcon name={item.iconName!} size={22} />
+            )}
             {item.badge !== undefined && (
               <span className="absolute -top-1.5 -right-2.5 flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-[#B87568] px-0.5 text-[9px] font-bold text-white shadow-sm">
                 {item.badge > 9 ? '9+' : item.badge}

@@ -137,14 +137,18 @@ export const callsService = {
       },
     });
 
-    // Notify other participant of status change
+    // Notify participants of status change
     const otherUserId = call.caller_id === userId ? call.receiver_id : call.caller_id;
-    mqttService.sendCallSignal(callId, {
+    const signalPayload = {
       type: 'CALL_STATUS_CHANGED',
       callId,
       status: data.status,
       duration: updated.duration,
-    });
+      byUserId: userId,
+    };
+    mqttService.sendCallSignal(callId, signalPayload);
+    mqttService.sendUserCallSignal(call.caller_id, signalPayload);
+    mqttService.sendUserCallSignal(call.receiver_id, signalPayload);
 
     // If missed or rejected, send notification if receiver missed caller's call
     if (data.status === 'missed' && call.caller_id !== otherUserId) {

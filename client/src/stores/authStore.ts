@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { User } from '../types/index.js';
 import { mqttClient } from '../lib/mqtt.js';
 import { destroyPeerInstance } from '../lib/peer.js';
+import { api } from '../lib/api.js';
 
 interface AuthState {
   user: User | null;
@@ -80,6 +81,15 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           isAuthenticated: true,
           isLoading: false,
         });
+
+        // Always re-sync user profile with server to catch up role/ban changes
+        api.get('/auth/me').then((res) => {
+          if (res.data?.success && res.data?.data) {
+            const freshUser = res.data.data;
+            localStorage.setItem('orbit_user', JSON.stringify(freshUser));
+            set({ user: freshUser });
+          }
+        }).catch(() => {});
       } else {
         set({ isLoading: false });
       }
