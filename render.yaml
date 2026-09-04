@@ -5,8 +5,8 @@ services:
     runtime: node
     plan: starter
     rootDir: server
-    buildCommand: npm install --include=dev && npx prisma db push && npm run build
-    startCommand: npm start
+    buildCommand: npm install --include=dev && npm run build
+    startCommand: npx prisma db push && npm start
     healthCheckPath: /api/health
     disk:
       name: orbit-storage
