@@ -6,17 +6,13 @@ services:
     plan: starter
     rootDir: server
     buildCommand: npm install --include=dev && npm run build
-    startCommand: npm start
+    startCommand: npx prisma db push && npm start
     healthCheckPath: /api/health
-    disk:
-      name: orbit-storage
-      mountPath: /data
-      sizeGB: 1
     envVars:
       - key: NODE_ENV
         value: production
       - key: DATABASE_URL
-        value: file:/data/orbit.db
+        sync: false
       - key: PORT
         value: 10000
       - key: JWT_SECRET
