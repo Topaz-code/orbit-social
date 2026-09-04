@@ -1,4 +1,5 @@
 import { LinkPreviewData } from '../types/index.js';
+import { validateUrlForSSRF } from './ssrfGuard.js';
 
 export async function fetchLinkPreview(rawUrl: string): Promise<LinkPreviewData | null> {
   try {
@@ -7,14 +8,16 @@ export async function fetchLinkPreview(rawUrl: string): Promise<LinkPreviewData 
       url = `https://${url}`;
     }
 
-    const parsedUrl = new URL(url);
-    const domain = parsedUrl.hostname.replace(/^www\./, '');
+    // SSRF Validation - Rejects private/loopback/cloud metadata/internal IPs
+    const validatedUrl = await validateUrlForSSRF(url);
+    const domain = validatedUrl.hostname.replace(/^www\./, '');
 
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 4000);
 
-    const response = await fetch(url, {
+    const response = await fetch(validatedUrl.toString(), {
       signal: controller.signal,
+      redirect: 'error', // Defend against open redirects leading to SSRF
       headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 OrbitBot/1.0',
         'Accept': 'text/html,application/xhtml+xml',
@@ -62,7 +65,11 @@ export async function fetchLinkPreview(rawUrl: string): Promise<LinkPreviewData 
       image: image || '',
       domain,
     };
-  } catch (error) {
+  } catch (error: any) {
+    // If SSRF blocked the request, immediately drop and return null
+    if (error?.message?.startsWith('Forbidden') || error?.message?.startsWith('SSRF guard')) {
+      return null;
+    }
     try {
       const parsedUrl = new URL(rawUrl.startsWith('http') ? rawUrl : `https://${rawUrl}`);
       return {

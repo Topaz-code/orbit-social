@@ -86,8 +86,8 @@ export default {
           '100%': { opacity: '1', transform: 'translateY(0)' },
         },
         bounceDots: {
-          '0%, 80%, 100%': { transform: 'scale(0)' },
-          '40%': { transform: 'scale(1.0)' },
+          '0%, 80%, 100%': { transform: 'scale(0.8)', opacity: '0.4' },
+          '40%': { transform: 'scale(1.0)', opacity: '1' },
         },
       },
     },

@@ -91,12 +91,12 @@ app.use((req, res, next) => {
     [
       "default-src 'self'",
       "script-src 'self'",
-      "style-src 'self' 'unsafe-inline'",                        // Tailwind inline styles
-      "img-src 'self' data: https: blob:",                       // Avatars, uploads, external images
-      "media-src 'self' blob:",                                  // WebRTC streams
-      "connect-src 'self' wss: https:",                          // API + MQTT WebSocket + Render
-      "font-src 'self' data:",
-      "frame-ancestors 'none'",                                  // Reinforces X-Frame-Options
+      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com", // Tailwind inline styles + Google Fonts
+      "img-src 'self' data: https: blob:",                             // Avatars, uploads, external images
+      "media-src 'self' blob:",                                        // WebRTC streams
+      "connect-src 'self' wss: https:",                                // API + MQTT WebSocket + Render
+      "font-src 'self' data: https://fonts.gstatic.com",              // Custom + Google Fonts
+      "frame-ancestors 'none'",                                        // Reinforces X-Frame-Options
       "base-uri 'self'",
       "form-action 'self'",
       "upgrade-insecure-requests",

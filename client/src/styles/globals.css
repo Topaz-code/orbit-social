@@ -91,7 +91,7 @@
   color: #171A1C;
   border-radius: 10px;
   font-weight: 600;
-  transition: background-color 0.15s ease, transform 0.1s ease;
+  transition: background-color 150ms ease-out, transform 120ms ease-out;
 }
 
 .button-primary:hover {
@@ -107,7 +107,7 @@
   color: #D9D0B8;
   border-radius: 10px;
   font-weight: 600;
-  transition: background-color 0.15s ease, transform 0.1s ease;
+  transition: background-color 150ms ease-out, transform 120ms ease-out;
 }
 
 .button-secondary:hover {

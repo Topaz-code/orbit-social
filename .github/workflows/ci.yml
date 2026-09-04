@@ -1,0 +1,45 @@
+name: CI Security & Build Verification
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# Principle of Least Privilege: globally drop all permissions, only grant contents: read
+permissions:
+  contents: read
+
+jobs:
+  build-and-verify:
+    name: Build & Verification
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v4.1.0
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Monorepo Root Dependencies
+        run: npm ci || npm install
+
+      - name: Build Server
+        working-directory: server
+        env:
+          DATABASE_URL: "file:./dev.db"
+        run: |
+          npm ci || npm install
+          npx prisma generate
+          npm run build
+
+      - name: Build Client
+        working-directory: client
+        run: |
+          npm ci || npm install
+          npm run build
