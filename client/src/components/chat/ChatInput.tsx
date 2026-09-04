@@ -1,8 +1,8 @@
-import React, { useState, useRef } from 'react';
-import { useMediaUpload } from '../../hooks/useMediaUpload.js';
-import { Message } from '../../types/index.js';
-import { EmojiPicker } from './EmojiPicker.js';
-import { Send, Smile, Paperclip, Mic, MicOff, X, Loader2 } from 'lucide-react';
+import { Loader2, Mic, Paperclip, Send, Smile, X } from "lucide-react";
+import React, { useRef, useState } from "react";
+import { useMediaUpload } from "../../hooks/useMediaUpload.js";
+import { Message } from "../../types/index.js";
+import { EmojiPicker } from "./EmojiPicker.js";
 
 interface ChatInputProps {
   onSendMessage: (data: {
@@ -25,7 +25,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   disabled,
 }) => {
   const { uploadFile, isUploading } = useMediaUpload();
-  const [text, setText] = useState('');
+  const [text, setText] = useState("");
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [recordingDuration, setRecordingDuration] = useState(0);
@@ -33,6 +33,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
+  const recordingCancelledRef = useRef(false);
   const recordIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const handleTextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -45,7 +46,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
     if (!text.trim() || disabled) return;
 
     const content = text.trim();
-    setText('');
+    setText("");
     onTyping(false);
 
     await onSendMessage({
@@ -61,14 +62,14 @@ export const ChatInput: React.FC<ChatInputProps> = ({
     if (!file) return;
 
     try {
-      const res = await uploadFile(file, 'messages');
-      const type = file.type.startsWith('image/')
-        ? 'image'
-        : file.type.startsWith('video/')
-        ? 'video'
-        : file.type.startsWith('audio/')
-        ? 'voice'
-        : 'file';
+      const res = await uploadFile(file, "messages");
+      const type = file.type.startsWith("image/")
+        ? "image"
+        : file.type.startsWith("video/")
+          ? "video"
+          : file.type.startsWith("audio/")
+            ? "voice"
+            : "file";
 
       await onSendMessage({
         media_url: res.url,
@@ -78,7 +79,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
 
       if (replyingToMessage) onCancelReply();
     } catch (err: any) {
-      console.error('Failed to upload message media:', err);
+      console.error("Failed to upload message media:", err);
     }
   };
 
@@ -86,7 +87,14 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mediaRecorder = new MediaRecorder(stream);
+      const mimeType =
+        ["audio/webm;codecs=opus", "audio/webm", "audio/mp4"].find(
+          (candidate) => MediaRecorder.isTypeSupported(candidate),
+        ) || "";
+      const mediaRecorder = new MediaRecorder(
+        stream,
+        mimeType ? { mimeType } : undefined,
+      );
       mediaRecorderRef.current = mediaRecorder;
       audioChunksRef.current = [];
 
@@ -97,27 +105,39 @@ export const ChatInput: React.FC<ChatInputProps> = ({
       };
 
       mediaRecorder.onstop = async () => {
-        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-        const audioFile = new File([audioBlob], `voice-note-${Date.now()}.webm`, {
-          type: 'audio/webm',
-        });
+        const chunks = audioChunksRef.current;
+        const recordedType = mediaRecorder.mimeType || mimeType || "audio/webm";
+        const extension = recordedType.includes("mp4") ? "m4a" : "webm";
+        if (recordingCancelledRef.current || chunks.length === 0) {
+          stream.getTracks().forEach((track) => track.stop());
+          return;
+        }
+        const audioBlob = new Blob(chunks, { type: recordedType });
+        const audioFile = new File(
+          [audioBlob],
+          `voice-note-${Date.now()}.${extension}`,
+          {
+            type: recordedType,
+          },
+        );
 
         try {
-          const res = await uploadFile(audioFile, 'messages');
+          const res = await uploadFile(audioFile, "messages");
           await onSendMessage({
             media_url: res.url,
-            media_type: 'voice',
+            media_type: "voice",
             reply_to_id: replyingToMessage?.id || null,
           });
           if (replyingToMessage) onCancelReply();
         } catch (err) {
-          console.error('Failed to send voice note:', err);
+          console.error("Failed to send voice note:", err);
         }
 
         stream.getTracks().forEach((track) => track.stop());
       };
 
       mediaRecorder.start();
+      recordingCancelledRef.current = false;
       setIsRecording(true);
       setRecordingDuration(0);
 
@@ -125,18 +145,21 @@ export const ChatInput: React.FC<ChatInputProps> = ({
         setRecordingDuration((prev) => prev + 1);
       }, 1000);
     } catch (err) {
-      console.warn('Microphone access was denied or unavailable.');
+      console.warn("Microphone access was denied or unavailable.");
     }
   };
 
   const stopRecording = (cancel = false) => {
     if (recordIntervalRef.current) clearInterval(recordIntervalRef.current);
     setIsRecording(false);
+    recordingCancelledRef.current = cancel;
 
-    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+    if (
+      mediaRecorderRef.current &&
+      mediaRecorderRef.current.state !== "inactive"
+    ) {
       if (cancel) {
         mediaRecorderRef.current.stop();
-        audioChunksRef.current = [];
       } else {
         mediaRecorderRef.current.stop();
       }
@@ -153,7 +176,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
               Replying to {replyingToMessage.sender.display_name}:
             </span>
             <span className="text-[#A8AAA0] truncate">
-              {replyingToMessage.content || 'Media attachment'}
+              {replyingToMessage.content || "Media attachment"}
             </span>
           </div>
           <button
@@ -273,4 +296,3 @@ export const ChatInput: React.FC<ChatInputProps> = ({
     </div>
   );
 };
-
