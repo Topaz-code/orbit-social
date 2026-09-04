@@ -6,6 +6,7 @@ import { api } from '../lib/api.js';
 import { MediaConnection } from 'peerjs';
 import { useDialogStore } from '../stores/dialogStore.js';
 import { mqttClient } from '../lib/mqtt.js';
+import { requestNativeCallPermissions } from './useShellBridge.js';
 
 // Hold single MediaConnection reference for incoming call answering
 let currentIncomingMediaConnection: MediaConnection | null = null;
@@ -15,6 +16,7 @@ export function getPeerManager(): PeerManager {
   if (!peerManagerInstance) {
     peerManagerInstance = new PeerManager({
       onIncomingCall: (mediaConn, metadata) => {
+        requestNativeCallPermissions();
         currentIncomingMediaConnection = mediaConn;
         useCallStore.getState().setIncomingCall({
           callId: metadata.callId || `call-${Date.now()}`,
@@ -185,6 +187,8 @@ export function useCall() {
     if (!user) return;
 
     try {
+      requestNativeCallPermissions();
+
       // 1. Acquire media stream with standard high-compatibility audio constraints
       const constraints: MediaStreamConstraints = {
         audio: AUDIO_CONSTRAINTS,
@@ -257,6 +261,8 @@ export function useCall() {
     if (!incomingCall || !user) return;
 
     try {
+      requestNativeCallPermissions();
+
       const constraints: MediaStreamConstraints = {
         audio: AUDIO_CONSTRAINTS,
         video: incomingCall.type === 'video' ? { width: { ideal: 1280 }, height: { ideal: 720 } } : false,

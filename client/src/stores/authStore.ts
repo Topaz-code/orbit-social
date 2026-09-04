@@ -49,6 +49,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   logout: () => {
+    const fcmToken = localStorage.getItem('orbit_fcm_token');
+    if (fcmToken) {
+      api.delete('/device/token', { data: { token: fcmToken } }).catch(() => {});
+    }
+
     localStorage.removeItem('orbit_access_token');
     localStorage.removeItem('orbit_refresh_token');
     localStorage.removeItem('orbit_user');
