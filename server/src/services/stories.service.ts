@@ -1,6 +1,7 @@
 import { prisma } from '../config/database.js';
 import { parseJson } from '../utils/helpers.js';
 import { mqttService } from './mqtt.service.js';
+import { moderationService } from './moderation.service.js';
 
 export const storiesService = {
   async getStories(userId: string) {
@@ -24,6 +25,7 @@ export const storiesService = {
       where: {
         user_id: { in: visibleUserIds },
         expires_at: { gt: now },
+        status: { notIn: ['HIDDEN', 'REMOVED'] },
       },
       orderBy: { created_at: 'desc' },
       include: {
@@ -135,6 +137,13 @@ export const storiesService = {
       text_overlay?: any;
     }
   ) {
+    if (data.caption) {
+      const scanResult = await moderationService.scanContent(data.caption);
+      if (!scanResult.isAllowed) {
+        throw new Error(scanResult.reason || 'Story caption rejected by moderation system');
+      }
+    }
+
     const now = new Date();
     const expiresAt = new Date(now.getTime() + 24 * 60 * 60 * 1000); // exactly 24 hours
 

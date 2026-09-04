@@ -12,6 +12,7 @@ import {
   User as UserIcon,
   Settings,
   Check,
+  ShieldAlert,
 } from 'lucide-react';
 import { useAuthStore } from '../../stores/authStore.js';
 import { useNotificationStore } from '../../stores/notificationStore.js';
@@ -175,6 +176,13 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewPost, onOpenNewStory })
               <Settings className="h-4 w-4 text-[#7F8B86]" />
               <span>Settings & Privacy</span>
             </DropdownItem>
+
+            {(user?.role === 'ADMIN' || user?.role === 'MODERATOR') && (
+              <DropdownItem onClick={() => navigate('/admin')}>
+                <ShieldAlert className="h-4 w-4 text-[#D0A56A]" />
+                <span className="text-[#D0A56A] font-semibold">Admin Dashboard</span>
+              </DropdownItem>
+            )}
 
             <DropdownDivider />
 

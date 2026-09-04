@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import { Message } from '../../types/index.js';
 import { useAuthStore } from '../../stores/authStore.js';
 import { formatChatTime, getMediaUrl } from '../../lib/utils.js';
-import { Check, CheckCheck, Reply, Trash2, MoreVertical, FileText, Play, Pause } from 'lucide-react';
+import { Check, CheckCheck, Reply, Trash2, MoreVertical, FileText, Play, Pause, Flag } from 'lucide-react';
 import { DropdownMenu, DropdownItem } from '../ui/dropdown-menu.js';
+import { ReportDialog } from '../shared/ReportDialog.js';
 
 interface MessageBubbleProps {
   message: Message;
@@ -19,6 +20,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
   const { user } = useAuthStore();
   const isMine = user?.id === message.sender_id;
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
+  const [isReportOpen, setIsReportOpen] = useState(false);
   const audioRef = React.useRef<HTMLAudioElement | null>(null);
 
   const toggleAudio = () => {
@@ -193,9 +195,27 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
                 <span>Delete for everyone</span>
               </DropdownItem>
             )}
+
+            {!isMine && (
+              <DropdownItem onClick={() => setIsReportOpen(true)}>
+                <Flag className="h-3.5 w-3.5 text-[#B87568]" />
+                <span className="text-[#B87568]">Report message</span>
+              </DropdownItem>
+            )}
           </DropdownMenu>
         </div>
       </div>
+
+      {/* Report Message Dialog */}
+      {!isMine && (
+        <ReportDialog
+          isOpen={isReportOpen}
+          onClose={() => setIsReportOpen(false)}
+          reportedType="MESSAGE"
+          reportedId={message.id}
+          targetTitle="Report Message"
+        />
+      )}
     </div>
   );
 };

@@ -2,6 +2,7 @@ import { prisma } from '../config/database.js';
 import { parseJson } from '../utils/helpers.js';
 import { fetchLinkPreview } from '../utils/linkPreview.js';
 import { mqttService } from './mqtt.service.js';
+import { moderationService } from './moderation.service.js';
 
 export const postsService = {
   async getFeed(userId: string, limit = 20, cursor?: string) {
@@ -18,7 +19,7 @@ export const postsService = {
     );
     const visibleUserIds = [userId, ...friendIds];
 
-    // 2. Fetch posts chronologically
+    // 2. Fetch posts chronologically (excluding hidden and removed posts)
     const posts = await prisma.post.findMany({
       where: {
         OR: [
@@ -31,6 +32,7 @@ export const postsService = {
           },
         ],
         group_id: null, // Feed shows profile/global posts, groups have their own feed
+        status: { notIn: ['HIDDEN', 'REMOVED'] },
       },
       take: limit + 1,
       cursor: cursor ? { id: cursor } : undefined,
@@ -85,6 +87,7 @@ export const postsService = {
       where: {
         visibility: 'public',
         group_id: null,
+        status: { notIn: ['HIDDEN', 'REMOVED'] },
       },
       take: limit + 1,
       cursor: cursor ? { id: cursor } : undefined,
@@ -188,6 +191,12 @@ export const postsService = {
       group_id?: string | null;
     }
   ) {
+    // Automated Content Moderation & Link Protection
+    const scanResult = await moderationService.scanContent(data.content_text, data.link_url);
+    if (!scanResult.isAllowed) {
+      throw new Error(scanResult.reason || 'Content rejected by moderation system');
+    }
+
     // If link_url provided or detected in text, auto-generate preview
     let linkPreviewData: any = null;
     let targetLink = data.link_url;

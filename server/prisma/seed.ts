@@ -8,7 +8,27 @@ async function main() {
 
   const userCount = await prisma.user.count();
   if (userCount > 0) {
-    console.log(`ℹ️ Database already contains ${userCount} users. Skipping seed to preserve real accounts.`);
+    console.log(`ℹ️ Database already contains ${userCount} users. Ensuring admin and moderator roles are assigned...`);
+    const alex = await prisma.user.findFirst({
+      where: { OR: [{ username: 'alexchen' }, { email: 'alex@orbit.local' }] },
+    });
+    if (alex) {
+      await prisma.user.update({
+        where: { id: alex.id },
+        data: { role: 'ADMIN' },
+      });
+      console.log(`🛡️ Verified admin role for ${alex.username} (${alex.email}).`);
+    }
+    const sarah = await prisma.user.findFirst({
+      where: { OR: [{ username: 'sarahj' }, { email: 'sarah@orbit.local' }] },
+    });
+    if (sarah) {
+      await prisma.user.update({
+        where: { id: sarah.id },
+        data: { role: 'MODERATOR' },
+      });
+      console.log(`🛡️ Verified moderator role for ${sarah.username} (${sarah.email}).`);
+    }
     return;
   }
 
@@ -22,6 +42,7 @@ async function main() {
   const usersData = [
     {
       username: 'alexchen',
+      role: 'ADMIN',
       display_name: 'Alex Chen',
       email: 'alex@orbit.local',
       phone: '+1555101001',
@@ -32,6 +53,7 @@ async function main() {
     },
     {
       username: 'sarahj',
+      role: 'MODERATOR',
       display_name: 'Sarah Johnson',
       email: 'sarah@orbit.local',
       phone: '+1555101002',

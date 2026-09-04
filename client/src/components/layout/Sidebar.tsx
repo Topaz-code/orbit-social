@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { PlusCircle } from 'lucide-react';
+import { PlusCircle, ShieldAlert } from 'lucide-react';
 import { cn } from '../../lib/utils.js';
 import { useAuthStore } from '../../stores/authStore.js';
 import { useNotificationStore } from '../../stores/notificationStore.js';
@@ -82,6 +82,25 @@ export const Sidebar: React.FC<SidebarProps> = ({ onOpenNewPost }) => {
             )}
           </NavLink>
         ))}
+
+        {(user?.role === 'ADMIN' || user?.role === 'MODERATOR') && (
+          <NavLink
+            to="/admin"
+            className={({ isActive }) =>
+              cn(
+                'flex items-center justify-between px-3.5 py-2.5 rounded-[10px] text-sm font-medium transition-all group mt-2 border border-[#D0A56A]/30',
+                isActive
+                  ? 'bg-[#D0A56A]/20 text-[#D0A56A] font-bold shadow-xs'
+                  : 'text-[#D0A56A] hover:bg-[#D0A56A]/10'
+              )
+            }
+          >
+            <div className="flex items-center gap-3.5">
+              <ShieldAlert className="h-5 w-5 text-[#D0A56A]" />
+              <span className="font-semibold">Trust & Safety</span>
+            </div>
+          </NavLink>
+        )}
       </nav>
 
       {/* Quick Post Action Button */}

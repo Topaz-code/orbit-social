@@ -96,6 +96,29 @@ api.interceptors.response.use(
       }
     }
 
+    if (error.response?.status === 403) {
+      const msg = error.response.data?.message?.toLowerCase() || '';
+      if (msg.includes('banned') || msg.includes('suspended') || msg.includes('timeout')) {
+        try {
+          const userStr = localStorage.getItem('orbit_user');
+          if (userStr) {
+            const user = JSON.parse(userStr);
+            user.is_banned = true;
+            if (error.response.data?.banned_until) {
+              user.banned_until = error.response.data.banned_until;
+            }
+            if (error.response.data?.message) {
+              user.ban_reason = error.response.data.message;
+            }
+            localStorage.setItem('orbit_user', JSON.stringify(user));
+          }
+        } catch {}
+        if (window.location.pathname !== '/banned') {
+          window.location.href = '/banned';
+        }
+      }
+    }
+
     return Promise.reject(error);
   }
 );

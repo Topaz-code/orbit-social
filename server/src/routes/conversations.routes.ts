@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { conversationsController } from '../controllers/conversations.controller.js';
-import { authenticateToken } from '../middleware/auth.middleware.js';
+import { authenticateToken, checkBanned } from '../middleware/auth.middleware.js';
 import { validateBody } from '../middleware/validation.middleware.js';
 import {
   createConversationSchema,
@@ -9,11 +9,11 @@ import {
 
 const router = Router();
 
-router.get('/', authenticateToken, conversationsController.getConversations);
-router.post('/', authenticateToken, validateBody(createConversationSchema), conversationsController.createConversation);
-router.get('/:id', authenticateToken, conversationsController.getConversationById);
-router.put('/:id/read', authenticateToken, conversationsController.markAsRead);
-router.get('/:id/messages', authenticateToken, conversationsController.getMessages);
-router.post('/:id/messages', authenticateToken, validateBody(sendMessageSchema), conversationsController.sendMessage);
+router.get('/', authenticateToken, checkBanned, conversationsController.getConversations);
+router.post('/', authenticateToken, checkBanned, validateBody(createConversationSchema), conversationsController.createConversation);
+router.get('/:id', authenticateToken, checkBanned, conversationsController.getConversationById);
+router.put('/:id/read', authenticateToken, checkBanned, conversationsController.markAsRead);
+router.get('/:id/messages', authenticateToken, checkBanned, conversationsController.getMessages);
+router.post('/:id/messages', authenticateToken, checkBanned, validateBody(sendMessageSchema), conversationsController.sendMessage);
 
 export default router;

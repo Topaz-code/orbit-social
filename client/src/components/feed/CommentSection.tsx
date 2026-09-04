@@ -6,7 +6,8 @@ import { Comment } from '../../types/index.js';
 import { Avatar } from '../ui/avatar.js';
 import { Button } from '../ui/button.js';
 import { formatRelativeTime } from '../../lib/utils.js';
-import { Send, CornerDownRight, Trash2 } from 'lucide-react';
+import { Send, CornerDownRight, Trash2, Flag } from 'lucide-react';
+import { ReportDialog } from '../shared/ReportDialog.js';
 
 interface CommentSectionProps {
   postId: string;
@@ -22,6 +23,7 @@ export const CommentSection: React.FC<CommentSectionProps> = ({
   const [commentText, setCommentText] = useState('');
   const [replyToId, setReplyToId] = useState<string | null>(null);
   const [replyingToUser, setReplyingToUser] = useState<string | null>(null);
+  const [reportingComment, setReportingComment] = useState<{ id: string; username: string } | null>(null);
 
   const { data: comments = [], isLoading } = useQuery({
     queryKey: ['comments', postId],
@@ -170,6 +172,19 @@ export const CommentSection: React.FC<CommentSectionProps> = ({
                         <Trash2 className="h-3 w-3" />
                       </button>
                     )}
+
+                    {user && user.id !== comment.user.id && (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setReportingComment({ id: comment.id, username: comment.user.username })
+                        }
+                        className="hover:text-[#B87568] opacity-0 group-hover:opacity-100 transition-opacity text-[#7F8B86]"
+                        title="Report comment"
+                      >
+                        <Flag className="h-3 w-3" />
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
@@ -198,8 +213,8 @@ export const CommentSection: React.FC<CommentSectionProps> = ({
                             {reply.content}
                           </p>
                         </div>
-                        {user && user.id === reply.user.id && (
-                          <div className="mt-0.5 ml-2">
+                        <div className="flex items-center gap-2 mt-0.5 ml-2">
+                          {user && user.id === reply.user.id && (
                             <button
                               type="button"
                               onClick={() => deleteCommentMutation.mutate(reply.id)}
@@ -207,8 +222,20 @@ export const CommentSection: React.FC<CommentSectionProps> = ({
                             >
                               Delete
                             </button>
-                          </div>
-                        )}
+                          )}
+                          {user && user.id !== reply.user.id && (
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setReportingComment({ id: reply.id, username: reply.user.username })
+                              }
+                              className="text-[10px] text-[#7F8B86] hover:text-[#B87568] opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-0.5"
+                              title="Report reply"
+                            >
+                              <Flag className="h-2.5 w-2.5" /> Report
+                            </button>
+                          )}
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -219,6 +246,16 @@ export const CommentSection: React.FC<CommentSectionProps> = ({
         </div>
       )}
 
+      {/* Report Comment Dialog */}
+      {reportingComment && (
+        <ReportDialog
+          isOpen={!!reportingComment}
+          onClose={() => setReportingComment(null)}
+          reportedType="COMMENT"
+          reportedId={reportingComment.id}
+          targetTitle={`Report comment by @${reportingComment.username}`}
+        />
+      )}
     </div>
   );
 };

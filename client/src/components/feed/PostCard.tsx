@@ -8,8 +8,9 @@ import { LinkPreview } from './LinkPreview.js';
 import { PostActions } from './PostActions.js';
 import { CommentSection } from './CommentSection.js';
 import { formatRelativeTime } from '../../lib/utils.js';
-import { Globe, Users, Lock, MoreHorizontal, Trash2, Copy, Check } from 'lucide-react';
+import { Globe, Users, Lock, MoreHorizontal, Trash2, Copy, Check, Flag } from 'lucide-react';
 import { DropdownMenu, DropdownItem } from '../ui/dropdown-menu.js';
+import { ReportDialog } from '../shared/ReportDialog.js';
 
 interface PostCardProps {
   post: Post;
@@ -26,6 +27,7 @@ export const PostCard: React.FC<PostCardProps> = ({
   const [isExpanded, setIsExpanded] = useState(false);
   const [showComments, setShowComments] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [isReportOpen, setIsReportOpen] = useState(false);
 
   const isOwner = user?.id === post.user.id;
   const isLongText = post.content_text.length > 280;
@@ -111,6 +113,13 @@ export const PostCard: React.FC<PostCardProps> = ({
               <span>Delete post</span>
             </DropdownItem>
           )}
+
+          {!isOwner && (
+            <DropdownItem onClick={() => setIsReportOpen(true)}>
+              <Flag className="h-4 w-4 text-[#B87568]" />
+              <span className="text-[#B87568]">Report post</span>
+            </DropdownItem>
+          )}
         </DropdownMenu>
       </div>
 
@@ -152,6 +161,15 @@ export const PostCard: React.FC<PostCardProps> = ({
 
       {/* Threaded Comments Section */}
       {showComments && <CommentSection postId={post.id} />}
+
+      {/* Report Post Dialog */}
+      <ReportDialog
+        isOpen={isReportOpen}
+        onClose={() => setIsReportOpen(false)}
+        reportedType="POST"
+        reportedId={post.id}
+        targetTitle={`Report post by @${post.user.username}`}
+      />
     </article>
   );
 };

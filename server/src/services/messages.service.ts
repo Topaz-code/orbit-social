@@ -1,6 +1,7 @@
 import { prisma } from '../config/database.js';
 import { mqttService } from './mqtt.service.js';
 import { pushService } from './push.service.js';
+import { moderationService } from './moderation.service.js';
 
 export const messagesService = {
   async getMessages(conversationId: string, userId: string, limit = 50, cursor?: string) {
@@ -82,6 +83,13 @@ export const messagesService = {
     });
 
     if (!member) throw new Error('Unauthorized: you are not a member of this chat');
+
+    if (data.content) {
+      const scanResult = await moderationService.scanContent(data.content);
+      if (!scanResult.isAllowed) {
+        throw new Error(scanResult.reason || 'Message blocked by moderation filter');
+      }
+    }
 
     const message = await prisma.message.create({
       data: {
