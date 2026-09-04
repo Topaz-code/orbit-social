@@ -8,6 +8,7 @@ const router = Router();
 
 router.get('/history', authenticateToken, callsController.getCallHistory);
 router.delete('/history/clear', authenticateToken, callsController.clearCallHistory);
+router.get('/:id', authenticateToken, callsController.getCallById);
 router.post('/', authenticateToken, validateBody(initiateCallSchema), callsController.initiateCall);
 router.put('/:id', authenticateToken, validateBody(updateCallSchema), callsController.updateCall);
 router.delete('/:id', authenticateToken, callsController.deleteCall);

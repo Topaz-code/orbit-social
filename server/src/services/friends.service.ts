@@ -1,6 +1,7 @@
 import { prisma } from '../config/database.js';
 import { mqttService } from './mqtt.service.js';
 import { isUserActiveOnline } from '../utils/presence.js';
+import { pushService } from './push.service.js';
 
 export const friendsService = {
   async getFriends(userId: string) {
@@ -149,6 +150,15 @@ export const friendsService = {
     });
 
     mqttService.sendNotification(targetUserId, notification);
+
+    pushService.sendToUser(targetUserId, {
+      title: 'New Friend Request 👋',
+      body: `${friendship.requester.display_name} sent you a friend request.`,
+      data: {
+        type: 'friend_request',
+        url: 'orbit://notifications',
+      },
+    }).catch((err) => console.error('[Push] Friend request push notification failed:', err));
 
     return friendship;
   },

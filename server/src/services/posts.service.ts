@@ -3,6 +3,7 @@ import { parseJson } from '../utils/helpers.js';
 import { fetchLinkPreview } from '../utils/linkPreview.js';
 import { mqttService } from './mqtt.service.js';
 import { moderationService } from './moderation.service.js';
+import { pushService } from './push.service.js';
 
 export const postsService = {
   async getFeed(userId: string, limit = 20, cursor?: string) {
@@ -347,6 +348,16 @@ export const postsService = {
         });
 
         mqttService.sendNotification(post.user_id, notification);
+
+        pushService.sendToUser(post.user_id, {
+          title: 'New Like ❤️',
+          body: `${liker?.display_name || 'Someone'} liked your post.`,
+          data: {
+            type: 'post_like',
+            postId,
+            url: `orbit://posts/${postId}`,
+          },
+        }).catch((err) => console.error('[Push] Like push notification failed:', err));
       }
 
       mqttService.broadcastPostUpdate(postId, { likes_count: updatedPost.likes_count });

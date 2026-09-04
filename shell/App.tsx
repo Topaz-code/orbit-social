@@ -117,6 +117,13 @@ export default function App() {
     onCallRouteDetected: () => {
       void ensureCallPermissions();
     },
+    onPushPayload: (data) => {
+      if (loadEndedRef.current) {
+        WebBridge.forwardPushPayload(webviewRef, data);
+      } else {
+        pendingPushRef.current = data;
+      }
+    },
   });
 
   // Handle messages from the Web App via window.ReactNativeWebView.postMessage

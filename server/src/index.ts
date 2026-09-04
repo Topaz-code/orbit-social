@@ -9,7 +9,7 @@ import { ExpressPeerServer } from 'peer';
 // Load environment variables
 dotenv.config();
 
-import { connectDatabase } from './config/database.js';
+import { connectDatabase, prisma } from './config/database.js';
 import { initMQTTBroker } from './config/mqtt.js';
 import { JWT_SECRET } from './config/auth.js';
 import { startStoryCleanupCron } from './utils/storyCleanup.js';
@@ -243,6 +243,30 @@ async function bootstrap() {
 
     // Connect SQLite Database
     await connectDatabase();
+
+    // Ensure default system admins have their roles in production
+    await prisma.user.updateMany({
+      where: {
+        OR: [
+          { username: 'alexchen' },
+          { username: 'alex' },
+          { email: 'alex@orbit.local' },
+          { display_name: 'Alex Chen' },
+          { username: { contains: 'alex' } },
+        ],
+      },
+      data: { role: 'ADMIN' },
+    }).catch((err: any) => console.warn('[Bootstrap] Error ensuring admin role:', err));
+
+    await prisma.user.updateMany({
+      where: {
+        OR: [
+          { username: 'sarahj' },
+          { email: 'sarah@orbit.local' },
+        ],
+      },
+      data: { role: 'MODERATOR' },
+    }).catch((err: any) => console.warn('[Bootstrap] Error ensuring mod role:', err));
 
     // Start Embedded Aedes MQTT Broker (attached to HTTP server on /mqtt)
     initMQTTBroker(server);

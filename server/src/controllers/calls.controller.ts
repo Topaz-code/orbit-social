@@ -13,6 +13,18 @@ export const callsController = {
     }
   },
 
+  async getCallById(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+      const call = await callsService.getCallById(req.params.id, req.user!.userId);
+      if (!call) {
+        return res.status(404).json({ success: false, message: 'Call not found' });
+      }
+      res.json({ success: true, data: call });
+    } catch (error: any) {
+      res.status(error.message === 'Unauthorized' ? 403 : 500).json({ success: false, message: error.message });
+    }
+  },
+
   async initiateCall(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
       const call = await callsService.initiateCall(req.user!.userId, req.body);
