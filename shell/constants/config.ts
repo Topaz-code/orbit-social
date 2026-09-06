@@ -42,16 +42,13 @@ export const COLORS = {
 
 
 export const CHANNELS = {
-
   CALLS: "orbit_calls",
-
   MESSAGES: "orbit_messages",
-
+  SERVICE: "orbit_service",
 } as const;
 
-
-
 export const CALL_NOTIFICATION_ID = "orbit-incoming-call";
+export const SERVICE_NOTIFICATION_ID = "orbit-persistent-service";
 
 export const CALL_RING_TIMEOUT_MS = 45_000;
 

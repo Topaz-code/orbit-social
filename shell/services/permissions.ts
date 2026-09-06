@@ -176,9 +176,27 @@ export async function openFullScreenIntentSettings(): Promise<void> {
  */
 
 export async function openBatteryOptimisationSettings(): Promise<void> {
-
   if (Platform.OS !== "android") return;
-
   await IntentLauncher.startActivityAsync(IntentLauncher.ActivityAction.IGNORE_BATTERY_OPTIMIZATION_SETTINGS);
+}
 
+/**
+ * Prompts the user with the direct system dialog:
+ * "Let app always run in background? Allowing Orbit to always run in the background may reduce battery life."
+ * Used by apps like F-Droid, Rythm, and OkHi to stay alive permanently and bypass Doze mode.
+ */
+export async function requestBatteryOptimizationExemption(): Promise<void> {
+  if (Platform.OS !== "android") return;
+  try {
+    const isBatteryOptEnabled = await notifee.isBatteryOptimizationEnabled();
+    if (!isBatteryOptEnabled) return; // Already exempted!
+
+    const packageName = Constants.expoConfig?.android?.package ?? "com.orbit.app";
+    await IntentLauncher.startActivityAsync("android.settings.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS", {
+      data: `package:${packageName}`,
+    });
+  } catch (error) {
+    console.warn("[Orbit] Could not request battery optimization exemption directly, falling back to settings", error);
+    await openBatteryOptimisationSettings();
+  }
 }

@@ -49,13 +49,10 @@ import {
   configureCallAudioSession,
 
   getPermissionSnapshot,
-
   openBatteryOptimisationSettings,
-
   openFullScreenIntentSettings,
-
+  requestBatteryOptimizationExemption,
   requestCorePermissions,
-
 } from "./services/permissions";
 
 import {
@@ -70,23 +67,15 @@ import {
 } from "./services/notifications";
 
 import {
-
   cancelIncomingCall,
-
   consumePendingRoute,
-
   ensureNotificationChannels,
-
   handleCallNotificationEvent,
-
   handleCallTimeout,
-
   parseIncomingCall,
-
   setCallActionListener,
-
   showIncomingCall,
-
+  startPersistentBackgroundService,
 } from "./services/calls";
 
 import {
@@ -466,6 +455,10 @@ export default function App() {
       await ensureNotificationChannels();
 
       await requestCorePermissions();
+
+      await requestBatteryOptimizationExemption().catch(() => undefined);
+
+      await startPersistentBackgroundService().catch(() => undefined);
 
       await configureCallAudioSession().catch(() => undefined);
 

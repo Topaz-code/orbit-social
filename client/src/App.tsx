@@ -3,7 +3,8 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuthStore } from './stores/authStore.js';
 import { useThemeStore, applyTheme } from './stores/themeStore.js';
 import { DashboardLayout } from './components/layout/DashboardLayout.js';
-import { LoadingSpinner } from './components/shared/LoadingSpinner.js';
+import { FeedSkeleton } from './components/feed/FeedSkeleton.js';
+import { Skeleton } from './components/shared/SkeletonLoader.js';
 
 // Lazy-loaded pages for fast initial bundle and instant mobile loads
 const LoginPage = lazy(() => import('./pages/LoginPage.js').then((m) => ({ default: m.LoginPage })));
@@ -28,8 +29,25 @@ const AdminUsersPage = lazy(() => import('./pages/admin/AdminUsersPage.js').then
 const AdminLogsPage = lazy(() => import('./pages/admin/AdminLogsPage.js').then((m) => ({ default: m.AdminLogsPage })));
 
 const PageLoader = () => (
-  <div className="flex items-center justify-center p-12 min-h-[50vh]">
-    <LoadingSpinner size="md" />
+  <div className="w-full max-w-2xl mx-auto py-6 px-4 space-y-4">
+    <FeedSkeleton />
+  </div>
+);
+
+const AuthScreenSkeleton = ({ label }: { label?: string }) => (
+  <div className="min-h-screen flex flex-col items-center justify-center bg-[#171A1C] p-6 space-y-6">
+    <div className="w-16 h-16 rounded-3xl bg-[#D0A56A]/10 border border-[#D0A56A]/30 flex items-center justify-center">
+      <Skeleton className="w-10 h-10 rounded-2xl" />
+    </div>
+    <div className="w-full max-w-sm space-y-3 p-6 rounded-2xl border border-[#3A4B4D]/40 bg-[#202A2D]/60 shadow-xs">
+      <Skeleton className="h-4 w-32 mx-auto" />
+      <Skeleton className="h-3 w-48 mx-auto" />
+      <div className="pt-2 space-y-2">
+        <Skeleton className="h-10 w-full rounded-xl" />
+        <Skeleton className="h-10 w-full rounded-xl" />
+      </div>
+    </div>
+    {label && <p className="text-xs font-medium text-[#A8AAA0] tracking-wide animate-pulse">{label}</p>}
   </div>
 );
 
@@ -38,11 +56,7 @@ const ProtectedRoute: React.FC<{ children: React.ReactElement }> = ({ children }
   const { user, accessToken, isLoading } = useAuthStore();
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-[#171A1C]">
-        <LoadingSpinner size="lg" label="Entering Orbit..." />
-      </div>
-    );
+    return <AuthScreenSkeleton label="Entering Orbit..." />;
   }
 
   if (!accessToken || !user) {
@@ -63,11 +77,7 @@ const BannedRoute: React.FC<{ children: React.ReactElement }> = ({ children }) =
   const { user, accessToken, isLoading } = useAuthStore();
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-[#171A1C]">
-        <LoadingSpinner size="lg" />
-      </div>
-    );
+    return <AuthScreenSkeleton />;
   }
 
   if (!accessToken || !user) {
@@ -88,11 +98,7 @@ const PublicRoute: React.FC<{ children: React.ReactElement }> = ({ children }) =
   const { user, accessToken, isLoading } = useAuthStore();
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-[#171A1C]">
-        <LoadingSpinner size="lg" />
-      </div>
-    );
+    return <AuthScreenSkeleton />;
   }
 
   if (accessToken && user) {

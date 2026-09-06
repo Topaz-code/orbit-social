@@ -337,7 +337,6 @@ export function buildNavigateInjection(url: string): string {
       window.dispatchEvent(new CustomEvent('orbit:call-push', { detail: callDetail }));
     }
     if (targetUrl.indexOf('action=accept') !== -1) {
-      window.dispatchEvent(new CustomEvent('orbit:call-accept', { detail: callDetail }));
       window.dispatchEvent(new CustomEvent('orbit:trigger-accept-call', { detail: callDetail }));
     }
 

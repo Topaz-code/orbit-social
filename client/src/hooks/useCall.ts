@@ -58,6 +58,9 @@ export function hangUpCall(): void {
   useCallStore.getState().endCall();
 }
 
+// Module-level lock to prevent duplicate concurrent LiveKit room connections for the same call
+const acceptingCallIds = new Set<string>();
+
 export function useCall() {
   const { user } = useAuthStore();
   const {
@@ -443,6 +446,19 @@ export function useCall() {
 
     if (!callToAccept) return;
 
+    if (acceptingCallIds.has(callToAccept.callId)) {
+      console.log('[Call] Accept already in progress for call:', callToAccept.callId);
+      return;
+    }
+
+    const currentActive = useCallStore.getState().activeCall;
+    if (currentActive?.callId === callToAccept.callId && currentActive.status === 'connected') {
+      console.log('[Call] Call is already active and connected:', callToAccept.callId);
+      return;
+    }
+
+    acceptingCallIds.add(callToAccept.callId);
+
     try {
       requestNativeCallPermissions();
 
@@ -525,6 +541,8 @@ export function useCall() {
       useCallStore.getState().setActiveCall(null);
       getCallManager().disconnect();
       useDialogStore.getState().toast.error(error?.message || 'Failed to connect call');
+    } finally {
+      acceptingCallIds.delete(callToAccept.callId);
     }
   };
 
@@ -568,10 +586,22 @@ export function useCall() {
         paramLkUrl = params.get('livekitUrl') || '';
       }
 
+      if (targetCallId) {
+        if (acceptingCallIds.has(targetCallId)) {
+          console.log('[Call] Trigger-accept ignored: already accepting call', targetCallId);
+          return;
+        }
+        const active = useCallStore.getState().activeCall;
+        if (active?.callId === targetCallId && active.status === 'connected') {
+          console.log('[Call] Trigger-accept ignored: call already active', targetCallId);
+          return;
+        }
+      }
+
       // 1. If incomingCall is already mounted in store, accept immediately
       const storeIncoming = useCallStore.getState().incomingCall;
       if (storeIncoming) {
-        acceptCall();
+        acceptCall(storeIncoming);
         return;
       }
 

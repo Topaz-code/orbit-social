@@ -11,7 +11,8 @@ import { FriendCard } from '../components/profile/FriendCard.js';
 import { PostCard } from '../components/feed/PostCard.js';
 import { PostComposer } from '../components/feed/PostComposer.js';
 import { EmptyState } from '../components/shared/EmptyState.js';
-import { LoadingSpinner } from '../components/shared/LoadingSpinner.js';
+import { Skeleton } from '../components/shared/SkeletonLoader.js';
+import { FeedSkeleton } from '../components/feed/FeedSkeleton.js';
 import { ImageCropper } from '../components/shared/ImageCropper.js';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../components/ui/tabs.js';
 import { GroupCard } from '../components/groups/GroupCard.js';
@@ -219,7 +220,33 @@ export const ProfilePage: React.FC = () => {
   };
 
   if (isLoadingProfile) {
-    return <LoadingSpinner label="Loading profile..." />;
+    return (
+      <div className="space-y-6">
+        <div className="rounded-2xl border border-[#3A4B4D] bg-[#202A2D] overflow-hidden shadow-xs">
+          <Skeleton className="h-44 sm:h-52 w-full rounded-none" />
+          <div className="p-6 relative">
+            <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-4 -mt-16 sm:-mt-20 mb-4">
+              <Skeleton className="h-28 w-28 rounded-full border-4 border-[#202A2D]" />
+              <div className="flex gap-2">
+                <Skeleton className="h-10 w-24 rounded-xl" />
+                <Skeleton className="h-10 w-28 rounded-xl" />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Skeleton className="h-6 w-48" />
+              <Skeleton className="h-4 w-32" />
+              <Skeleton className="h-4 w-full max-w-lg pt-1" />
+            </div>
+            <div className="flex gap-6 mt-6 pt-4 border-t border-[#3A4B4D]/60">
+              <Skeleton className="h-5 w-20" />
+              <Skeleton className="h-5 w-20" />
+              <Skeleton className="h-5 w-20" />
+            </div>
+          </div>
+        </div>
+        <FeedSkeleton />
+      </div>
+    );
   }
 
   if (!profile) {

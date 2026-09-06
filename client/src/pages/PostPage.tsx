@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../lib/api.js';
 import { Post } from '../types/index.js';
 import { PostCard } from '../components/feed/PostCard.js';
-import { LoadingSpinner } from '../components/shared/LoadingSpinner.js';
+import { Skeleton } from '../components/shared/SkeletonLoader.js';
 import { ArrowLeft } from 'lucide-react';
 
 export const PostPage: React.FC = () => {
@@ -72,8 +72,42 @@ export const PostPage: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="flex h-full items-center justify-center p-8">
-        <LoadingSpinner size="md" />
+      <div className="max-w-2xl mx-auto p-4 space-y-4">
+        <div className="flex items-center gap-3 mb-2">
+          <Skeleton className="h-9 w-9 rounded-full" />
+          <Skeleton className="h-5 w-24" />
+        </div>
+        <div className="rounded-2xl border border-[#3A4B4D] bg-[#202A2D] p-5 space-y-4 shadow-xs">
+          <div className="flex items-center gap-3">
+            <Skeleton className="h-10 w-10 rounded-full" />
+            <div className="space-y-1.5 flex-1">
+              <Skeleton className="h-4 w-32" />
+              <Skeleton className="h-3 w-20" />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-5/6" />
+            <Skeleton className="h-4 w-3/4" />
+          </div>
+          <Skeleton className="h-64 w-full rounded-2xl" />
+          <div className="flex items-center gap-6 pt-3 border-t border-[#3A4B4D]">
+            <Skeleton className="h-6 w-14 rounded-full" />
+            <Skeleton className="h-6 w-14 rounded-full" />
+            <Skeleton className="h-6 w-14 rounded-full" />
+          </div>
+        </div>
+        <div className="space-y-3 pt-2">
+          {[1, 2].map((i) => (
+            <div key={i} className="flex gap-3 p-3 rounded-xl border border-[#3A4B4D]/40 bg-[#202A2D]/40">
+              <Skeleton className="h-8 w-8 rounded-full shrink-0" />
+              <div className="space-y-1.5 flex-1">
+                <Skeleton className="h-3 w-24" />
+                <Skeleton className="h-3 w-4/5" />
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     );
   }

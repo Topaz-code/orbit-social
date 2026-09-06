@@ -1,20 +1,15 @@
+import { Platform } from "react-native";
 import notifee, {
-
   AndroidCategory,
-
   AndroidImportance,
-
   AndroidVisibility,
-
   EventType,
-
   type EventDetail,
-
 } from "@notifee/react-native";
 
 import * as SecureStore from "expo-secure-store";
 
-import { CALL_NOTIFICATION_ID, CALL_RING_TIMEOUT_MS, CHANNELS, COLORS, ORBIT_URL, STORAGE_KEYS } from "../constants/config";
+import { CALL_NOTIFICATION_ID, CALL_RING_TIMEOUT_MS, CHANNELS, COLORS, ORBIT_URL, SERVICE_NOTIFICATION_ID, STORAGE_KEYS } from "../constants/config";
 
 import { buildDeclineProof } from "./deviceIdentity";
 
@@ -140,17 +135,62 @@ export async function ensureNotificationChannels(): Promise<void> {
     visibility: AndroidVisibility.PRIVATE,
 
     sound: "default",
-
     vibration: true,
-
     lights: true,
-
     lightColor: COLORS.gold,
-
     badge: true,
-
   });
 
+  await notifee.createChannel({
+    id: CHANNELS.SERVICE,
+    name: "Orbit Background Connection",
+    description: "Keeps Orbit connected in the background to receive calls and messages instantly.",
+    importance: AndroidImportance.MIN,
+    visibility: AndroidVisibility.SECRET,
+    lights: false,
+    vibration: false,
+    badge: false,
+  });
+}
+
+/**
+ * Starts a persistent low-priority Android Foreground Service.
+ * This instructs the Linux kernel to assign com.orbit.app foreground priority,
+ * preventing OEM task managers (Xiaomi, Samsung, HiOS) from killing the app process
+ * when the user navigates away or turns off the screen (the F-Droid/Rythm/OkHi pattern).
+ */
+export async function startPersistentBackgroundService(): Promise<void> {
+  if (Platform.OS !== "android") return;
+  try {
+    await ensureNotificationChannels();
+
+    const displayed = await notifee.getDisplayedNotifications();
+    const alreadyRunning = displayed.some((n) => n.id === SERVICE_NOTIFICATION_ID);
+    if (alreadyRunning) return;
+
+    await notifee.displayNotification({
+      id: SERVICE_NOTIFICATION_ID,
+      title: "Orbit",
+      body: "Connected in background for instant calls & messages",
+      android: {
+        channelId: CHANNELS.SERVICE,
+        asForegroundService: true,
+        ongoing: true,
+        autoCancel: false,
+        smallIcon: "notification_icon",
+        color: COLORS.gold,
+        importance: AndroidImportance.MIN,
+        visibility: AndroidVisibility.SECRET,
+        pressAction: {
+          id: "default",
+          launchActivity: "default",
+        },
+      },
+    });
+    console.log("[Orbit] Persistent background foreground service active");
+  } catch (error) {
+    console.warn("[Orbit] Failed to start persistent background service:", error);
+  }
 }
 
 
@@ -294,11 +334,7 @@ export async function showIncomingCall(call: IncomingCall): Promise<void> {
 
 
 export async function cancelIncomingCall(): Promise<void> {
-
   await notifee.cancelNotification(CALL_NOTIFICATION_ID);
-
-  await notifee.stopForegroundService();
-
 }
 
 

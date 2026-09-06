@@ -161,14 +161,10 @@ export class PushService {
     );
     const declineUrl = `https://orbit-api-m5ah.onrender.com/api/calls/${callData.callId}/decline?token=${declineToken}`;
 
-    // Send high-priority notification + data payload so Google Play Services wakes the device even if killed
+    // Send high-priority pure DATA payload so Google Play Services hands the message to expo-task-manager (backgroundNotificationTask) to launch Notifee full-screen call UI
     await Promise.allSettled(
       devices.map((d) =>
         this.sendSingleFCM(d.token, {
-          notification: {
-            title: `${callData.callType === 'video' ? 'Video' : 'Voice'} call`,
-            body: `${callData.callerName} is calling you on Orbit`,
-          },
           data: {
             type: 'incoming_call',
             callId: String(callData.callId),
@@ -187,12 +183,6 @@ export class PushService {
           android: {
             priority: 'HIGH',
             ttl: '45s',
-            notification: {
-              channel_id: 'orbit_calls',
-              sound: 'ringtone',
-              visibility: 'PUBLIC',
-              priority: 'MAX',
-            },
           },
         })
       )

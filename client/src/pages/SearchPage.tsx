@@ -7,7 +7,7 @@ import { PostCard } from '../components/feed/PostCard.js';
 import { FriendCard } from '../components/profile/FriendCard.js';
 import { GroupCard } from '../components/groups/GroupCard.js';
 import { EmptyState } from '../components/shared/EmptyState.js';
-import { LoadingSpinner } from '../components/shared/LoadingSpinner.js';
+import { Skeleton } from '../components/shared/SkeletonLoader.js';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../components/ui/tabs.js';
 import { Search } from 'lucide-react';
 import { triggerHeartBurst } from '../lib/utils.js';
@@ -122,7 +122,25 @@ export const SearchPage: React.FC = () => {
         </TabsList>
 
         {isLoading ? (
-          <LoadingSpinner label="Searching..." />
+          <div className="space-y-4 pt-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="flex items-center gap-3 p-4 rounded-2xl border border-[#3A4B4D] bg-[#202A2D]">
+                  <Skeleton className="h-12 w-12 rounded-full shrink-0" />
+                  <div className="space-y-1.5 flex-1">
+                    <Skeleton className="h-4 w-28" />
+                    <Skeleton className="h-3 w-16" />
+                  </div>
+                  <Skeleton className="h-8 w-16 rounded-xl shrink-0" />
+                </div>
+              ))}
+            </div>
+            <div className="space-y-3 pt-2">
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-28 w-full rounded-2xl" />
+              <Skeleton className="h-28 w-full rounded-2xl" />
+            </div>
+          </div>
         ) : totalResults === 0 && (searchParams.get('q') || '').trim() ? (
           <EmptyState
             title="No results found"

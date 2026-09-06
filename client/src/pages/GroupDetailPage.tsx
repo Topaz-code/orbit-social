@@ -11,7 +11,8 @@ import { PostComposer } from '../components/feed/PostComposer.js';
 import { PostCard } from '../components/feed/PostCard.js';
 import { MemberList } from '../components/groups/MemberList.js';
 import { EmptyState } from '../components/shared/EmptyState.js';
-import { LoadingSpinner } from '../components/shared/LoadingSpinner.js';
+import { Skeleton } from '../components/shared/SkeletonLoader.js';
+import { FeedSkeleton } from '../components/feed/FeedSkeleton.js';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../components/ui/tabs.js';
 import { Users, Globe, Lock, LogOut, UserPlus, ArrowLeft } from 'lucide-react';
 import { MAX_GROUP_MEMBERS } from '../lib/constants.js';
@@ -112,7 +113,24 @@ export const GroupDetailPage: React.FC = () => {
   });
 
   if (isLoading) {
-    return <LoadingSpinner label="Loading group details..." />;
+    return (
+      <div className="space-y-6">
+        <div className="rounded-2xl border border-[#3A4B4D] bg-[#202A2D] overflow-hidden shadow-xs">
+          <Skeleton className="h-44 sm:h-52 w-full rounded-none" />
+          <div className="p-6 space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="space-y-2">
+                <Skeleton className="h-6 w-48" />
+                <Skeleton className="h-4 w-32" />
+              </div>
+              <Skeleton className="h-10 w-28 rounded-xl" />
+            </div>
+            <Skeleton className="h-4 w-full max-w-xl" />
+          </div>
+        </div>
+        <FeedSkeleton />
+      </div>
+    );
   }
 
   if (!group) {

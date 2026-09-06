@@ -51,13 +51,14 @@ const withOrbitCallActivity = (config) =>
 
 
     const requiredPermissions = [
-
       "android.permission.USE_FULL_SCREEN_INTENT",
-
       "android.permission.WAKE_LOCK",
-
       "android.permission.VIBRATE",
-
+      "android.permission.FOREGROUND_SERVICE",
+      "android.permission.FOREGROUND_SERVICE_PHONE_CALL",
+      "android.permission.FOREGROUND_SERVICE_DATA_SYNC",
+      "android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS",
+      "android.permission.RECEIVE_BOOT_COMPLETED",
     ];
 
 
