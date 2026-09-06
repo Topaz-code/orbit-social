@@ -33,6 +33,10 @@ export class PeerManager {
     this.callbacks = callbacks;
   }
 
+  public getCurrentCall(): MediaConnection | null {
+    return this.currentCall;
+  }
+
   /**
    * Initialize Peer instance for the authenticated user
    */

@@ -99,11 +99,21 @@ export function useMQTT() {
       }
     );
 
-    // 2b. Listen for direct call signals (declined, cancelled, ended) on personal channel
+    // 2b. Listen for direct call signals (accepted, declined, cancelled, ended) on personal channel
     const unsubsCallSignal = mqttClient.subscribe(
       `orbit/call/${user.id}/signal`,
       (topic, payload) => {
         if (
+          payload?.type === 'CALL_ACCEPTED' ||
+          (payload?.type === 'CALL_STATUS_CHANGED' && payload.status === 'ongoing')
+        ) {
+          dismissCallBrowserNotification(payload.callId);
+          useCallStore.setState((state) => ({
+            activeCall: state.activeCall
+              ? { ...state.activeCall, status: 'connected' }
+              : null,
+          }));
+        } else if (
           payload?.type === 'CALL_DECLINED' ||
           payload?.type === 'CALL_CANCELLED' ||
           payload?.type === 'CALL_ENDED' ||

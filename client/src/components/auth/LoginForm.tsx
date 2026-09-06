@@ -9,6 +9,7 @@ import { Input } from '../ui/input.js';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '../ui/card.js';
 import { User, Lock, ArrowRight, ShieldCheck, KeyRound } from 'lucide-react';
 import { api } from '../../lib/api.js';
+import { PasswordStrengthMeter } from './PasswordStrengthMeter.js';
 
 const loginSchema = z.object({
   identifier: z.string().min(1, 'Username, email or phone is required'),
@@ -228,12 +229,13 @@ export const LoginForm: React.FC = () => {
                   </label>
                   <Input
                     type="password"
-                    placeholder="At least 6 characters"
+                    placeholder="At least 8 characters"
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     icon={<Lock className="h-4 w-4 text-[#7F8B86]" />}
                     required
                   />
+                  <PasswordStrengthMeter password={newPassword} />
                 </div>
 
                 <Button type="submit" className="w-full h-11" isLoading={isSubmittingReset}>

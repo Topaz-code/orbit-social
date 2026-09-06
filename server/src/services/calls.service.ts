@@ -166,12 +166,14 @@ export const callsService = {
     mqttService.sendUserCallSignal(call.caller_id, signalPayload);
     mqttService.sendUserCallSignal(call.receiver_id, signalPayload);
 
-    // Also send explicit CALL_DECLINED / CALL_CANCELLED / CALL_ENDED signal for instant client reaction
+    // Also send explicit CALL_DECLINED / CALL_CANCELLED / CALL_ACCEPTED / CALL_ENDED signal for instant client reaction
     const explicitType =
       data.status === 'rejected'
         ? 'CALL_DECLINED'
         : data.status === 'missed'
         ? 'CALL_CANCELLED'
+        : data.status === 'ongoing'
+        ? 'CALL_ACCEPTED'
         : 'CALL_ENDED';
     const explicitPayload = {
       type: explicitType,
@@ -187,7 +189,7 @@ export const callsService = {
     mqttService.sendUserCallSignal(call.receiver_id, explicitPayload);
 
     // Remote push cancellation: dismiss heads-up notification and stop ringing on all devices
-    if (data.status === 'rejected' || data.status === 'missed' || data.status === 'completed') {
+    if (data.status === 'rejected' || data.status === 'missed' || data.status === 'completed' || data.status === 'ongoing') {
       pushService.sendCallCancelled(call.caller_id, realCallId).catch(() => {});
       pushService.sendCallCancelled(call.receiver_id, realCallId).catch(() => {});
     }

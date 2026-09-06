@@ -1,6 +1,7 @@
 import express from 'express';
 import http from 'http';
 import cors from 'cors';
+import cookieParser from 'cookie-parser';
 import path from 'path';
 import dotenv from 'dotenv';
 import { v4 as uuidv4 } from 'uuid';
@@ -55,6 +56,17 @@ const app = express();
 const server = http.createServer(app);
 const PORT = parseInt(process.env.PORT || '5000', 10);
 const CLIENT_URL = process.env.CLIENT_URL || 'http://localhost:5173';
+
+// Trust reverse proxy (Render, Cloudflare) for accurate rate limiting and IP tracking
+app.set('trust proxy', 1);
+
+// Force HTTPS in production
+app.use((req, res, next) => {
+  if (process.env.NODE_ENV === 'production' && req.headers['x-forwarded-proto'] === 'http') {
+    return res.redirect(301, `https://${req.headers.host}${req.url}`);
+  }
+  next();
+});
 
 // 0. Disable banner leakage
 app.disable('x-powered-by');
@@ -147,6 +159,9 @@ app.use(
   })
 );
 app.options('*', cors());
+
+// 5.5 Cookie parsing for HttpOnly session refresh tokens
+app.use(cookieParser());
 
 // 6. Request body parsing with strict size limits
 app.use(express.json({ limit: '10mb' }));

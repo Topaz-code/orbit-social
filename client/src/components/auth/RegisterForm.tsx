@@ -8,6 +8,7 @@ import { Button } from '../ui/button.js';
 import { Input } from '../ui/input.js';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '../ui/card.js';
 import { User, Mail, Phone, Lock, Sparkles, ArrowRight } from 'lucide-react';
+import { PasswordStrengthMeter } from './PasswordStrengthMeter.js';
 
 const registerSchema = z.object({
   username: z
@@ -18,7 +19,7 @@ const registerSchema = z.object({
   display_name: z.string().min(1, 'Display name is required').max(50),
   email: z.string().email('Valid email is required'),
   phone: z.string().optional(),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
+  password: z.string().min(8, 'Password must be at least 8 characters'),
   security_question: z.string().default("What is your pet's name?"),
   security_answer: z.string().min(1, 'Security answer is required for account recovery'),
 });
@@ -33,6 +34,7 @@ export const RegisterForm: React.FC = () => {
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
@@ -40,6 +42,8 @@ export const RegisterForm: React.FC = () => {
       security_question: "What is your pet's name?",
     },
   });
+
+  const passwordValue = watch('password') || '';
 
   const onSubmit = async (data: RegisterFormData) => {
     setServerError(null);
@@ -136,11 +140,12 @@ export const RegisterForm: React.FC = () => {
             </label>
             <Input
               type="password"
-              placeholder="At least 6 characters"
+              placeholder="At least 8 characters"
               icon={<Lock className="h-4 w-4 text-[#7F8B86]" />}
               error={errors.password?.message}
               {...register('password')}
             />
+            <PasswordStrengthMeter password={passwordValue} />
           </div>
 
           <div className="border-t border-[#3A4B4D] pt-3">

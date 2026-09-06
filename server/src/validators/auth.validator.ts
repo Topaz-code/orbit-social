@@ -9,7 +9,7 @@ export const registerSchema = z.object({
   display_name: z.string().min(1, 'Display name is required').max(50),
   email: z.string().email('Invalid email address'),
   phone: z.string().optional().or(z.literal('')),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
+  password: z.string().min(8, 'Password must be at least 8 characters'),
   bio: z.string().max(250).optional().default(''),
   avatar_url: z.string().optional().default(''),
   security_question: z.string().optional().default("What is your pet's name?"),
@@ -23,13 +23,13 @@ export const loginSchema = z.object({
 });
 
 export const refreshSchema = z.object({
-  refreshToken: z.string().min(1, 'Refresh token is required'),
+  refreshToken: z.string().min(1, 'Refresh token is required').optional(),
 });
 
 export const resetPasswordSchema = z.object({
   identifier: z.string().min(1, 'Username or email is required'),
   security_answer: z.string().min(1, 'Security answer is required'),
-  new_password: z.string().min(6, 'New password must be at least 6 characters'),
+  new_password: z.string().min(8, 'New password must be at least 8 characters'),
 });
 
 export const updateProfileSchema = z.object({

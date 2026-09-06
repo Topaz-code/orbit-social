@@ -13,13 +13,38 @@ function stripHtml(value: string): string {
     .trim();
 }
 
-function sanitizeDeep(obj: unknown): unknown {
+const EXEMPT_FIELDS = new Set([
+  'password',
+  'newpassword',
+  'new_password',
+  'currentpassword',
+  'current_password',
+  'confirmpassword',
+  'confirm_password',
+  'securityanswer',
+  'security_answer',
+  'token',
+  'refreshtoken',
+  'refresh_token',
+  'accesstoken',
+  'access_token',
+  'code',
+  'otp',
+  'twofactorcode',
+  'two_factor_code',
+  'secret',
+]);
+
+function sanitizeDeep(obj: unknown, parentKey?: string): unknown {
+  if (parentKey && EXEMPT_FIELDS.has(parentKey.toLowerCase())) {
+    return obj;
+  }
   if (typeof obj === 'string') return stripHtml(obj);
-  if (Array.isArray(obj)) return obj.map(sanitizeDeep);
+  if (Array.isArray(obj)) return obj.map(item => sanitizeDeep(item, parentKey));
   if (obj !== null && typeof obj === 'object') {
     const cleaned: Record<string, unknown> = {};
     for (const [key, val] of Object.entries(obj as Record<string, unknown>)) {
-      cleaned[key] = sanitizeDeep(val);
+      cleaned[key] = sanitizeDeep(val, key);
     }
     return cleaned;
   }

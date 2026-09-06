@@ -2,77 +2,45 @@ import { create } from 'zustand';
 import { User } from '../types/index.js';
 import { mqttClient } from '../lib/mqtt.js';
 import { destroyPeerInstance } from '../lib/peer.js';
-import { api } from '../lib/api.js';
+import { api, setAccessToken, silentRefresh } from '../lib/api.js';
 
 interface AuthState {
   user: User | null;
   accessToken: string | null;
-  refreshToken: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   setAuth: (user: User, accessToken: string, refreshToken?: string) => void;
   setUser: (user: User) => void;
   logout: () => void;
-  initializeAuth: () => void;
+  initializeAuth: () => Promise<void>;
 }
 
-const getInitialAuth = () => {
-  try {
-    const token = typeof window !== 'undefined' ? localStorage.getItem('orbit_access_token') : null;
-    const refreshToken = typeof window !== 'undefined' ? localStorage.getItem('orbit_refresh_token') : null;
-    const userStr = typeof window !== 'undefined' ? localStorage.getItem('orbit_user') : null;
-
-    if (token && userStr) {
-      const user = JSON.parse(userStr);
-      return {
-        user,
-        accessToken: token,
-        refreshToken,
-        isAuthenticated: true,
-        isLoading: false,
-      };
-    }
-  } catch {}
-  return {
-    user: null,
-    accessToken: null,
-    refreshToken: null,
-    isAuthenticated: false,
-    isLoading: false,
-  };
-};
-
-const initialAuth = getInitialAuth();
-
 export const useAuthStore = create<AuthState>((set, get) => ({
-  user: initialAuth.user,
-  accessToken: initialAuth.accessToken,
-  refreshToken: initialAuth.refreshToken,
-  isAuthenticated: initialAuth.isAuthenticated,
-  isLoading: initialAuth.isLoading,
+  user: null,
+  accessToken: null,
+  isAuthenticated: false,
+  isLoading: true,
 
-  setAuth: (user, accessToken, refreshToken) => {
-    localStorage.setItem('orbit_access_token', accessToken);
-    if (refreshToken) {
-      localStorage.setItem('orbit_refresh_token', refreshToken);
-    }
-    localStorage.setItem('orbit_user', JSON.stringify(user));
+  setAuth: (user, accessToken, _refreshToken) => {
+    // Security: Session tokens MUST NEVER be stored in localStorage (XSS mitigation)
+    localStorage.removeItem('orbit_access_token');
+    localStorage.removeItem('orbit_refresh_token');
+
+    // Store in-memory token for API calls
+    setAccessToken(accessToken);
 
     // Connect MQTT client for this user (with JWT for broker auth)
     mqttClient.connect(user.id, accessToken);
 
-
     set({
       user,
       accessToken,
-      refreshToken: refreshToken || get().refreshToken,
       isAuthenticated: true,
       isLoading: false,
     });
   },
 
   setUser: (user) => {
-    localStorage.setItem('orbit_user', JSON.stringify(user));
     set({ user });
   },
 
@@ -82,9 +50,16 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       api.delete('/device/token', { data: { token: fcmToken } }).catch(() => {});
     }
 
+    // Inform server to clear HttpOnly refresh cookie
+    api.post('/auth/logout').catch(() => {});
+
+    // Wipe any lingering localStorage auth keys
     localStorage.removeItem('orbit_access_token');
     localStorage.removeItem('orbit_refresh_token');
     localStorage.removeItem('orbit_user');
+
+    // Wipe in-memory token
+    setAccessToken(null);
 
     mqttClient.disconnect();
     destroyPeerInstance();
@@ -92,42 +67,48 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({
       user: null,
       accessToken: null,
-      refreshToken: null,
       isAuthenticated: false,
       isLoading: false,
     });
   },
 
-  initializeAuth: () => {
+  initializeAuth: async () => {
+    // Purge any tokens that might have been stored in legacy versions
+    localStorage.removeItem('orbit_access_token');
+    localStorage.removeItem('orbit_refresh_token');
+
     try {
-      const token = localStorage.getItem('orbit_access_token');
-      const refreshToken = localStorage.getItem('orbit_refresh_token');
-      const userStr = localStorage.getItem('orbit_user');
+      // Attempt silent session recovery using HttpOnly cookie
+      const token = await silentRefresh();
+      if (token) {
+        setAccessToken(token);
 
-      if (token && userStr) {
-        const user = JSON.parse(userStr);
-        mqttClient.connect(user.id, token);
-        set({
-          user,
-          accessToken: token,
-          refreshToken,
-          isAuthenticated: true,
-          isLoading: false,
-        });
-
-        // Always re-sync user profile with server to catch up role/ban changes
-        api.get('/auth/me').then((res) => {
-          if (res.data?.success && res.data?.data) {
-            const freshUser = res.data.data;
-            localStorage.setItem('orbit_user', JSON.stringify(freshUser));
-            set({ user: freshUser });
-          }
-        }).catch(() => {});
-      } else {
-        set({ isLoading: false });
+        // Fetch fresh user profile
+        const res = await api.get('/auth/me');
+        if (res.data?.success && res.data?.data) {
+          const freshUser = res.data.data;
+          mqttClient.connect(freshUser.id, token);
+          set({
+            user: freshUser,
+            accessToken: token,
+            isAuthenticated: true,
+            isLoading: false,
+          });
+          return;
+        }
       }
     } catch {
-      set({ isLoading: false });
+      // Session expired or unauthenticated
     }
+
+    // Clean up if recovery failed
+    localStorage.removeItem('orbit_user');
+    setAccessToken(null);
+    set({
+      user: null,
+      accessToken: null,
+      isAuthenticated: false,
+      isLoading: false,
+    });
   },
 }));

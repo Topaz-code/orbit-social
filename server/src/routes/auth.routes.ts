@@ -50,7 +50,9 @@ const registerLimiter = rateLimit({
 
 router.post('/register', registerLimiter, validateBody(registerSchema), authController.register);
 router.post('/login', loginLimiter, validateBody(loginSchema), authController.login);
-router.post('/logout', authenticateToken, authController.logout);
+router.post('/2fa/verify', loginLimiter, authController.verify2FA);
+router.post('/2fa/toggle', authenticateToken, authController.toggle2FA);
+router.post('/logout', authController.logout);
 router.post('/refresh', validateBody(refreshSchema), authController.refresh);
 router.get('/me', authenticateToken, authController.getMe);
 router.post('/reset-password', passwordResetLimiter, validateBody(resetPasswordSchema), authController.resetPassword);

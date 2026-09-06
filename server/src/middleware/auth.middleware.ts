@@ -11,11 +11,16 @@ export async function authenticateTokenOrDeclineToken(
   next: NextFunction
 ): Promise<void> {
   // 1. Signed decline token query param or body
+  const targetCallId = req.params.id || req.body?.callId || (req.query.callId as string);
   const declineToken = (req.query.token || req.body?.token || req.headers['x-orbit-decline-token']) as string;
   if (declineToken) {
     try {
       const decoded = jwt.verify(declineToken, JWT_SECRET) as any;
-      if (decoded && decoded.callId === req.params.id && decoded.purpose === 'decline_call') {
+      if (
+        decoded &&
+        (decoded.callId === targetCallId || decoded.callId === req.params.id) &&
+        decoded.purpose === 'decline_call'
+      ) {
         req.user = { userId: decoded.userId, role: 'USER' } as any;
         return next();
       }
@@ -29,12 +34,14 @@ export async function authenticateTokenOrDeclineToken(
   const proof = (req.headers['x-orbit-decline-proof'] || req.query.proof || req.body?.proof) as string;
   const ts = (req.headers['x-orbit-decline-ts'] || req.query.ts || req.body?.ts) as string;
 
-  if (deviceHash && proof && ts && Math.abs(Date.now() - Number(ts)) < 5 * 60 * 1000) {
+  if (deviceHash && proof && ts && targetCallId && Math.abs(Date.now() - Number(ts)) < 15 * 60 * 1000) {
     try {
       const key = crypto.createHash('sha256').update(deviceHash).digest();
-      const expected = crypto.createHmac('sha256', key).update(`${req.params.id}:${ts}`).digest('hex');
-      if (crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(proof))) {
-        const call = await prisma.call.findUnique({ where: { id: req.params.id } });
+      const expected = crypto.createHmac('sha256', key).update(`${targetCallId}:${ts}`).digest('hex');
+      const expectedBuf = Buffer.from(expected, 'utf8');
+      const proofBuf = Buffer.from(proof, 'utf8');
+      if (expectedBuf.length === proofBuf.length && crypto.timingSafeEqual(expectedBuf, proofBuf)) {
+        const call = await prisma.call.findUnique({ where: { id: targetCallId } });
         if (call) {
           req.user = { userId: call.receiver_id, role: 'USER' } as any;
           return next();
@@ -83,53 +90,39 @@ export function optionalAuthenticate(req: AuthenticatedRequest, res: Response, n
 }
 
 /**
- * Ensures user has ADMIN or MODERATOR role.
+ * Ensures user has strictly verified ADMIN or MODERATOR role in the database.
  */
 export async function requireAdmin(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
-  if (!req.user) {
+  if (!req.user || !req.user.userId) {
     res.status(401).json({ success: false, message: 'Authentication required' });
     return;
   }
 
-  let role = req.user.role?.toUpperCase();
-  const username = req.user.username?.toLowerCase();
-  const email = req.user.email?.toLowerCase();
-  const isAlexAdmin =
-    username === 'alexchen' ||
-    username === 'alex' ||
-    Boolean(username?.includes('alex')) ||
-    email === 'alex@orbit.local' ||
-    Boolean(email?.includes('alex'));
-
-  if (isAlexAdmin) {
-    role = 'ADMIN';
-    req.user.role = 'ADMIN';
-    prisma.user.update({
+  try {
+    const dbUser = await prisma.user.findUnique({
       where: { id: req.user.userId },
-      data: { role: 'ADMIN' },
-    }).catch(() => {});
-  } else if ((!role || role === 'USER') && req.user.userId) {
-    try {
-      const dbUser = await prisma.user.findUnique({
-        where: { id: req.user.userId },
-        select: { role: true },
-      });
-      if (dbUser?.role) {
-        role = dbUser.role.toUpperCase();
-        req.user.role = role;
-      }
-    } catch {}
-  }
-
-  if (role !== 'ADMIN' && role !== 'MODERATOR') {
-    res.status(403).json({
-      success: false,
-      message: 'Forbidden: Access restricted to administrators and moderators',
+      select: { role: true, is_banned: true },
     });
-    return;
-  }
 
-  next();
+    if (!dbUser || dbUser.is_banned) {
+      res.status(403).json({ success: false, message: 'Forbidden: Account unauthorized or suspended' });
+      return;
+    }
+
+    const role = (dbUser.role || '').toUpperCase();
+    if (role !== 'ADMIN' && role !== 'MODERATOR') {
+      res.status(403).json({
+        success: false,
+        message: 'Forbidden: Access restricted to administrators and moderators',
+      });
+      return;
+    }
+
+    req.user.role = role;
+    next();
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Authorization check failed' });
+  }
 }
 
 /**

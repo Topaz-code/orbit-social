@@ -31,6 +31,10 @@ model User {
   ban_reason           String?   @default("")
   strike_count         Int       @default(0)
 
+  // Multi-Factor Authentication (2FA / OTP)
+  two_factor_enabled   Boolean   @default(false)
+  two_factor_secret    String?   @default("")
+
   // Relations
   posts                 Post[]
   comments              Comment[]
@@ -51,6 +55,7 @@ model User {
   reports_against       Report[]             @relation("ReportedUser")
   reports_resolved      Report[]             @relation("ReportResolver")
   moderation_actions    ModerationLog[]      @relation("AdminModerator")
+  otp_codes             OtpCode[]
 
   @@map("users")
 }
@@ -362,5 +367,22 @@ model ModerationLog {
   @@index([target_type, target_id])
   @@index([created_at])
   @@map("moderation_logs")
+}
+
+model OtpCode {
+  id         String   @id @default(uuid())
+  user_id    String
+  code_hash  String
+  type       String   // LOGIN_2FA | PASSWORD_RESET | EMAIL_VERIFY
+  expires_at DateTime
+  attempts   Int      @default(0)
+  created_at DateTime @default(now())
+
+  // Relations
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id, type])
+  @@index([expires_at])
+  @@map("otp_codes")
 }
 

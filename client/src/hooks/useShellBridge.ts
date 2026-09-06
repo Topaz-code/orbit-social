@@ -63,6 +63,23 @@ export function cancelNativeCallNotification(callId?: string) {
   }
 }
 
+/**
+ * Notify native Android shell that a call has started/connected.
+ * Cancels heads-up/lockscreen ring notification and keeps the screen awake.
+ */
+export function notifyNativeCallStarted(callId?: string) {
+  if (typeof window !== 'undefined' && window.ReactNativeWebView) {
+    window.ReactNativeWebView.postMessage(
+      JSON.stringify({ type: 'CALL_STARTED', payload: { callId } }),
+    );
+  }
+  if (typeof window !== 'undefined' && (window as any).OrbitNative?.callStarted) {
+    try {
+      (window as any).OrbitNative.callStarted(callId);
+    } catch {}
+  }
+}
+
 export function useShellBridge() {
   const { user, isAuthenticated } = useAuthStore();
   const registeredTokenRef = useRef<string | null>(null);

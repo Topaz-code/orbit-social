@@ -6,7 +6,7 @@ import { api } from '../lib/api.js';
 import { MediaConnection } from 'peerjs';
 import { useDialogStore } from '../stores/dialogStore.js';
 import { mqttClient } from '../lib/mqtt.js';
-import { requestNativeCallPermissions, cancelNativeCallNotification } from './useShellBridge.js';
+import { requestNativeCallPermissions, cancelNativeCallNotification, notifyNativeCallStarted } from './useShellBridge.js';
 import {
   showCallBrowserNotification,
   dismissCallBrowserNotification,
@@ -164,13 +164,13 @@ export function useCall() {
     dismissCallBrowserNotification();
 
     const currentIncoming = useCallStore.getState().incomingCall;
+    const currentActive = useCallStore.getState().activeCall;
+
     if (currentIncoming) {
       cancelNativeCallNotification(currentIncoming.callId);
       rejectCall();
-      return;
     }
 
-    const currentActive = useCallStore.getState().activeCall;
     if (currentActive) {
       cancelNativeCallNotification(currentActive.callId);
       const isRinging = currentActive.status === 'ringing';
@@ -206,7 +206,7 @@ export function useCall() {
     hangUpCall();
   }, [user?.id, rejectCall]);
 
-  // Listen for signals targeting the active call specifically (e.g. CALL_DECLINED)
+  // Listen for signals targeting the active call specifically (e.g. CALL_ACCEPTED, CALL_DECLINED)
   useEffect(() => {
     if (!activeCall?.callId) return;
 
@@ -214,6 +214,34 @@ export function useCall() {
       `orbit/call/${activeCall.callId}/signal`,
       (topic, payload) => {
         if (
+          payload?.type === 'CALL_ACCEPTED' ||
+          (payload?.type === 'CALL_STATUS_CHANGED' && payload.status === 'ongoing')
+        ) {
+          notifyNativeCallStarted(activeCall.callId);
+          useCallStore.setState((state) => ({
+            activeCall: state.activeCall
+              ? { ...state.activeCall, status: 'connected' }
+              : null,
+          }));
+
+          // If caller's WebRTC media connection is not active yet, dial the newly online receiver
+          const pm = getPeerManager();
+          const currentCall = pm.getCurrentCall();
+          const currentLocalStream = useCallStore.getState().localStream;
+          if ((!currentCall || !currentCall.open) && currentLocalStream && activeCall.remoteUser?.id && user) {
+            const metadata: CallMetadata = {
+              callId: activeCall.callId,
+              caller: {
+                id: user.id,
+                username: user.username,
+                display_name: user.display_name,
+                avatar_url: user.avatar_url || '',
+              },
+              type: activeCall.type,
+            };
+            pm.makeCall(activeCall.remoteUser.id, currentLocalStream, metadata);
+          }
+        } else if (
           payload?.type === 'CALL_DECLINED' ||
           payload?.type === 'CALL_CANCELLED' ||
           payload?.type === 'CALL_ENDED' ||
@@ -233,7 +261,7 @@ export function useCall() {
     return () => {
       unsubs();
     };
-  }, [activeCall?.callId, activeCall?.status]);
+  }, [activeCall?.callId, activeCall?.status, activeCall?.remoteUser?.id, activeCall?.type, user]);
 
   // Request browser desktop notification permissions on user authentication
   useEffect(() => {
@@ -242,16 +270,41 @@ export function useCall() {
     }
   }, [user?.id]);
 
-  // Fail-safe HTTP Polling Heartbeat while caller is waiting for answer
+  // Fail-safe HTTP Polling Heartbeat while call is active (ringing OR connected)
   useEffect(() => {
-    if (!activeCall || activeCall.status !== 'ringing' || !activeCall.isCaller || !activeCall.callId) return;
+    if (!activeCall?.callId) return;
 
     const pollInterval = setInterval(async () => {
       try {
         const res = await api.get(`/calls/${activeCall.callId}`);
         const callData = res.data?.data;
         if (callData) {
-          if (callData.status === 'rejected') {
+          if (callData.status === 'ongoing' && activeCall.status === 'ringing') {
+            notifyNativeCallStarted(activeCall.callId);
+            useCallStore.setState((state) => ({
+              activeCall: state.activeCall
+                ? { ...state.activeCall, status: 'connected' }
+                : null,
+            }));
+
+            // Redial PeerJS if media is not established yet
+            const pm = getPeerManager();
+            const currentCall = pm.getCurrentCall();
+            const currentLocalStream = useCallStore.getState().localStream;
+            if ((!currentCall || !currentCall.open) && currentLocalStream && activeCall.remoteUser?.id && user) {
+              const metadata: CallMetadata = {
+                callId: activeCall.callId,
+                caller: {
+                  id: user.id,
+                  username: user.username,
+                  display_name: user.display_name,
+                  avatar_url: user.avatar_url || '',
+                },
+                type: activeCall.type,
+              };
+              pm.makeCall(activeCall.remoteUser.id, currentLocalStream, metadata);
+            }
+          } else if (callData.status === 'rejected') {
             useDialogStore.getState().toast.info('Call declined');
             hangUpCall();
           } else if (callData.status === 'missed' || callData.status === 'completed') {
@@ -268,7 +321,7 @@ export function useCall() {
     }, 1500);
 
     return () => clearInterval(pollInterval);
-  }, [activeCall?.callId, activeCall?.status, activeCall?.isCaller]);
+  }, [activeCall?.callId, activeCall?.status, activeCall?.remoteUser?.id, activeCall?.type, user]);
 
   // Fail-safe HTTP Polling Heartbeat while receiver is receiving a call
   useEffect(() => {
@@ -403,31 +456,45 @@ export function useCall() {
 
   // Accept incoming call
   const acceptCall = async () => {
-    if (!incomingCall || !user) return;
+    const callToAccept = useCallStore.getState().incomingCall;
+    if (!callToAccept || !user) return;
 
     try {
       requestNativeCallPermissions();
 
       const constraints: MediaStreamConstraints = {
         audio: AUDIO_CONSTRAINTS,
-        video: incomingCall.type === 'video' ? { width: { ideal: 1280 }, height: { ideal: 720 } } : false,
+        video: callToAccept.type === 'video' ? { width: { ideal: 1280 }, height: { ideal: 720 } } : false,
       };
 
       const stream = await navigator.mediaDevices.getUserMedia(constraints);
       setLocalStream(stream);
 
-
       const pm = getPeerManager();
       if (currentIncomingMediaConnection) {
         pm.answerCall(currentIncomingMediaConnection, stream);
+      } else if (callToAccept.caller?.id && callToAccept.caller.id !== 'unknown') {
+        // Reverse dial if incoming PeerJS connection was not initialized while device was asleep
+        const metadata: CallMetadata = {
+          callId: callToAccept.callId,
+          caller: {
+            id: user.id,
+            username: user.username,
+            display_name: user.display_name,
+            avatar_url: user.avatar_url || '',
+          },
+          type: callToAccept.type,
+          conversationId: callToAccept.conversationId,
+        };
+        pm.makeCall(callToAccept.caller.id, stream, metadata);
       }
 
       setActiveCall({
-        callId: incomingCall.callId,
-        type: incomingCall.type,
+        callId: callToAccept.callId,
+        type: callToAccept.type,
         isIncoming: true,
         isCaller: false,
-        remoteUser: incomingCall.caller,
+        remoteUser: callToAccept.caller,
         status: 'connected',
         isMuted: false,
         isVideoOff: false,
@@ -435,27 +502,89 @@ export function useCall() {
         duration: 0,
       });
 
-      dismissCallBrowserNotification(incomingCall.callId);
-      cancelNativeCallNotification(incomingCall.callId);
+      dismissCallBrowserNotification(callToAccept.callId);
+      cancelNativeCallNotification(callToAccept.callId);
+      notifyNativeCallStarted(callToAccept.callId);
       setIncomingCall(null);
 
-      // Update call status to ongoing in DB
-      api.put(`/calls/${incomingCall.callId}`, { status: 'ongoing' }).catch(() => {});
+      // 1. Broadcast instant CALL_ACCEPTED signal over MQTT so caller stops ringing
+      const payload = {
+        type: 'CALL_ACCEPTED',
+        callId: callToAccept.callId,
+        callerId: callToAccept.caller?.id,
+        by: user.id,
+      };
+      mqttClient.publish(`orbit/call/${callToAccept.callId}/signal`, payload);
+      if (callToAccept.caller?.id) {
+        mqttClient.publish(`orbit/call/${callToAccept.caller.id}/signal`, payload);
+      }
+
+      // 2. Update call status to ongoing in DB
+      api.put(`/calls/${callToAccept.callId}`, { status: 'ongoing' }).catch(() => {});
     } catch (error: any) {
       console.error('[Call] Failed to accept call:', error);
       rejectCall();
     }
   };
 
-  // Listen for native shell call-accept action trigger
+  // Listen for native shell call-accept action trigger (with cold start fetch fallback)
   useEffect(() => {
-    const handleTriggerAccept = () => {
+    const handleTriggerAccept = async (event?: Event) => {
+      const customEvent = event as CustomEvent<{ callId?: string }>;
+      let targetCallId = customEvent?.detail?.callId;
+
+      // Fallback: check query params or pathname
+      if (!targetCallId && typeof window !== 'undefined') {
+        const params = new URLSearchParams(window.location.search);
+        targetCallId = params.get('incomingCall') || params.get('callId') || '';
+        if (!targetCallId) {
+          const match = window.location.pathname.match(/\/calls\/([^/?#]+)/);
+          if (match) targetCallId = match[1];
+        }
+      }
+
+      // 1. If incomingCall is already mounted in store, accept immediately
+      const storeIncoming = useCallStore.getState().incomingCall;
+      if (storeIncoming) {
+        acceptCall();
+        return;
+      }
+
+      // 2. If targetCallId exists, fetch call metadata from server API
+      if (targetCallId) {
+        try {
+          const res = await api.get(`/calls/${targetCallId}`);
+          const callData = res.data?.data;
+          if (callData) {
+            const caller = callData.caller || {
+              id: callData.caller_id,
+              username: 'Orbit Friend',
+              display_name: 'Orbit Friend',
+              avatar_url: '',
+            };
+            useCallStore.getState().setIncomingCall({
+              callId: targetCallId,
+              caller,
+              type: callData.type || 'voice',
+              conversationId: callData.conversation_id,
+            });
+            setTimeout(() => {
+              acceptCall();
+            }, 50);
+            return;
+          }
+        } catch (err) {
+          console.warn('[Call] Failed to fetch call for trigger-accept:', err);
+        }
+      }
+
+      // 3. Polling retry loop in case call store is populated asynchronously
       let attempts = 0;
       const checkAndAccept = () => {
         const incoming = useCallStore.getState().incomingCall;
         if (incoming) {
           acceptCall();
-        } else if (attempts < 10) {
+        } else if (attempts < 15) {
           attempts++;
           setTimeout(checkAndAccept, 300);
         }
@@ -464,8 +593,10 @@ export function useCall() {
     };
 
     window.addEventListener('orbit:trigger-accept-call', handleTriggerAccept);
+    window.addEventListener('orbit:call-accept', handleTriggerAccept);
     return () => {
       window.removeEventListener('orbit:trigger-accept-call', handleTriggerAccept);
+      window.removeEventListener('orbit:call-accept', handleTriggerAccept);
     };
   }, [acceptCall]);
 

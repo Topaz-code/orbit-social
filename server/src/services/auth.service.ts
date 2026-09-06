@@ -1,6 +1,9 @@
+import jwt from 'jsonwebtoken';
 import { prisma } from '../config/database.js';
 import { hashPassword, comparePassword, sanitizeUser } from '../utils/helpers.js';
-import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from '../config/auth.js';
+import { generateAccessToken, generateRefreshToken, verifyRefreshToken, JWT_SECRET } from '../config/auth.js';
+import { userCheckService } from './usercheck.service.js';
+import { twoFactorService } from './twoFactor.service.js';
 
 export const authService = {
   async register(data: {
@@ -14,6 +17,17 @@ export const authService = {
     security_question?: string;
     security_answer?: string;
   }) {
+    // 1. Password minimum strength enforcement
+    if (!data.password || data.password.length < 8) {
+      throw new Error('Password must be at least 8 characters long');
+    }
+
+    // 2. Anti-Bot / Anti-Fake User Check (UserCheck API + offline blacklist)
+    const emailCheck = await userCheckService.verifyEmail(data.email);
+    if (!emailCheck.isAllowed) {
+      throw new Error(emailCheck.reason || 'Registration rejected: Invalid or temporary email provider');
+    }
+
     const existingUser = await prisma.user.findFirst({
       where: {
         OR: [
@@ -104,39 +118,91 @@ export const authService = {
       throw new Error('Invalid credentials');
     }
 
-    // Update last seen & online status, ensure admin for Alex Chen
-    const isAdminAccount =
-      user.username.toLowerCase() === 'alexchen' ||
-      user.username.toLowerCase() === 'alex' ||
-      user.username.toLowerCase().includes('alex') ||
-      user.email.toLowerCase() === 'alex@orbit.local' ||
-      user.display_name.toLowerCase().includes('alex chen');
-    const effectiveRole = isAdminAccount ? 'ADMIN' : user.role;
-
+    // Update last seen & online status
     await prisma.user.update({
       where: { id: user.id },
       data: {
         is_online: true,
         last_seen: new Date(),
-        ...(isAdminAccount && user.role !== 'ADMIN' ? { role: 'ADMIN' } : {}),
       },
     });
+
+    // Check if user has 2FA / OTP enabled
+    if (user.two_factor_enabled) {
+      const otpCode = await twoFactorService.createLoginOTP(user.id);
+      const tempToken = jwt.sign(
+        { userId: user.id, purpose: '2fa_login', rememberMe: data.rememberMe ?? true },
+        JWT_SECRET,
+        { expiresIn: '5m' }
+      );
+      return {
+        requires2FA: true,
+        tempToken,
+        message: 'Two-factor authentication required. Please enter your 6-digit verification code.',
+      };
+    }
 
     const tokenPayload = {
       userId: user.id,
       username: user.username,
       email: user.email,
-      role: effectiveRole,
+      role: user.role,
       is_banned: user.is_banned,
     };
     const accessToken = generateAccessToken(tokenPayload, data.rememberMe ?? true);
     const refreshToken = generateRefreshToken(tokenPayload);
 
     return {
-      user: sanitizeUser({ ...user, role: effectiveRole }),
+      user: sanitizeUser(user),
       accessToken,
       refreshToken,
     };
+  },
+
+  async verify2FALogin(tempToken: string, code: string) {
+    let decoded: any;
+    try {
+      decoded = jwt.verify(tempToken, JWT_SECRET);
+    } catch {
+      throw new Error('Verification session expired. Please log in again.');
+    }
+
+    if (!decoded || decoded.purpose !== '2fa_login') {
+      throw new Error('Invalid verification session');
+    }
+
+    const verification = await twoFactorService.verifyLoginOTP(decoded.userId, code);
+    if (!verification.valid) {
+      throw new Error(verification.reason || 'Invalid verification code');
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: decoded.userId },
+    });
+
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    const tokenPayload = {
+      userId: user.id,
+      username: user.username,
+      email: user.email,
+      role: user.role,
+      is_banned: user.is_banned,
+    };
+    const accessToken = generateAccessToken(tokenPayload, decoded.rememberMe ?? true);
+    const refreshToken = generateRefreshToken(tokenPayload);
+
+    return {
+      user: sanitizeUser(user),
+      accessToken,
+      refreshToken,
+    };
+  },
+
+  async toggle2FA(userId: string, enabled: boolean) {
+    return twoFactorService.set2FAStatus(userId, enabled);
   },
 
   async refreshToken(refreshTokenString: string) {

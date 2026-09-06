@@ -13,16 +13,9 @@ export const AdminLayout: React.FC = () => {
     return null;
   }
 
-  // Access Control: Only ADMIN or MODERATOR allowed
+  // Access Control: Strict Server-Verified ADMIN or MODERATOR role required
   const role = user?.role?.toUpperCase();
-  const isAlexAdmin =
-    user?.username?.toLowerCase() === 'alexchen' ||
-    user?.username?.toLowerCase() === 'alex' ||
-    user?.username?.toLowerCase().includes('alex') ||
-    user?.email?.toLowerCase() === 'alex@orbit.local' ||
-    user?.email?.toLowerCase().includes('alex') ||
-    user?.display_name?.toLowerCase().includes('alex chen');
-  const isAuthorized = role === 'ADMIN' || role === 'MODERATOR' || isAlexAdmin;
+  const isAuthorized = role === 'ADMIN' || role === 'MODERATOR';
   if (!user || !isAuthorized) {
     return <Navigate to="/" replace />;
   }

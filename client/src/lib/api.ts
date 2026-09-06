@@ -3,10 +3,21 @@ import { API_BASE_URL } from './constants.js';
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
   },
 });
+
+let inMemoryAccessToken: string | null = null;
+
+export function getAccessToken(): string | null {
+  return inMemoryAccessToken;
+}
+
+export function setAccessToken(token: string | null): void {
+  inMemoryAccessToken = token;
+}
 
 /** Decode JWT payload without verification (client-side only, for expiry pre-check). */
 function getTokenExp(token: string): number | null {
@@ -29,29 +40,27 @@ function isTokenExpiringSoon(token: string): boolean {
 
 let refreshInFlight: Promise<string | null> | null = null;
 
-async function silentRefresh(): Promise<string | null> {
+export async function silentRefresh(): Promise<string | null> {
   // Deduplicate concurrent refresh attempts
   if (refreshInFlight) return refreshInFlight;
 
   refreshInFlight = (async () => {
-    const refreshToken = localStorage.getItem('orbit_refresh_token');
-    if (!refreshToken) return null;
     try {
-      const res = await axios.post(`${API_BASE_URL}/auth/refresh`, { refreshToken });
+      // Browser automatically transmits HttpOnly 'orbit_refresh_token' cookie with withCredentials: true
+      const res = await axios.post(
+        `${API_BASE_URL}/auth/refresh`,
+        {},
+        { withCredentials: true }
+      );
       if (res.data?.data?.accessToken) {
         const newAccessToken = res.data.data.accessToken;
-        localStorage.setItem('orbit_access_token', newAccessToken);
-        if (res.data.data.refreshToken) {
-          localStorage.setItem('orbit_refresh_token', res.data.data.refreshToken);
-        }
+        setAccessToken(newAccessToken);
         return newAccessToken;
       }
+      setAccessToken(null);
       return null;
     } catch {
-      localStorage.removeItem('orbit_access_token');
-      localStorage.removeItem('orbit_refresh_token');
-      localStorage.removeItem('orbit_user');
-      window.location.href = '/login';
+      setAccessToken(null);
       return null;
     } finally {
       refreshInFlight = null;
@@ -61,10 +70,10 @@ async function silentRefresh(): Promise<string | null> {
   return refreshInFlight;
 }
 
-// Request interceptor — attach JWT and proactively refresh if expiring soon
+// Request interceptor — attach in-memory JWT and proactively refresh if expiring soon
 api.interceptors.request.use(
   async (config) => {
-    let token = localStorage.getItem('orbit_access_token');
+    let token = getAccessToken();
 
     // Proactively refresh token if it expires within 60 seconds
     if (token && isTokenExpiringSoon(token)) {
@@ -85,8 +94,14 @@ api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
+    const url = originalRequest?.url || '';
+    const isAuthRoute =
+      url.includes('/auth/login') ||
+      url.includes('/auth/register') ||
+      url.includes('/auth/refresh') ||
+      url.includes('/auth/2fa');
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    if (error.response?.status === 401 && !originalRequest._retry && !isAuthRoute) {
       originalRequest._retry = true;
 
       const newToken = await silentRefresh();
