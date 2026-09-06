@@ -37,6 +37,46 @@ export class PeerManager {
     return this.currentCall;
   }
 
+  public async waitForReady(): Promise<void> {
+    if (!this.peer || this.peer.destroyed) {
+      if (this.currentUserId) {
+        this.init(this.currentUserId);
+      } else {
+        throw new Error('PeerManager not initialized with a user ID');
+      }
+    }
+
+    // @ts-ignore - 'open' is a boolean property on Peer instances
+    if (this.peer!.open) return;
+
+    if (this.peer!.disconnected) {
+      this.peer!.reconnect();
+    }
+
+    return new Promise((resolve, reject) => {
+      const timeout = setTimeout(() => {
+        reject(new Error('Signaling server connection timeout'));
+      }, 8000);
+
+      const onOpen = () => {
+        clearTimeout(timeout);
+        this.peer?.off('open', onOpen);
+        this.peer?.off('error', onError);
+        resolve();
+      };
+
+      const onError = (err: any) => {
+        clearTimeout(timeout);
+        this.peer?.off('open', onOpen);
+        this.peer?.off('error', onError);
+        reject(err);
+      };
+
+      this.peer?.on('open', onOpen);
+      this.peer?.on('error', onError);
+    });
+  }
+
   /**
    * Initialize Peer instance for the authenticated user
    */

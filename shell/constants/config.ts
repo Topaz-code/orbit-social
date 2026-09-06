@@ -8,9 +8,8 @@ export const SHELL_USER_AGENT_SUFFIX = `OrbitAndroidShell/${SHELL_VERSION}`;
 
 
 
-/** Relative endpoint on the Orbit backend that stores a device push token for the signed-in user. */
-
-export const PUSH_REGISTER_ENDPOINT = "/api/push/register";
+/** Endpoint on the Orbit backend that stores a device push token for the signed-in user. */
+export const PUSH_REGISTER_ENDPOINT = "https://orbit-api-m5ah.onrender.com/api/device/token";
 
 
 

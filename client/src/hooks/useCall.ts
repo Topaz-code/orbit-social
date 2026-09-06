@@ -23,8 +23,8 @@ export function getPeerManager(): PeerManager {
       onIncomingCall: (mediaConn, metadata) => {
         requestNativeCallPermissions();
         const active = useCallStore.getState().activeCall;
-        if (active && active.status === 'connected') {
-          console.log('[Call] Active call already connected, answering duplicate offer in background');
+        if (active && (active.status === 'connected' || active.callId === metadata.callId)) {
+          console.log('[Call] Active call already connected or matching ringing call, answering reverse-dial in background');
           const localStream = useCallStore.getState().localStream;
           if (localStream && (!peerManagerInstance?.getCurrentCall() || !peerManagerInstance.getCurrentCall()?.open)) {
             peerManagerInstance?.answerCall(mediaConn, localStream);
@@ -288,33 +288,10 @@ export function useCall() {
       try {
         const res = await api.get(`/calls/${activeCall.callId}`);
         const callData = res.data?.data;
-        if (callData) {
-          if (callData.status === 'ongoing' && activeCall.status === 'ringing') {
-            notifyNativeCallStarted(activeCall.callId);
-            useCallStore.setState((state) => ({
-              activeCall: state.activeCall
-                ? { ...state.activeCall, status: 'connected' }
-                : null,
-            }));
-
-            // Redial PeerJS if media is not established yet
-            const pm = getPeerManager();
-            const currentCall = pm.getCurrentCall();
-            const currentLocalStream = useCallStore.getState().localStream;
-            if ((!currentCall || !currentCall.open) && currentLocalStream && activeCall.remoteUser?.id && user) {
-              const metadata: CallMetadata = {
-                callId: activeCall.callId,
-                caller: {
-                  id: user.id,
-                  username: user.username,
-                  display_name: user.display_name,
-                  avatar_url: user.avatar_url || '',
-                },
-                type: activeCall.type,
-              };
-              pm.makeCall(activeCall.remoteUser.id, currentLocalStream, metadata);
-            }
-          } else if (callData.status === 'rejected') {
+        const currentActive = useCallStore.getState().activeCall;
+        
+        if (callData && currentActive?.callId === activeCall.callId) {
+          if (callData.status === 'rejected') {
             useDialogStore.getState().toast.info('Call declined');
             hangUpCall();
           } else if (callData.status === 'missed' || callData.status === 'completed') {
@@ -323,7 +300,8 @@ export function useCall() {
           }
         }
       } catch (err: any) {
-        if (err?.response?.status === 404) {
+        const currentActive = useCallStore.getState().activeCall;
+        if (err?.response?.status === 404 && currentActive?.callId === activeCall.callId) {
           useDialogStore.getState().toast.info('Call ended');
           hangUpCall();
         }
@@ -349,7 +327,8 @@ export function useCall() {
       try {
         const res = await api.get(`/calls/${incomingCall.callId}`);
         const callData = res.data?.data;
-        if (callData) {
+        const currentIncoming = useCallStore.getState().incomingCall;
+        if (callData && currentIncoming?.callId === incomingCall.callId) {
           if (callData.status === 'missed' || callData.status === 'rejected' || callData.status === 'completed') {
             useCallStore.getState().setIncomingCall(null);
             dismissCallBrowserNotification(incomingCall.callId);
@@ -362,7 +341,8 @@ export function useCall() {
           }
         }
       } catch (err: any) {
-        if (err?.response?.status === 404) {
+        const currentIncoming = useCallStore.getState().incomingCall;
+        if (err?.response?.status === 404 && currentIncoming?.callId === incomingCall.callId) {
           useCallStore.getState().setIncomingCall(null);
           dismissCallBrowserNotification(incomingCall.callId);
         }
@@ -452,6 +432,7 @@ export function useCall() {
         conversationId,
       };
 
+      await pm.waitForReady();
       const call = pm.makeCall(targetUser.id, stream, metadata);
       if (!call) {
         throw new Error('Signaling server is not ready. Please try again.');
@@ -568,6 +549,8 @@ export function useCall() {
       useCallStore.getState().setLocalStream(stream);
 
       const pm = getPeerManager();
+      await pm.waitForReady();
+      
       if (currentIncomingMediaConnection) {
         pm.answerCall(currentIncomingMediaConnection, stream);
       } else if (callToAccept.caller?.id && callToAccept.caller.id !== 'unknown') {

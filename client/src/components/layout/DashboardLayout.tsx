@@ -104,8 +104,8 @@ export const DashboardLayout: React.FC = () => {
         <IncomingCallModal
           caller={incomingCall.caller}
           type={incomingCall.type}
-          onAccept={acceptCall}
-          onReject={rejectCall}
+          onAccept={() => acceptCall()}
+          onReject={() => rejectCall()}
         />
       )}
 

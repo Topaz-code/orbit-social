@@ -69,7 +69,7 @@ export const callsService = {
         receiver_id: data.receiver_id,
         conversation_id: data.conversation_id || '',
         type: data.type || 'voice',
-        status: 'ongoing',
+        status: 'ringing',
         started_at: new Date(),
       },
       include: {
@@ -116,8 +116,8 @@ export const callsService = {
       call = await prisma.call.findFirst({
         where: {
           OR: [
-            { caller_id: userId, status: 'ongoing' },
-            { receiver_id: userId, status: 'ongoing' },
+            { caller_id: userId, status: { in: ['ongoing', 'ringing'] } },
+            { receiver_id: userId, status: { in: ['ongoing', 'ringing'] } },
           ],
         },
         orderBy: { started_at: 'desc' },

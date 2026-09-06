@@ -7,6 +7,6 @@ export const initiateCallSchema = z.object({
 });
 
 export const updateCallSchema = z.object({
-  status: z.enum(['ongoing', 'completed', 'missed', 'rejected']),
+  status: z.enum(['ringing', 'ongoing', 'completed', 'missed', 'rejected']),
   duration: z.number().int().nonnegative().optional(),
 });

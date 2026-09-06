@@ -278,7 +278,7 @@ export interface CallRecord {
   receiver_id: string;
   conversation_id?: string;
   type: 'voice' | 'video';
-  status: 'ongoing' | 'completed' | 'missed' | 'rejected';
+  status: 'ringing' | 'ongoing' | 'completed' | 'missed' | 'rejected';
   started_at: string;
   ended_at?: string;
   duration: number;
