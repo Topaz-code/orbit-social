@@ -16,23 +16,6 @@ export interface CallWakeupPayload {
   conversationId?: string;
 }
 
-// Default credentials for the Orbit Firebase project (orbit-social-c90ed)
-const DEFAULT_FIREBASE_CREDENTIALS = {
-  type: 'service_account',
-  project_id: 'orbit-social-c90ed',
-  private_key_id: '2e300fb230eaf3d1508617363494f0a0aff8fd8a',
-  private_key:
-    '-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCaJPrFjNGS1S+S\nU9gMIsLc3FxA0CKMdtJZ6vt4OOE5NeColg0eLsDoAmCLRCQnUidAmq4Xb7kBd1z3\ncL9dL4WdsSo/YZHNvRL4v2saXyyc0qP68mwuEEFg1xVlpRvfCbRH7rhxKUN2fvvf\niiqiEndxLbaeGmZXX8svefXDFHHt68OC88MbSxmvyDkZSLHJnXMQKm8+dmhERA0I\nqM1cPFf41GppXBd32oaFf2bnZYpVeCcFVreqcu+5JqvH6vTZuquVTRp2Lt2shW95\nJuNDU0vLsJq5YxXuqRtnL2bSgb68aZ4p6SROVCgcAeCL/zZv73qsqa0+rNDNbV2a\n4X8Gkj0PAgMBAAECggEADu9yVN3WGJILb/QrxNFBbED1t1nzXwTMUOYRw45PVEnC\nINOZJcmF63T/gb7yedTd9MaIA8FRfbDhEyCbih3mpmbaHxYHGJYvVmbFq+J44iEO\nvmvqy3PLweRVMGoVD0FTdHzO5jgHT13ybbBnfRio9hBl11/bdq/TciAxDdvXRiQh\nZCP8r34Ny6IyLzAhFxNEW+8KV/wPmQbEAjBt4Mie5nwIwRaHXytK9Hijf1ktiXUn\nOBBfqkB0/+3Qg9hL/sTOifyrzwk+dEUMZEBaIsKB9XdDtAeS6kbctao5JHK4sT3q\ngRfKlvnBjdLLDReNAK6KMXcEesiNdvZRYfNq4jxDgQKBgQDMxBorBG4CUm6VcdXq\nG5sj9NqyIHT7K+2IeIjcN0mlyU5XYX2Id1JqNrdJUYiF9qDWbWKDkmc+NZ4MjMfn\nidt8rwvEbcvXXN2XeMZYwv27eAbBYsS/aJdyVikgEFYHSfH/+g4PlAKFvMwmbFbp\no/AN3je9IAb3oXYqzit/fQn84QKBgQDAtmitzLwkcHW0sRx+qTzJ246zE+kXvqmv\nqVgjaJOQwqK6iNNVHzmScKmjgyFGYXlaiuiF6HgXF4mSWAzinaW400ImjbTNzybP\nKRCzqIrpbIdfdFHIN8lLrQF8l5qJaK+/H7fHIYLgtz5mWpLZPqwEtoehMOjC21gu\nrTumIfUH7wKBgBWBZworje46gBi7+u56dcHB/pIErKSQiYLyvdT7DYYW7V5qA8go\nWASFuJw/run67At5M4aEAsna0b2Zr4kWxnGC5OZ9bZIx06gL7DD4UbO1uGfpGqbL\nslQ0zl7quE5NqtfqiD2Emvs2x+4lJL+nExgxxYLccT7iu0llm9Xo6PqhAoGAbY4F\nWnCesLSCJdPeGB+L4FGCAUobZBVPD/7cjVyhL1WG/zZTtfuHVjnYJo2geAtn2tJH\nOAEdbDtEST7nLFlk4fqvi41ZsPrH3FNDHG9/cQ3ys5BEAee89tmGk9b30pACAUw9\nxOXHKorh3Xw2KWyYjCFcX4WXfVcG/Zob4+lADF8CgYEAwlIVQAsndUsi4PEr9Y9C\nTD1wytSxTMv/u1zlC0IRTrxpHYrn1ejlbhlJ99w0tkOATKomqyM/yiNTpiaJc1qZ\nxfcNID8jQNVYJEkjCzJtMwFDJ8E1h6jOiTnEPWNl++uM0IMwSrkeO4ygKRWsFK5E\nPhi9eN+ZiYIjYTrvwRoCy4o=\n-----END PRIVATE KEY-----\n',
-  client_email: 'firebase-adminsdk-fbsvc@orbit-social-c90ed.iam.gserviceaccount.com',
-  client_id: '108580892633808290152',
-  auth_uri: 'https://accounts.google.com/o/oauth2/auth',
-  token_uri: 'https://oauth2.googleapis.com/token',
-  auth_provider_x509_cert_url: 'https://www.googleapis.com/oauth2/v1/certs',
-  client_x509_cert_url:
-    'https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-fbsvc%40orbit-social-c90ed.iam.gserviceaccount.com',
-  universe_domain: 'googleapis.com',
-};
-
 export class PushService {
   private auth: GoogleAuth | null = null;
   private projectId: string = 'orbit-social-c90ed';
@@ -43,6 +26,7 @@ export class PushService {
       process.env.FIREBASE_PROJECT_ID || process.env.VITE_FIREBASE_PROJECT_ID;
     const keyPath = process.env.FIREBASE_SERVICE_ACCOUNT_PATH;
     const keyJson = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
+    const keyBase64 = process.env.FIREBASE_SERVICE_ACCOUNT_BASE64;
 
     try {
       if (keyJson) {
@@ -51,8 +35,19 @@ export class PushService {
           credentials,
           scopes: ['https://www.googleapis.com/auth/firebase.messaging'],
         });
-        this.projectId = credentials.project_id || this.projectId;
+        this.projectId = credentials.project_id || envProjectId || this.projectId;
         this.isConfigured = true;
+        console.log(`[Push] Initialized FCM v1 from JSON for project: ${this.projectId}`);
+      } else if (keyBase64) {
+        const decoded = Buffer.from(keyBase64, 'base64').toString('utf8');
+        const credentials = JSON.parse(decoded);
+        this.auth = new GoogleAuth({
+          credentials,
+          scopes: ['https://www.googleapis.com/auth/firebase.messaging'],
+        });
+        this.projectId = credentials.project_id || envProjectId || this.projectId;
+        this.isConfigured = true;
+        console.log(`[Push] Initialized FCM v1 from Base64 for project: ${this.projectId}`);
       } else if (keyPath) {
         this.auth = new GoogleAuth({
           keyFilename: keyPath,
@@ -60,16 +55,14 @@ export class PushService {
         });
         this.projectId = envProjectId || this.projectId;
         this.isConfigured = true;
+        console.log(`[Push] Initialized FCM v1 from file path for project: ${this.projectId}`);
       } else {
-        // Use embedded credentials for orbit-social-c90ed
-        this.auth = new GoogleAuth({
-          credentials: DEFAULT_FIREBASE_CREDENTIALS,
-          scopes: ['https://www.googleapis.com/auth/firebase.messaging'],
-        });
-        this.projectId = DEFAULT_FIREBASE_CREDENTIALS.project_id;
-        this.isConfigured = true;
+        this.projectId = envProjectId || this.projectId;
+        this.isConfigured = false;
+        console.warn(
+          '[Push] No Firebase service account configured (set FIREBASE_SERVICE_ACCOUNT_JSON or FIREBASE_SERVICE_ACCOUNT_BASE64). FCM push notifications will be skipped.'
+        );
       }
-      console.log(`[Push] Initialized FCM v1 for project: ${this.projectId}`);
     } catch (err) {
       console.warn('[Push] Firebase GoogleAuth init notice:', (err as any).message);
     }
