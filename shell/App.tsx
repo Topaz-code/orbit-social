@@ -22,6 +22,11 @@ import { useCallPermissions } from './src/hooks/useCallPermissions';
 import { useDeepLinking } from './src/hooks/useDeepLinking';
 import { usePushNotifications } from './src/hooks/usePushNotifications';
 import { INJECTED_INIT_SCRIPT, WebBridge } from './src/services/bridge';
+import notifee from '@notifee/react-native';
+import { handleNotifeeBackgroundEvent } from './src/services/notifeeCalls';
+
+// Register Notifee background event handler for lockscreen call actions (Accept / Decline)
+notifee.onBackgroundEvent(handleNotifeeBackgroundEvent);
 
 // react-native-webview event types
 type WebViewErrorEvent = Parameters<NonNullable<React.ComponentProps<typeof WebView>['onError']>>[0];
@@ -37,7 +42,7 @@ Notifications.setNotificationHandler({
     const data = notification.request.content.data as Record<string, unknown> | undefined;
     const isCall =
       data?.type === 'call' ||
-      notification.request.content.categoryIdentifier === 'calls' ||
+      (notification.request.content as any)?.categoryIdentifier === 'calls' ||
       (notification.request.trigger as any)?.channelId === 'calls';
 
     const foreground = AppState.currentState === 'active';

@@ -47,6 +47,24 @@ export const callsController = {
     }
   },
 
+  async declineCall(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+      const updated = await callsService.declineCall(req.params.id, req.user!.userId);
+      res.json({ success: true, data: updated });
+    } catch (error: any) {
+      res.status(400).json({ success: false, message: error.message });
+    }
+  },
+
+  async cancelCall(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+      const updated = await callsService.cancelCall(req.params.id, req.user!.userId);
+      res.json({ success: true, data: updated });
+    } catch (error: any) {
+      res.status(400).json({ success: false, message: error.message });
+    }
+  },
+
   async deleteCall(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
       await callsService.deleteCall(req.params.id, req.user!.userId);

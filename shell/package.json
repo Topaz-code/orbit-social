@@ -10,6 +10,7 @@
     "prebuild": "expo prebuild"
   },
   "dependencies": {
+    "@notifee/react-native": "^9.1.8",
     "@react-native-community/netinfo": "11.4.1",
     "expo": "~52.0.0",
     "expo-av": "~15.0.2",

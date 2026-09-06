@@ -111,13 +111,26 @@ export const callsService = {
       duration?: number;
     }
   ) {
-    const call = await prisma.call.findUnique({ where: { id: callId } });
+    let call = await prisma.call.findUnique({ where: { id: callId } });
+    if (!call && callId.startsWith('call-')) {
+      call = await prisma.call.findFirst({
+        where: {
+          OR: [
+            { caller_id: userId, status: 'ongoing' },
+            { receiver_id: userId, status: 'ongoing' },
+          ],
+        },
+        orderBy: { started_at: 'desc' },
+      });
+    }
+
     if (!call) throw new Error('Call not found');
 
     if (call.caller_id !== userId && call.receiver_id !== userId) {
       throw new Error('Unauthorized');
     }
 
+    const realCallId = call.id;
     const endedAt = new Date();
     const duration =
       data.duration !== undefined
@@ -125,7 +138,7 @@ export const callsService = {
         : Math.max(0, Math.floor((endedAt.getTime() - new Date(call.started_at).getTime()) / 1000));
 
     const updated = await prisma.call.update({
-      where: { id: callId },
+      where: { id: realCallId },
       data: {
         status: data.status,
         ended_at: endedAt,
@@ -141,12 +154,15 @@ export const callsService = {
     const otherUserId = call.caller_id === userId ? call.receiver_id : call.caller_id;
     const signalPayload = {
       type: 'CALL_STATUS_CHANGED',
-      callId,
+      callId: realCallId,
       status: data.status,
       duration: updated.duration,
       byUserId: userId,
     };
-    mqttService.sendCallSignal(callId, signalPayload);
+    mqttService.sendCallSignal(realCallId, signalPayload);
+    if (callId !== realCallId) {
+      mqttService.sendCallSignal(callId, signalPayload);
+    }
     mqttService.sendUserCallSignal(call.caller_id, signalPayload);
     mqttService.sendUserCallSignal(call.receiver_id, signalPayload);
 
@@ -159,13 +175,22 @@ export const callsService = {
         : 'CALL_ENDED';
     const explicitPayload = {
       type: explicitType,
-      callId,
+      callId: realCallId,
       status: data.status,
       by: userId,
     };
-    mqttService.sendCallSignal(callId, explicitPayload);
+    mqttService.sendCallSignal(realCallId, explicitPayload);
+    if (callId !== realCallId) {
+      mqttService.sendCallSignal(callId, explicitPayload);
+    }
     mqttService.sendUserCallSignal(call.caller_id, explicitPayload);
     mqttService.sendUserCallSignal(call.receiver_id, explicitPayload);
+
+    // Remote push cancellation: dismiss heads-up notification and stop ringing on all devices
+    if (data.status === 'rejected' || data.status === 'missed' || data.status === 'completed') {
+      pushService.sendCallCancelled(call.caller_id, realCallId).catch(() => {});
+      pushService.sendCallCancelled(call.receiver_id, realCallId).catch(() => {});
+    }
 
     // If missed or rejected, send notification if receiver missed caller's call
     if (data.status === 'missed' && call.caller_id !== otherUserId) {
@@ -220,9 +245,15 @@ export const callsService = {
     return { success: true };
   },
 
+  async declineCall(callId: string, userId: string) {
+    return this.updateCall(callId, userId, { status: 'rejected' });
+  },
+
+  async cancelCall(callId: string, userId: string) {
+    return this.updateCall(callId, userId, { status: 'missed' });
+  },
+
   async clearCallHistory(userId: string) {
-    // Disabled to prevent data destruction for the other participant.
-    // Real implementation should use soft deletes (e.g. cleared_by_caller, cleared_by_receiver).
     return { success: true };
   },
 };

@@ -28,8 +28,9 @@ class OrbitMQTTClient {
     console.log(`[MQTT] Connecting to ${MQTT_WS_URL} as client: ${userId}`);
 
     try {
+      const uniqueClientId = `${userId}-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
       this.client = mqtt.connect(MQTT_WS_URL, {
-        clientId: userId,
+        clientId: uniqueClientId,
         username: userId,
         password: token || undefined,
         clean: true,

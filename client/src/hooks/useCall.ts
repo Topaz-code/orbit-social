@@ -7,6 +7,11 @@ import { MediaConnection } from 'peerjs';
 import { useDialogStore } from '../stores/dialogStore.js';
 import { mqttClient } from '../lib/mqtt.js';
 import { requestNativeCallPermissions } from './useShellBridge.js';
+import {
+  showCallBrowserNotification,
+  dismissCallBrowserNotification,
+  requestBrowserNotificationPermission,
+} from '../lib/browserNotifications.js';
 
 // Hold single MediaConnection reference for incoming call answering
 let currentIncomingMediaConnection: MediaConnection | null = null;
@@ -18,22 +23,31 @@ export function getPeerManager(): PeerManager {
       onIncomingCall: (mediaConn, metadata) => {
         requestNativeCallPermissions();
         currentIncomingMediaConnection = mediaConn;
+        const callId = metadata.callId || `call-${Date.now()}`;
+        const caller = metadata.caller || {
+          id: mediaConn.peer,
+          username: 'User',
+          display_name: 'Orbit Friend',
+          avatar_url: '',
+        };
         useCallStore.getState().setIncomingCall({
-          callId: metadata.callId || `call-${Date.now()}`,
-          caller: metadata.caller || {
-            id: mediaConn.peer,
-            username: 'User',
-            display_name: 'Orbit Friend',
-            avatar_url: '',
-          },
+          callId,
+          caller,
           type: metadata.type || 'voice',
           conversationId: metadata.conversationId,
+        });
+        showCallBrowserNotification({
+          callId,
+          callerName: caller.display_name,
+          callerAvatar: caller.avatar_url,
+          callType: metadata.type || 'voice',
         });
       },
       onRemoteStream: (stream) => {
         useCallStore.getState().setRemoteStream(stream);
       },
       onCallConnected: () => {
+        dismissCallBrowserNotification();
         useCallStore.setState((state) => ({
           activeCall: state.activeCall
             ? { ...state.activeCall, status: 'connected' }
@@ -41,6 +55,7 @@ export function getPeerManager(): PeerManager {
         }));
       },
       onCallEnded: () => {
+        dismissCallBrowserNotification();
         currentIncomingMediaConnection = null;
         useCallStore.getState().endCall();
       },
@@ -53,6 +68,7 @@ export function getPeerManager(): PeerManager {
 }
 
 export function hangUpCall(): void {
+  dismissCallBrowserNotification();
   const pm = getPeerManager();
   pm.hangUp();
   currentIncomingMediaConnection = null;
@@ -112,6 +128,8 @@ export function useCall() {
   const rejectCall = useCallback(() => {
     const callData = useCallStore.getState().incomingCall;
     if (callData) {
+      dismissCallBrowserNotification(callData.callId);
+
       // 1. Instantly broadcast decline signal over MQTT so caller stops ringing immediately
       const payload = {
         type: 'CALL_DECLINED',
@@ -124,8 +142,10 @@ export function useCall() {
         mqttClient.publish(`orbit/call/${callData.caller.id}/signal`, payload);
       }
 
-      // 2. Persist to DB
-      api.put(`/calls/${callData.callId}`, { status: 'rejected' }).catch(() => {});
+      // 2. Persist to DB with dedicated decline endpoint + PUT fallback
+      api.post(`/calls/${callData.callId}/decline`).catch(() => {
+        api.put(`/calls/${callData.callId}`, { status: 'rejected' }).catch(() => {});
+      });
 
       // 3. Teardown media connection
       if (currentIncomingMediaConnection) {
@@ -140,6 +160,8 @@ export function useCall() {
 
   // End Call handler
   const endCall = useCallback(() => {
+    dismissCallBrowserNotification();
+
     const currentIncoming = useCallStore.getState().incomingCall;
     if (currentIncoming) {
       rejectCall();
@@ -166,10 +188,16 @@ export function useCall() {
         mqttClient.publish(`orbit/call/${currentActive.remoteUser.id}/signal`, payload);
       }
 
-      api.put(`/calls/${currentActive.callId}`, {
-        status: newStatus,
-        duration: currentActive.duration,
-      }).catch(() => {});
+      if (isRinging) {
+        api.post(`/calls/${currentActive.callId}/cancel`).catch(() => {
+          api.put(`/calls/${currentActive.callId}`, { status: 'missed' }).catch(() => {});
+        });
+      } else {
+        api.put(`/calls/${currentActive.callId}`, {
+          status: newStatus,
+          duration: currentActive.duration,
+        }).catch(() => {});
+      }
     }
 
     hangUpCall();
@@ -204,33 +232,80 @@ export function useCall() {
     };
   }, [activeCall?.callId, activeCall?.status]);
 
-  // Listen for cancellation signals while an incoming call is ringing on the receiver's side
+  // Request browser desktop notification permissions on user authentication
+  useEffect(() => {
+    if (user?.id) {
+      requestBrowserNotificationPermission().catch(() => {});
+    }
+  }, [user?.id]);
+
+  // Fail-safe HTTP Polling Heartbeat while caller is waiting for answer
+  useEffect(() => {
+    if (!activeCall || activeCall.status !== 'ringing' || !activeCall.isCaller || !activeCall.callId) return;
+
+    const pollInterval = setInterval(async () => {
+      try {
+        const res = await api.get(`/calls/${activeCall.callId}`);
+        const callData = res.data?.data;
+        if (callData) {
+          if (callData.status === 'rejected') {
+            useDialogStore.getState().toast.info('Call declined');
+            hangUpCall();
+          } else if (callData.status === 'missed' || callData.status === 'completed') {
+            useDialogStore.getState().toast.info('Call ended');
+            hangUpCall();
+          }
+        }
+      } catch (err: any) {
+        if (err?.response?.status === 404) {
+          useDialogStore.getState().toast.info('Call ended');
+          hangUpCall();
+        }
+      }
+    }, 1500);
+
+    return () => clearInterval(pollInterval);
+  }, [activeCall?.callId, activeCall?.status, activeCall?.isCaller]);
+
+  // Fail-safe HTTP Polling Heartbeat while receiver is receiving a call
   useEffect(() => {
     if (!incomingCall?.callId) return;
 
-    const unsubs = mqttClient.subscribe(
-      `orbit/call/${incomingCall.callId}/signal`,
-      (topic, payload) => {
-        if (
-          payload?.type === 'CALL_DECLINED' ||
-          payload?.type === 'CALL_CANCELLED' ||
-          payload?.type === 'CALL_ENDED' ||
-          (payload?.type === 'CALL_STATUS_CHANGED' &&
-            (payload.status === 'rejected' || payload.status === 'completed' || payload.status === 'missed'))
-        ) {
-          useCallStore.getState().setIncomingCall(null);
-          if (currentIncomingMediaConnection) {
-            try {
-              currentIncomingMediaConnection.close();
-            } catch {}
-            currentIncomingMediaConnection = null;
+    // Show browser notification if tab is hidden/in background
+    showCallBrowserNotification({
+      callId: incomingCall.callId,
+      callerName: incomingCall.caller.display_name,
+      callerAvatar: incomingCall.caller.avatar_url,
+      callType: incomingCall.type,
+    });
+
+    const pollInterval = setInterval(async () => {
+      try {
+        const res = await api.get(`/calls/${incomingCall.callId}`);
+        const callData = res.data?.data;
+        if (callData) {
+          if (callData.status === 'missed' || callData.status === 'rejected' || callData.status === 'completed') {
+            useCallStore.getState().setIncomingCall(null);
+            dismissCallBrowserNotification(incomingCall.callId);
+            if (currentIncomingMediaConnection) {
+              try {
+                currentIncomingMediaConnection.close();
+              } catch {}
+              currentIncomingMediaConnection = null;
+            }
           }
         }
+      } catch (err: any) {
+        if (err?.response?.status === 404) {
+          useCallStore.getState().setIncomingCall(null);
+          dismissCallBrowserNotification(incomingCall.callId);
+        }
       }
-    );
+    }, 1500);
 
     return () => {
-      unsubs();
+      clearInterval(pollInterval);
+      dismissCallBrowserNotification(incomingCall.callId);
     };
   }, [incomingCall?.callId]);
 
@@ -357,6 +432,7 @@ export function useCall() {
         duration: 0,
       });
 
+      dismissCallBrowserNotification(incomingCall.callId);
       setIncomingCall(null);
 
       // Update call status to ongoing in DB

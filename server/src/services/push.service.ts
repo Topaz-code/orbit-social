@@ -189,6 +189,27 @@ export class PushService {
       )
     );
   }
+
+  public async sendCallCancelled(userId: string, callId: string): Promise<void> {
+    const devices = await prisma.deviceToken.findMany({ where: { user_id: userId } });
+    if (!devices.length) return;
+
+    // Send high-priority cancellation to dismiss heads-up notification / stop ringtone
+    await Promise.allSettled(
+      devices.map((d) =>
+        this.sendSingleFCM(d.token, {
+          data: {
+            type: 'call_cancelled',
+            callId: String(callId),
+          },
+          android: {
+            priority: 'HIGH',
+            ttl: '15s',
+          },
+        })
+      )
+    );
+  }
 }
 
 export const pushService = new PushService();

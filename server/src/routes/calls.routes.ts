@@ -11,6 +11,8 @@ router.delete('/history/clear', authenticateToken, callsController.clearCallHist
 router.get('/:id', authenticateToken, callsController.getCallById);
 router.post('/', authenticateToken, validateBody(initiateCallSchema), callsController.initiateCall);
 router.put('/:id', authenticateToken, validateBody(updateCallSchema), callsController.updateCall);
+router.post('/:id/decline', authenticateToken, callsController.declineCall);
+router.post('/:id/cancel', authenticateToken, callsController.cancelCall);
 router.delete('/:id', authenticateToken, callsController.deleteCall);
 
 export default router;

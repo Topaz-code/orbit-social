@@ -8,6 +8,11 @@ import { useCallStore } from '../stores/callStore.js';
 import { useDialogStore } from '../stores/dialogStore.js';
 import { hangUpCall } from './useCall.js';
 import { Post } from '../types/index.js';
+import {
+  showCallBrowserNotification,
+  dismissCallBrowserNotification,
+  showMessageBrowserNotification,
+} from '../lib/browserNotifications.js';
 
 export function useMQTT() {
   const { user } = useAuthStore();
@@ -30,6 +35,10 @@ export function useMQTT() {
         if (payload?.type === 'NOTIFICATION_RECEIVED' && payload.data) {
           addNotification(payload.data);
           queryClient.invalidateQueries({ queryKey: ['notifications'] });
+          showMessageBrowserNotification(
+            payload.data.title || 'Orbit',
+            payload.data.content || 'You have a new notification'
+          );
         } else if (payload?.type === 'new_message' && payload.sender) {
           // Push notification toast for messages
           addNotification({
@@ -43,6 +52,10 @@ export function useMQTT() {
             created_at: new Date().toISOString(),
           });
           queryClient.invalidateQueries({ queryKey: ['notifications'] });
+          showMessageBrowserNotification(
+            payload.sender?.display_name || payload.sender?.username || 'Orbit Friend',
+            payload.content || 'Sent a new message'
+          );
         }
       }
     );
@@ -66,6 +79,7 @@ export function useMQTT() {
                     sigPayload.status === 'completed' ||
                     sigPayload.status === 'missed'))
               ) {
+                dismissCallBrowserNotification(callData.callId);
                 useCallStore.getState().setIncomingCall(null);
                 const active = useCallStore.getState().activeCall;
                 if (active && active.callId === callData.callId) {
@@ -75,6 +89,12 @@ export function useMQTT() {
             }
           );
           setIncomingCall(callData);
+          showCallBrowserNotification({
+            callId: callData.callId,
+            callerName: callData.caller?.display_name || 'Orbit Friend',
+            callerAvatar: callData.caller?.avatar_url,
+            callType: callData.type || 'voice',
+          });
         }
       }
     );
@@ -90,6 +110,7 @@ export function useMQTT() {
           (payload?.type === 'CALL_STATUS_CHANGED' &&
             (payload.status === 'rejected' || payload.status === 'completed' || payload.status === 'missed'))
         ) {
+          dismissCallBrowserNotification(payload.callId);
           const active = useCallStore.getState().activeCall;
           const incoming = useCallStore.getState().incomingCall;
 

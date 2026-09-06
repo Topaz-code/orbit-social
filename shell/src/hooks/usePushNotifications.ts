@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef } from 'react';
 import * as Notifications from 'expo-notifications';
 import { CALLS_CHANNEL_ID, DEFAULT_CHANNEL_ID } from '../config/constants';
 import { THEME } from '../config/theme';
+import { displayNotifeeIncomingCall, cancelNotifeeIncomingCall } from '../services/notifeeCalls';
 
 interface PushNotificationsOptions {
   onTokenReady: (token: string) => void;
@@ -81,11 +82,23 @@ export function usePushNotifications({
     return () => subscription.remove();
   }, [onTokenReady]);
 
-  // Foreground push notification listener
+  // Push notification listener (triggers Notifee full screen heads-up for calls)
   useEffect(() => {
     const subscription = Notifications.addNotificationReceivedListener((notification) => {
       const data = notification.request.content.data as Record<string, unknown> | undefined;
       if (data) {
+        if (data.type === 'call' && data.callId) {
+          void displayNotifeeIncomingCall({
+            callId: String(data.callId),
+            callerId: String(data.callerId || ''),
+            callerName: String(data.callerName || 'Orbit Friend'),
+            callerAvatar: data.callerAvatar ? String(data.callerAvatar) : undefined,
+            callType: (data.callType as 'voice' | 'video') || 'voice',
+            conversationId: data.conversationId ? String(data.conversationId) : undefined,
+          });
+        } else if (data.type === 'call_cancelled' && data.callId) {
+          void cancelNotifeeIncomingCall(String(data.callId));
+        }
         onForegroundPush(data);
       }
     });
