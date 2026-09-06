@@ -1,9 +1,8 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { useCallStore, CallStoreState } from '../stores/callStore.js';
 import { useAuthStore } from '../stores/authStore.js';
-import { PeerManager, CallMetadata } from '../lib/webrtc.js';
+import { getLiveKitManager, LiveKitManager } from '../lib/livekit.js';
 import { api } from '../lib/api.js';
-import { MediaConnection } from 'peerjs';
 import { useDialogStore } from '../stores/dialogStore.js';
 import { mqttClient } from '../lib/mqtt.js';
 import { requestNativeCallPermissions, cancelNativeCallNotification, notifyNativeCallStarted } from './useShellBridge.js';
@@ -13,84 +12,41 @@ import {
   requestBrowserNotificationPermission,
 } from '../lib/browserNotifications.js';
 
-// Hold single MediaConnection reference for incoming call answering
-let currentIncomingMediaConnection: MediaConnection | null = null;
-let peerManagerInstance: PeerManager | null = null;
-
-export function getPeerManager(): PeerManager {
-  if (!peerManagerInstance) {
-    peerManagerInstance = new PeerManager({
-      onIncomingCall: (mediaConn, metadata) => {
-        requestNativeCallPermissions();
-        const active = useCallStore.getState().activeCall;
-        if (active && (active.status === 'connected' || active.callId === metadata.callId)) {
-          console.log('[Call] Active call already connected or matching ringing call, answering reverse-dial in background');
-          const localStream = useCallStore.getState().localStream;
-          if (localStream && (!peerManagerInstance?.getCurrentCall() || !peerManagerInstance.getCurrentCall()?.open)) {
-            peerManagerInstance?.answerCall(mediaConn, localStream);
-          }
-          return;
-        }
-
-        currentIncomingMediaConnection = mediaConn;
-        const callId = metadata.callId || `call-${Date.now()}`;
-        const caller = metadata.caller || {
-          id: mediaConn.peer,
-          username: 'User',
-          display_name: 'Orbit Friend',
-          avatar_url: '',
-        };
-        useCallStore.getState().setIncomingCall({
-          callId,
-          caller,
-          type: metadata.type || 'voice',
-          conversationId: metadata.conversationId,
-        });
-        showCallBrowserNotification({
-          callId,
-          callerName: caller.display_name,
-          callerAvatar: caller.avatar_url,
-          callType: metadata.type || 'voice',
-        });
-      },
-      onRemoteStream: (stream) => {
-        useCallStore.getState().setRemoteStream(stream);
-      },
-      onCallConnected: () => {
-        dismissCallBrowserNotification();
-        useCallStore.setState((state) => ({
-          activeCall: state.activeCall
-            ? { ...state.activeCall, status: 'connected' }
-            : null,
-        }));
-      },
-      onCallEnded: () => {
-        dismissCallBrowserNotification();
-        currentIncomingMediaConnection = null;
-        useCallStore.getState().endCall();
-      },
-      onError: (err) => {
-        console.error('[Call] PeerManager error:', err);
-      },
-    });
-  }
-  return peerManagerInstance;
+export function getCallManager(): LiveKitManager {
+  return getLiveKitManager({
+    onLocalStream: (stream) => {
+      useCallStore.getState().setLocalStream(stream);
+    },
+    onRemoteStream: (stream) => {
+      useCallStore.getState().setRemoteStream(stream);
+    },
+    onCallConnected: () => {
+      dismissCallBrowserNotification();
+      useCallStore.setState((state) => ({
+        activeCall: state.activeCall
+          ? { ...state.activeCall, status: 'connected' }
+          : null,
+      }));
+    },
+    onCallEnded: () => {
+      dismissCallBrowserNotification();
+      useCallStore.getState().endCall();
+    },
+    onError: (err) => {
+      console.error('[Call] LiveKit error:', err);
+    },
+  });
 }
+
+// Backward compatibility alias
+export { getCallManager as getPeerManager };
 
 export function hangUpCall(): void {
   dismissCallBrowserNotification();
-  const pm = getPeerManager();
-  pm.hangUp();
-  currentIncomingMediaConnection = null;
+  const lk = getCallManager();
+  lk.disconnect().catch(() => {});
   useCallStore.getState().endCall();
 }
-
-const AUDIO_CONSTRAINTS: MediaTrackConstraints = {
-  echoCancellation: true,
-  noiseSuppression: true,
-  autoGainControl: true,
-};
-
 
 export function useCall() {
   const { user } = useAuthStore();
@@ -101,23 +57,13 @@ export function useCall() {
     incomingCall,
     setIncomingCall,
     setActiveCall,
-    setLocalStream,
-    toggleMute,
-    toggleVideo,
+    toggleMute: storeToggleMute,
+    toggleVideo: storeToggleVideo,
     toggleSpeaker,
     incrementDuration,
-    endCall: storeEndCall,
   } = useCallStore();
 
   const timerRef = useRef<NodeJS.Timeout | null>(null);
-
-  // Initialize Peer connection when user is authenticated
-  useEffect(() => {
-    if (user?.id) {
-      const pm = getPeerManager();
-      pm.init(user.id);
-    }
-  }, [user?.id]);
 
   // Duration timer for active connected call
   useEffect(() => {
@@ -158,13 +104,8 @@ export function useCall() {
         api.put(`/calls/${callData.callId}`, { status: 'rejected' }).catch(() => {});
       });
 
-      // 3. Teardown media connection
-      if (currentIncomingMediaConnection) {
-        try {
-          currentIncomingMediaConnection.close();
-        } catch {}
-        currentIncomingMediaConnection = null;
-      }
+      // 3. Teardown call
+      hangUpCall();
       setIncomingCall(null);
     }
   }, [user?.id, setIncomingCall]);
@@ -233,24 +174,6 @@ export function useCall() {
               ? { ...state.activeCall, status: 'connected' }
               : null,
           }));
-
-          // If caller's WebRTC media connection is not active yet, dial the newly online receiver
-          const pm = getPeerManager();
-          const currentCall = pm.getCurrentCall();
-          const currentLocalStream = useCallStore.getState().localStream;
-          if ((!currentCall || !currentCall.open) && currentLocalStream && activeCall.remoteUser?.id && user) {
-            const metadata: CallMetadata = {
-              callId: activeCall.callId,
-              caller: {
-                id: user.id,
-                username: user.username,
-                display_name: user.display_name,
-                avatar_url: user.avatar_url || '',
-              },
-              type: activeCall.type,
-            };
-            pm.makeCall(activeCall.remoteUser.id, currentLocalStream, metadata);
-          }
         } else if (
           payload?.type === 'CALL_DECLINED' ||
           payload?.type === 'CALL_CANCELLED' ||
@@ -289,7 +212,7 @@ export function useCall() {
         const res = await api.get(`/calls/${activeCall.callId}`);
         const callData = res.data?.data;
         const currentActive = useCallStore.getState().activeCall;
-        
+
         if (callData && currentActive?.callId === activeCall.callId) {
           if (callData.status === 'rejected') {
             useDialogStore.getState().toast.info('Call declined');
@@ -332,12 +255,7 @@ export function useCall() {
           if (callData.status === 'missed' || callData.status === 'rejected' || callData.status === 'completed') {
             useCallStore.getState().setIncomingCall(null);
             dismissCallBrowserNotification(incomingCall.callId);
-            if (currentIncomingMediaConnection) {
-              try {
-                currentIncomingMediaConnection.close();
-              } catch {}
-              currentIncomingMediaConnection = null;
-            }
+            hangUpCall();
           }
         }
       } catch (err: any) {
@@ -377,16 +295,7 @@ export function useCall() {
     try {
       requestNativeCallPermissions();
 
-      // 1. Acquire media stream with standard high-compatibility audio constraints
-      const constraints: MediaStreamConstraints = {
-        audio: AUDIO_CONSTRAINTS,
-        video: type === 'video' ? { width: { ideal: 1280 }, height: { ideal: 720 } } : false,
-      };
-
-      const stream = await navigator.mediaDevices.getUserMedia(constraints);
-      setLocalStream(stream);
-
-      // 2. Create DB record for call history tracking
+      // 1. Create DB record for call history tracking
       let callId = `call-${Date.now()}`;
       try {
         const res = await api.post('/calls', {
@@ -401,7 +310,7 @@ export function useCall() {
         console.warn('[Call] Could not create call record in DB:', err);
       }
 
-      // 3. Set Active Call state to 'ringing'
+      // 2. Set Active Call state to 'ringing'
       setActiveCall({
         callId,
         type,
@@ -418,40 +327,29 @@ export function useCall() {
       // Subscribe to signal topic for this call specifically
       mqttClient.subscribe(`orbit/call/${callId}/signal`);
 
-      // 4. Dial via PeerJS
-      const pm = getPeerManager();
-      const metadata: CallMetadata = {
-        callId,
-        caller: {
-          id: user.id,
-          username: user.username,
-          display_name: user.display_name,
-          avatar_url: user.avatar_url || '',
-        },
-        type,
-        conversationId,
-      };
+      // 3. Fetch LiveKit room join token
+      const tokenRes = await api.get(`/calls/${callId}/token`);
+      const { token, url } = tokenRes.data.data;
 
-      await pm.waitForReady();
-      const call = pm.makeCall(targetUser.id, stream, metadata);
-      if (!call) {
-        throw new Error('Signaling server is not ready. Please try again.');
-      }
+      // 4. Connect to LiveKit Room and publish local tracks
+      const lk = getCallManager();
+      await lk.connect({
+        url,
+        token,
+        isVideo: type === 'video',
+      });
     } catch (error: any) {
       console.error('[Call] Failed to start call:', error);
-      const msg = error?.message?.includes('is taken')
-        ? 'Signaling connection refreshed. Please try calling again.'
-        : error?.message || 'Could not connect call';
+      const msg = error?.message || 'Could not connect call';
       useDialogStore.getState().toast.error(msg);
       endCall();
     }
   };
 
-
   // Accept incoming call
   const acceptCall = async (overrideCall?: CallStoreState['incomingCall']) => {
     let callToAccept = overrideCall || useCallStore.getState().incomingCall;
-    
+
     // Wait briefly for authenticated user if cold starting
     let currentUser = user || useAuthStore.getState().user;
     if (!currentUser) {
@@ -543,36 +441,19 @@ export function useCall() {
         window.history.replaceState({}, '', url.pathname + (url.search ? url.search : ''));
       }
 
-      const constraints: MediaStreamConstraints = {
-        audio: AUDIO_CONSTRAINTS,
-        video: callToAccept.type === 'video' ? { width: { ideal: 1280 }, height: { ideal: 720 } } : false,
-      };
+      // 1. Fetch LiveKit room join token
+      const tokenRes = await api.get(`/calls/${callToAccept.callId}/token`);
+      const { token, url } = tokenRes.data.data;
 
-      const stream = await navigator.mediaDevices.getUserMedia(constraints);
-      useCallStore.getState().setLocalStream(stream);
+      // 2. Connect to LiveKit Room and publish local tracks
+      const lk = getCallManager();
+      await lk.connect({
+        url,
+        token,
+        isVideo: callToAccept.type === 'video',
+      });
 
-      const pm = getPeerManager();
-      await pm.waitForReady();
-      
-      if (currentIncomingMediaConnection) {
-        pm.answerCall(currentIncomingMediaConnection, stream);
-      } else if (callToAccept.caller?.id && callToAccept.caller.id !== 'unknown') {
-        // Reverse dial if incoming PeerJS connection was not initialized while device was asleep
-        const metadata: CallMetadata = {
-          callId: callToAccept.callId,
-          caller: {
-            id: currentUser.id,
-            username: currentUser.username,
-            display_name: currentUser.display_name,
-            avatar_url: currentUser.avatar_url || '',
-          },
-          type: callToAccept.type,
-          conversationId: callToAccept.conversationId,
-        };
-        pm.makeCall(callToAccept.caller.id, stream, metadata);
-      }
-
-      // 1. Broadcast instant CALL_ACCEPTED signal over MQTT so caller stops ringing
+      // 3. Broadcast instant CALL_ACCEPTED signal over MQTT so caller stops ringing
       const payload = {
         type: 'CALL_ACCEPTED',
         callId: callToAccept.callId,
@@ -584,7 +465,7 @@ export function useCall() {
         mqttClient.publish(`orbit/call/${callToAccept.caller.id}/signal`, payload);
       }
 
-      // 2. Update call status to ongoing in DB
+      // 4. Update call status to ongoing in DB
       api.put(`/calls/${callToAccept.callId}`, { status: 'ongoing' }).catch(() => {});
     } catch (error: any) {
       console.error('[Call] Failed to accept call:', error);
@@ -715,7 +596,15 @@ export function useCall() {
     };
   }, [acceptCall]);
 
+  const toggleMute = useCallback(() => {
+    storeToggleMute();
+    getCallManager().toggleMute().catch(() => {});
+  }, [storeToggleMute]);
 
+  const toggleVideo = useCallback(() => {
+    storeToggleVideo();
+    getCallManager().toggleVideo().catch(() => {});
+  }, [storeToggleVideo]);
 
   return {
     activeCall,
@@ -731,4 +620,3 @@ export function useCall() {
     toggleSpeaker,
   };
 }
-

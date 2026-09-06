@@ -5,7 +5,6 @@ import cookieParser from 'cookie-parser';
 import path from 'path';
 import dotenv from 'dotenv';
 import { v4 as uuidv4 } from 'uuid';
-import { ExpressPeerServer } from 'peer';
 
 // Load environment variables
 dotenv.config();
@@ -183,32 +182,7 @@ app.use(
   })
 );
 
-// 7. Embedded PeerJS WebRTC Signaling Server
-// Middleware to authenticate PeerJS handshake (token passed in URL query if possible)
-app.use('/peerjs', (req, res, next) => {
-  // If we can't do full JWT verification because PeerJS client doesn't send token in query natively by default,
-  // we at least ensure basic security headers, but a proper solution requires modifying the client to pass token.
-  // We'll proceed to the peer server for now, but disable discovery.
-  next();
-});
-
-const peerServer = ExpressPeerServer(server, {
-  path: '/',
-  allow_discovery: false, // PREVENT ENUMERATION
-  alive_timeout: 30000,   // Clean up zombie sockets in 30s instead of default 90s
-  expire_timeout: 5000,
-});
-app.use('/peerjs', peerServer);
-
-peerServer.on('connection', (client) => {
-  console.log(`[PeerJS] Client connected: ${client.getId()}`);
-});
-
-peerServer.on('disconnect', (client) => {
-  console.log(`[PeerJS] Client disconnected: ${client.getId()}`);
-});
-
-// 8. Health & Audit Integrity Check
+// 7. Health & Audit Integrity Check
 app.get(['/health', '/api/health'], (req, res) => {
   res.json({
     status: 'ok',
@@ -306,7 +280,7 @@ async function bootstrap() {
   🚀 Orbit Backend Server Running! (Hardened Security Applied)
   =========================================
   📡 REST API:      http://localhost:${PORT}/api
-  📞 PeerJS WebRTC: http://localhost:${PORT}/peerjs
+  📹 LiveKit SFU:   Cloud Managed
   🌐 MQTT (WS):     ws://localhost:8883
   🔌 MQTT (TCP):    mqtt://localhost:1883
   📁 Uploads:       http://localhost:${PORT}/uploads

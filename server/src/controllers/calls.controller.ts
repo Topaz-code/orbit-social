@@ -1,5 +1,6 @@
 import { Response, NextFunction } from 'express';
 import { callsService } from '../services/calls.service.js';
+import { livekitService } from '../services/livekit.service.js';
 import { AuthenticatedRequest } from '../types/index.js';
 
 export const callsController = {
@@ -78,6 +79,31 @@ export const callsController = {
     try {
       await callsService.clearCallHistory(req.user!.userId);
       res.json({ success: true, message: 'Call history cleared successfully' });
+    } catch (error: any) {
+      res.status(500).json({ success: false, message: error.message });
+    }
+  },
+
+  async getCallToken(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+      const call = await callsService.getCallById(req.params.id, req.user!.userId);
+      if (!call) {
+        return res.status(404).json({ success: false, message: 'Call not found' });
+      }
+
+      const userId = req.user!.userId;
+      const userName = (req.user as any)?.username || (req.user as any)?.display_name || userId;
+      const roomName = `orbit_call_${call.id}`;
+
+      const token = await livekitService.generateToken(roomName, userId, userName);
+      res.json({
+        success: true,
+        data: {
+          token,
+          url: livekitService.getUrl(),
+          room: roomName,
+        },
+      });
     } catch (error: any) {
       res.status(500).json({ success: false, message: error.message });
     }

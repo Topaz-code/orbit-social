@@ -22,6 +22,7 @@
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "date-fns": "^3.6.0",
+    "livekit-client": "^2.22.2",
     "lucide-react": "^0.441.0",
     "mqtt": "^5.10.1",
     "peerjs": "^1.5.4",
@@ -36,6 +37,5 @@
     "vite": "^5.4.3",
     "zod": "^3.23.8",
     "zustand": "^4.5.5"
-  },
-  "devDependencies": {}
+  }
 }
