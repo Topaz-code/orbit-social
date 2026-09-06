@@ -15,6 +15,11 @@ export interface CallStoreState {
     };
     type: 'voice' | 'video';
     conversationId?: string;
+    livekit?: {
+      token: string;
+      url: string;
+      room: string;
+    };
   } | null;
 
   setIncomingCall: (call: CallStoreState['incomingCall']) => void;

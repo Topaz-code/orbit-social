@@ -14,7 +14,7 @@ import notifee from "@notifee/react-native";
 
 import { BACKGROUND_NOTIFICATION_TASK, ORBIT_URL, STORAGE_KEYS } from "../constants/config";
 
-import { consumePendingRoute, parseIncomingCall, showIncomingCall } from "./calls";
+import { cancelIncomingCall, consumePendingRoute, parseIncomingCall, showIncomingCall } from "./calls";
 
 
 
@@ -305,15 +305,15 @@ export async function resolveLaunchRoute(): Promise<string | null> {
  */
 
 export async function handleForegroundPush(notification: Notifications.Notification): Promise<void> {
-
   const data = notification.request.content.data as Record<string, unknown>;
 
+  if (data?.type === "call_cancelled" || data?.type === "call-cancelled") {
+    await cancelIncomingCall();
+    return;
+  }
+
   const call = parseIncomingCall(data);
-
   if (!call) return;
-
   if (AppState.currentState === "active") return;
-
   await showIncomingCall(call);
-
 }

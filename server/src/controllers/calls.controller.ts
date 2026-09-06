@@ -29,7 +29,22 @@ export const callsController = {
   async initiateCall(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
       const call = await callsService.initiateCall(req.user!.userId, req.body);
-      res.status(201).json({ success: true, data: call });
+      const userId = req.user!.userId;
+      const userName = (req.user as any)?.username || (req.user as any)?.display_name || userId;
+      const roomName = `orbit_call_${call.id}`;
+      const token = await livekitService.generateToken(roomName, userId, userName);
+
+      res.status(201).json({
+        success: true,
+        data: {
+          ...call,
+          livekit: {
+            token,
+            url: livekitService.getUrl(),
+            room: roomName,
+          },
+        },
+      });
     } catch (error: any) {
       res.status(400).json({ success: false, message: error.message });
     }

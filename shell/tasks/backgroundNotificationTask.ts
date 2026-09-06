@@ -4,7 +4,7 @@ import * as Notifications from "expo-notifications";
 
 import { BACKGROUND_NOTIFICATION_TASK } from "../constants/config";
 
-import { parseIncomingCall, showIncomingCall } from "../services/calls";
+import { cancelIncomingCall, parseIncomingCall, showIncomingCall } from "../services/calls";
 
 
 
@@ -92,11 +92,14 @@ TaskManager.defineTask<BackgroundTaskData>(BACKGROUND_NOTIFICATION_TASK, async (
 
 
 
+  if (payload?.type === "call_cancelled" || payload?.type === "call-cancelled") {
+    await cancelIncomingCall();
+    return;
+  }
+
   const call = parseIncomingCall(payload);
 
   if (!call) return;
-
-
 
   await showIncomingCall(call);
 

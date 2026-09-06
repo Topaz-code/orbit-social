@@ -16,6 +16,8 @@ export interface CallWakeupPayload {
   callerAvatar: string;
   callType: 'voice' | 'video';
   conversationId?: string;
+  livekitToken?: string;
+  livekitUrl?: string;
 }
 
 export class PushService {
@@ -172,9 +174,11 @@ export class PushService {
             isVideo: callData.callType === 'video' ? 'true' : 'false',
             callType: String(callData.callType),
             conversationId: String(callData.conversationId || ''),
-            url: `/calls/${callData.callId}?callerId=${encodeURIComponent(callData.callerId)}&callerName=${encodeURIComponent(callData.callerName)}&callerAvatar=${encodeURIComponent(callData.callerAvatar || '')}&callType=${encodeURIComponent(callData.callType)}`,
+            url: `/calls/${callData.callId}?callerId=${encodeURIComponent(callData.callerId)}&callerName=${encodeURIComponent(callData.callerName)}&callerAvatar=${encodeURIComponent(callData.callerAvatar || '')}&callType=${encodeURIComponent(callData.callType)}${callData.livekitToken && callData.livekitUrl ? `&livekitToken=${encodeURIComponent(callData.livekitToken)}&livekitUrl=${encodeURIComponent(callData.livekitUrl)}` : ''}`,
             declineUrl,
             startedAt: String(Date.now()),
+            livekitToken: String(callData.livekitToken || ''),
+            livekitUrl: String(callData.livekitUrl || ''),
           },
           android: {
             priority: 'HIGH',

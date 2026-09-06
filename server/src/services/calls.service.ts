@@ -1,6 +1,7 @@
 import { prisma } from '../config/database.js';
 import { mqttService } from './mqtt.service.js';
 import { pushService } from './push.service.js';
+import { livekitService } from './livekit.service.js';
 
 export const callsService = {
   async getCallHistory(userId: string, limit = 30) {
@@ -82,12 +83,31 @@ export const callsService = {
       },
     });
 
+    const roomName = `orbit_call_${call.id}`;
+    let receiverToken: string | undefined;
+    try {
+      receiverToken = await livekitService.generateToken(
+        roomName,
+        data.receiver_id,
+        receiver.display_name || receiver.username || data.receiver_id
+      );
+    } catch (e) {
+      console.warn('[Call] Could not pre-generate receiver LiveKit token:', e);
+    }
+
     // Notify receiver via MQTT
     mqttService.notifyIncomingCall(data.receiver_id, {
       callId: call.id,
       caller,
       type: call.type,
       conversationId: call.conversation_id,
+      livekit: receiverToken
+        ? {
+            token: receiverToken,
+            url: livekitService.getUrl(),
+            room: roomName,
+          }
+        : undefined,
     });
 
     // Notify mobile receiver via high-priority FCM Call Wakeup (OS lockscreen intent)
@@ -98,6 +118,8 @@ export const callsService = {
       callerAvatar: caller.avatar_url || '',
       callType: call.type as 'voice' | 'video',
       conversationId: call.conversation_id || '',
+      livekitToken: receiverToken,
+      livekitUrl: livekitService.getUrl(),
     }).catch((err) => console.error('[Call] Push wakeup error:', err));
 
     return call;

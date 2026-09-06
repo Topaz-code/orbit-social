@@ -87,7 +87,7 @@ export function usePushNotifications({
     const subscription = Notifications.addNotificationReceivedListener((notification) => {
       const data = notification.request.content.data as Record<string, unknown> | undefined;
       if (data) {
-        if (data.type === 'call' && data.callId) {
+        if ((data.type === 'call' || data.type === 'incoming_call') && data.callId) {
           void displayNotifeeIncomingCall({
             callId: String(data.callId),
             callerId: String(data.callerId || ''),
@@ -96,7 +96,7 @@ export function usePushNotifications({
             callType: (data.callType as 'voice' | 'video') || 'voice',
             conversationId: data.conversationId ? String(data.conversationId) : undefined,
           });
-        } else if (data.type === 'call_cancelled' && data.callId) {
+        } else if ((data.type === 'call_cancelled' || data.type === 'call-cancelled') && data.callId) {
           void cancelNotifeeIncomingCall(String(data.callId));
         }
         onForegroundPush(data);

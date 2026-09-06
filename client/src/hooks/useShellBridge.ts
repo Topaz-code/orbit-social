@@ -153,6 +153,7 @@ export function useShellBridge() {
           },
           type: (payload.callType as 'voice' | 'video') || 'voice',
           conversationId: payload.conversationId ? String(payload.conversationId) : undefined,
+          livekit: payload.livekit as any,
         });
 
         // Pre-emptively request native call permissions for smooth pickup

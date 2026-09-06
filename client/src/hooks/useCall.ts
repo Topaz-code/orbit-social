@@ -297,6 +297,7 @@ export function useCall() {
 
       // 1. Create DB record for call history tracking
       let callId = `call-${Date.now()}`;
+      let initData: any = null;
       try {
         const res = await api.post('/calls', {
           receiver_id: targetUser.id,
@@ -305,6 +306,7 @@ export function useCall() {
         });
         if (res.data?.data?.id) {
           callId = res.data.data.id;
+          initData = res.data.data;
         }
       } catch (err) {
         console.warn('[Call] Could not create call record in DB:', err);
@@ -327,9 +329,19 @@ export function useCall() {
       // Subscribe to signal topic for this call specifically
       mqttClient.subscribe(`orbit/call/${callId}/signal`);
 
-      // 3. Fetch LiveKit room join token
-      const tokenRes = await api.get(`/calls/${callId}/token`);
-      const { token, url } = tokenRes.data.data;
+      // 3. Connect to LiveKit Room using upfront token if provided, or fetch fallback
+      let token = initData?.livekit?.token;
+      let url = initData?.livekit?.url;
+
+      if (!token || !url) {
+        const tokenRes = await api.get(`/calls/${callId}/token`);
+        token = tokenRes.data.data.token;
+        url = tokenRes.data.data.url;
+      }
+
+      if (!token || !url) {
+        throw new Error('LiveKit room credentials unavailable');
+      }
 
       // 4. Connect to LiveKit Room and publish local tracks
       const lk = getCallManager();
@@ -438,22 +450,12 @@ export function useCall() {
         url.searchParams.delete('native');
         url.searchParams.delete('incomingCall');
         url.searchParams.delete('callId');
+        url.searchParams.delete('livekitToken');
+        url.searchParams.delete('livekitUrl');
         window.history.replaceState({}, '', url.pathname + (url.search ? url.search : ''));
       }
 
-      // 1. Fetch LiveKit room join token
-      const tokenRes = await api.get(`/calls/${callToAccept.callId}/token`);
-      const { token, url } = tokenRes.data.data;
-
-      // 2. Connect to LiveKit Room and publish local tracks
-      const lk = getCallManager();
-      await lk.connect({
-        url,
-        token,
-        isVideo: callToAccept.type === 'video',
-      });
-
-      // 3. Broadcast instant CALL_ACCEPTED signal over MQTT so caller stops ringing
+      // Broadcast instant CALL_ACCEPTED signal over MQTT so caller stops ringing immediately
       const payload = {
         type: 'CALL_ACCEPTED',
         callId: callToAccept.callId,
@@ -465,11 +467,35 @@ export function useCall() {
         mqttClient.publish(`orbit/call/${callToAccept.caller.id}/signal`, payload);
       }
 
-      // 4. Update call status to ongoing in DB
+      // Update call status to ongoing in DB
       api.put(`/calls/${callToAccept.callId}`, { status: 'ongoing' }).catch(() => {});
+
+      // 1. Fetch LiveKit room join token (or use pre-provisioned token from MQTT/push)
+      let token = callToAccept.livekit?.token;
+      let url = callToAccept.livekit?.url;
+
+      if (!token || !url) {
+        const tokenRes = await api.get(`/calls/${callToAccept.callId}/token`);
+        token = tokenRes.data.data.token;
+        url = tokenRes.data.data.url;
+      }
+
+      if (!token || !url) {
+        throw new Error('LiveKit room token unavailable');
+      }
+
+      // 2. Connect to LiveKit Room and publish local tracks
+      const lk = getCallManager();
+      await lk.connect({
+        url,
+        token,
+        isVideo: callToAccept.type === 'video',
+      });
     } catch (error: any) {
       console.error('[Call] Failed to accept call:', error);
-      rejectCall();
+      useCallStore.getState().setActiveCall(null);
+      getCallManager().disconnect();
+      useDialogStore.getState().toast.error(error?.message || 'Failed to connect call');
     }
   };
 
@@ -493,6 +519,8 @@ export function useCall() {
       let paramCallerName = '';
       let paramCallerAvatar = '';
       let paramCallType: 'voice' | 'video' = 'voice';
+      let paramToken = '';
+      let paramLkUrl = '';
 
       if (typeof window !== 'undefined') {
         const params = new URLSearchParams(window.location.search);
@@ -507,6 +535,8 @@ export function useCall() {
         paramCallerName = params.get('callerName') || '';
         paramCallerAvatar = params.get('callerAvatar') || '';
         paramCallType = (params.get('callType') as 'voice' | 'video') || 'voice';
+        paramToken = params.get('livekitToken') || '';
+        paramLkUrl = params.get('livekitUrl') || '';
       }
 
       // 1. If incomingCall is already mounted in store, accept immediately
@@ -521,6 +551,9 @@ export function useCall() {
       const finalCallerName = detail?.callerName || detail?.caller?.display_name || paramCallerName || 'Orbit Friend';
       const finalCallerAvatar = detail?.callerAvatar || detail?.caller?.avatar_url || paramCallerAvatar || '';
       const finalType = detail?.type || paramCallType || 'voice';
+      const token = (detail as any)?.livekit?.token || paramToken;
+      const lkUrl = (detail as any)?.livekit?.url || paramLkUrl;
+      const livekit = token && lkUrl ? { token, url: lkUrl, room: `orbit_call_${targetCallId}` } : undefined;
 
       if (targetCallId && finalCallerId) {
         const callObj = {
@@ -533,6 +566,7 @@ export function useCall() {
           },
           type: finalType,
           conversationId: detail?.conversationId,
+          livekit,
         };
         useCallStore.getState().setIncomingCall(callObj);
         acceptCall(callObj);
@@ -556,6 +590,7 @@ export function useCall() {
               caller,
               type: callData.type || 'voice',
               conversationId: callData.conversation_id,
+              livekit,
             };
             useCallStore.getState().setIncomingCall(fetchedCall);
             acceptCall(fetchedCall);
@@ -584,6 +619,9 @@ export function useCall() {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       if (params.get('action') === 'accept') {
+        params.delete('action');
+        const newSearch = params.toString();
+        window.history.replaceState({}, '', window.location.pathname + (newSearch ? `?${newSearch}` : ''));
         handleTriggerAccept();
       }
     }

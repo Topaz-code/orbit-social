@@ -313,6 +313,11 @@ export function buildNavigateInjection(url: string): string {
     var callTypeMatch = targetUrl.match(/callType=([^&]+)/);
     var callType = callTypeMatch ? decodeURIComponent(callTypeMatch[1]) : 'voice';
 
+    var lkTokenMatch = targetUrl.match(/livekitToken=([^&]+)/);
+    var lkToken = lkTokenMatch ? decodeURIComponent(lkTokenMatch[1]) : '';
+    var lkUrlMatch = targetUrl.match(/livekitUrl=([^&]+)/);
+    var lkUrl = lkUrlMatch ? decodeURIComponent(lkUrlMatch[1]) : '';
+
     var callDetail = {
       callId: callId,
       callerId: callerId,
@@ -324,13 +329,14 @@ export function buildNavigateInjection(url: string): string {
         username: callerName,
         display_name: callerName,
         avatar_url: callerAvatar,
-      }
+      },
+      livekit: (lkToken && lkUrl) ? { token: lkToken, url: lkUrl, room: 'orbit_call_' + callId } : undefined
     };
 
     if (callId) {
       window.dispatchEvent(new CustomEvent('orbit:call-push', { detail: callDetail }));
     }
-    if (targetUrl.indexOf('action=accept') !== -1 || targetUrl.indexOf('incomingCall=') !== -1) {
+    if (targetUrl.indexOf('action=accept') !== -1) {
       window.dispatchEvent(new CustomEvent('orbit:call-accept', { detail: callDetail }));
       window.dispatchEvent(new CustomEvent('orbit:trigger-accept-call', { detail: callDetail }));
     }

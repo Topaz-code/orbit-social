@@ -32,6 +32,8 @@ export interface IncomingCall {
   declineUrl?: string;
   /** Epoch millis when the call was placed; used to drop stale pushes. */
   startedAt: number;
+  livekitToken?: string;
+  livekitUrl?: string;
 }
 
 export type CallAction = "accept" | "decline" | "timeout";
@@ -65,6 +67,8 @@ export function parseIncomingCall(raw: Record<string, unknown> | undefined | nul
 
   const startedAt = Number(raw.startedAt ?? raw.timestamp ?? Date.now());
   const url = String(raw.url ?? raw.callUrl ?? `${ORBIT_URL}?incomingCall=${encodeURIComponent(callId)}`);
+  const livekitToken = typeof raw.livekitToken === "string" && raw.livekitToken.length > 0 ? raw.livekitToken : undefined;
+  const livekitUrl = typeof raw.livekitUrl === "string" && raw.livekitUrl.length > 0 ? raw.livekitUrl : undefined;
 
   return {
     callId,
@@ -76,6 +80,8 @@ export function parseIncomingCall(raw: Record<string, unknown> | undefined | nul
     declineUrl:
       typeof raw.declineUrl === "string" && raw.declineUrl.length > 0 ? toAbsoluteUrl(raw.declineUrl) : undefined,
     startedAt: Number.isFinite(startedAt) ? startedAt : Date.now(),
+    livekitToken,
+    livekitUrl,
   };
 }
 
@@ -199,6 +205,8 @@ export async function showIncomingCall(call: IncomingCall): Promise<void> {
       url: call.url,
       declineUrl: call.declineUrl ?? "",
       startedAt: call.startedAt,
+      livekitToken: call.livekitToken ?? "",
+      livekitUrl: call.livekitUrl ?? "",
     },
 
     android: {
@@ -446,7 +454,10 @@ export async function handleCallNotificationEvent(type: EventType, detail: Event
 
 
     const connector = call.url.includes("?") ? "&" : "?";
-    const acceptUrl = `${call.url}${connector}action=accept&native=1${call.callerId ? `&callerId=${encodeURIComponent(call.callerId)}` : ""}&callerName=${encodeURIComponent(call.callerName)}${call.callerAvatar ? `&callerAvatar=${encodeURIComponent(call.callerAvatar)}` : ""}&callId=${encodeURIComponent(call.callId)}&callType=${call.isVideo ? "video" : "voice"}`;
+    const lkParams = call.livekitToken && call.livekitUrl
+      ? `&livekitToken=${encodeURIComponent(call.livekitToken)}&livekitUrl=${encodeURIComponent(call.livekitUrl)}`
+      : "";
+    const acceptUrl = `${call.url}${connector}action=accept&native=1${call.callerId ? `&callerId=${encodeURIComponent(call.callerId)}` : ""}&callerName=${encodeURIComponent(call.callerName)}${call.callerAvatar ? `&callerAvatar=${encodeURIComponent(call.callerAvatar)}` : ""}&callId=${encodeURIComponent(call.callId)}&callType=${call.isVideo ? "video" : "voice"}${lkParams}`;
 
     await setPendingRoute(acceptUrl);
 
