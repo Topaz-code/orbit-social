@@ -69,7 +69,7 @@ export const ActiveCallView: React.FC = () => {
 
   // Outgoing ringing dial tone
   useEffect(() => {
-    if (!activeCall || activeCall.status !== 'ringing' || !activeCall.isCaller) return;
+    if (!activeCall || (activeCall.status !== 'calling' && activeCall.status !== 'ringing') || !activeCall.isCaller) return;
 
     let ctx: AudioContext | null = null;
     let osc: OscillatorNode | null = null;
@@ -158,7 +158,9 @@ export const ActiveCallView: React.FC = () => {
                 {activeCall.remoteUser.display_name}
               </h3>
               <p className="text-xs text-[#D0A56A] font-mono">
-                {activeCall.status === 'ringing'
+                {activeCall.status === 'calling'
+                  ? 'Calling...'
+                  : activeCall.status === 'ringing'
                   ? 'Ringing...'
                   : formatCallDuration(activeCall.duration)}
               </p>
@@ -190,13 +192,21 @@ export const ActiveCallView: React.FC = () => {
 
               {!remoteStream && (
                 <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-4">
-                  <Avatar
-                    src={activeCall.remoteUser.avatar_url}
-                    fallback={activeCall.remoteUser.display_name}
-                    size="xl"
-                    className="mb-4"
-                  />
-                  <p className="text-sm font-semibold text-[#D9D0B8]">Connecting video stream...</p>
+                  <div className="relative mb-4">
+                    <span className="absolute inset-0 rounded-full bg-[#D0A56A]/20 animate-ping" />
+                    <Avatar
+                      src={activeCall.remoteUser.avatar_url}
+                      fallback={activeCall.remoteUser.display_name}
+                      size="xl"
+                    />
+                  </div>
+                  <p className="text-sm font-semibold text-[#D9D0B8]">
+                    {activeCall.status === 'calling'
+                      ? 'Calling...'
+                      : activeCall.status === 'ringing'
+                      ? 'Ringing...'
+                      : 'Connecting video stream...'}
+                  </p>
                 </div>
               )}
 
@@ -230,8 +240,12 @@ export const ActiveCallView: React.FC = () => {
                 />
               </div>
               <h2 className="text-2xl font-bold text-[#D9D0B8]">{activeCall.remoteUser.display_name}</h2>
-              <p className="text-sm text-[#A8AAA0] mt-1">
-                {activeCall.status === 'ringing' ? 'Calling...' : 'Voice Call Active'}
+              <p className="text-sm text-[#A8AAA0] mt-1 font-medium">
+                {activeCall.status === 'calling'
+                  ? 'Calling...'
+                  : activeCall.status === 'ringing'
+                  ? 'Ringing...'
+                  : 'Voice Call Active'}
               </p>
             </div>
           )}

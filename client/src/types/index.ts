@@ -302,7 +302,7 @@ export interface ActiveCallState {
     display_name: string;
     avatar_url: string;
   };
-  status: 'ringing' | 'connected' | 'ended';
+  status: 'calling' | 'ringing' | 'connected' | 'ended';
   isMuted: boolean;
   isVideoOff: boolean;
   isSpeakerOn: boolean;

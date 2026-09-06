@@ -14,7 +14,7 @@ import notifee from "@notifee/react-native";
 
 import { BACKGROUND_NOTIFICATION_TASK, ORBIT_URL, STORAGE_KEYS } from "../constants/config";
 
-import { cancelIncomingCall, consumePendingRoute, parseIncomingCall, showIncomingCall } from "./calls";
+import { cancelIncomingCall, consumePendingRoute, parseIncomingCall, showIncomingCall, type IncomingCall } from "./calls";
 
 
 
@@ -228,70 +228,48 @@ function extractUrl(data: Record<string, unknown> | undefined | null): string | 
 
 
 
+export function buildCallAcceptUrl(call: IncomingCall): string {
+  const connector = call.url.includes("?") ? "&" : "?";
+  const lkParams = call.livekitToken && call.livekitUrl
+    ? `&livekitToken=${encodeURIComponent(call.livekitToken)}&livekitUrl=${encodeURIComponent(call.livekitUrl)}`
+    : "";
+  return `${call.url}${connector}action=accept&native=1${call.callerId ? `&callerId=${encodeURIComponent(call.callerId)}` : ""}&callerName=${encodeURIComponent(call.callerName)}${call.callerAvatar ? `&callerAvatar=${encodeURIComponent(call.callerAvatar)}` : ""}&callId=${encodeURIComponent(call.callId)}&callType=${call.isVideo ? "video" : "voice"}${lkParams}`;
+}
+
 /** Maps a tapped (non-call) notification to the URL the WebView should open. */
-
 export function routeFromNotificationResponse(response: Notifications.NotificationResponse | null): string | null {
-
   if (!response) return null;
 
   const data = response.notification.request.content.data as Record<string, unknown>;
-
   const call = parseIncomingCall(data);
-
-  if (call) return `${call.url}${call.url.includes("?") ? "&" : "?"}action=accept&native=1`;
+  if (call) return buildCallAcceptUrl(call);
 
   return extractUrl(data);
-
 }
 
-
-
 /**
-
  * Resolves where the app should navigate on cold launch, checking (in priority order):
-
  * 1. A route persisted by the Notifee background handler (Accept from the lock screen).
-
  * 2. The Notifee notification that launched the activity via full-screen intent.
-
  * 3. The last expo-notifications response (message push tap).
-
  */
-
 export async function resolveLaunchRoute(): Promise<string | null> {
-
   const pending = await consumePendingRoute();
-
   if (pending) return pending;
 
-
-
   const initial = await notifee.getInitialNotification();
-
   if (initial?.notification?.data) {
-
     const call = parseIncomingCall(initial.notification.data as Record<string, unknown>);
-
     if (call) {
-
       const declined = initial.pressAction?.id === "decline";
-
-      if (!declined) return `${call.url}${call.url.includes("?") ? "&" : "?"}action=accept&native=1`;
-
+      if (!declined) return buildCallAcceptUrl(call);
     }
-
     const url = extractUrl(initial.notification.data as Record<string, unknown>);
-
     if (url) return url;
-
   }
 
-
-
   const lastResponse = await Notifications.getLastNotificationResponseAsync();
-
   return routeFromNotificationResponse(lastResponse);
-
 }
 
 

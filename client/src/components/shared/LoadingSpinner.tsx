@@ -1,6 +1,5 @@
 import React from 'react';
 import { cn } from '../../lib/utils.js';
-import { Loader2 } from 'lucide-react';
 
 interface LoadingSpinnerProps {
   size?: 'sm' | 'md' | 'lg';
@@ -13,16 +12,45 @@ export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
   label,
   className,
 }) => {
-  const sizeClasses = {
-    sm: 'h-4 w-4',
-    md: 'h-8 w-8',
-    lg: 'h-12 w-12',
+  const barHeights = {
+    sm: 'h-4 w-1',
+    md: 'h-6 w-1.5',
+    lg: 'h-8 w-2',
   };
 
   return (
-    <div className={cn('flex flex-col items-center justify-center p-8 text-center', className)}>
-      <Loader2 className={cn('animate-spin text-[#D0A56A]', sizeClasses[size])} />
-      {label && <p className="mt-3 text-sm text-[#A8AAA0]">{label}</p>}
+    <div className={cn('flex flex-col items-center justify-center p-6 text-center select-none', className)}>
+      <div className="flex items-center gap-1.5 py-2">
+        <span
+          className={cn(
+            'bg-[#D0A56A] rounded-full animate-pulse shadow-xs',
+            barHeights[size]
+          )}
+          style={{ animationDelay: '0ms', animationDuration: '900ms' }}
+        />
+        <span
+          className={cn(
+            'bg-[#E0B779] rounded-full animate-pulse shadow-xs',
+            barHeights[size]
+          )}
+          style={{ animationDelay: '180ms', animationDuration: '900ms' }}
+        />
+        <span
+          className={cn(
+            'bg-[#71877B] rounded-full animate-pulse shadow-xs',
+            barHeights[size]
+          )}
+          style={{ animationDelay: '360ms', animationDuration: '900ms' }}
+        />
+        <span
+          className={cn(
+            'bg-[#D0A56A] rounded-full animate-pulse shadow-xs',
+            barHeights[size]
+          )}
+          style={{ animationDelay: '540ms', animationDuration: '900ms' }}
+        />
+      </div>
+      {label && <p className="mt-3 text-xs font-medium text-[#A8AAA0] tracking-wide">{label}</p>}
     </div>
   );
 };

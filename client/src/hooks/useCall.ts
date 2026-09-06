@@ -43,6 +43,16 @@ export { getCallManager as getPeerManager };
 
 export function hangUpCall(): void {
   dismissCallBrowserNotification();
+  try {
+    const currentLocal = useCallStore.getState().localStream;
+    if (currentLocal) {
+      currentLocal.getTracks().forEach((track) => {
+        try {
+          track.stop();
+        } catch {}
+      });
+    }
+  } catch {}
   const lk = getCallManager();
   lk.disconnect().catch(() => {});
   useCallStore.getState().endCall();
@@ -164,7 +174,14 @@ export function useCall() {
     const unsubs = mqttClient.subscribe(
       `orbit/call/${activeCall.callId}/signal`,
       (topic, payload) => {
-        if (
+        if (payload?.type === 'CALL_RINGING') {
+          useCallStore.setState((state) => ({
+            activeCall:
+              state.activeCall && state.activeCall.callId === activeCall.callId && state.activeCall.status === 'calling'
+                ? { ...state.activeCall, status: 'ringing' }
+                : state.activeCall,
+          }));
+        } else if (
           payload?.type === 'CALL_ACCEPTED' ||
           (payload?.type === 'CALL_STATUS_CHANGED' && payload.status === 'ongoing')
         ) {
@@ -181,7 +198,7 @@ export function useCall() {
           (payload?.type === 'CALL_STATUS_CHANGED' &&
             (payload.status === 'rejected' || payload.status === 'completed' || payload.status === 'missed'))
         ) {
-          if (activeCall.status === 'ringing') {
+          if (activeCall.status === 'calling' || activeCall.status === 'ringing') {
             useDialogStore.getState().toast.info('Call declined');
           } else {
             useDialogStore.getState().toast.info('Call ended');
@@ -273,9 +290,9 @@ export function useCall() {
     };
   }, [incomingCall?.callId]);
 
-  // Outgoing ringing auto-timeout (45 seconds)
+  // Outgoing calling/ringing auto-timeout (45 seconds)
   useEffect(() => {
-    if (activeCall?.status === 'ringing') {
+    if (activeCall?.status === 'calling' || activeCall?.status === 'ringing') {
       const timer = setTimeout(() => {
         useDialogStore.getState().toast.info('No answer');
         endCall();
@@ -312,14 +329,14 @@ export function useCall() {
         console.warn('[Call] Could not create call record in DB:', err);
       }
 
-      // 2. Set Active Call state to 'ringing'
+      // 2. Set Active Call state to 'calling' (will transition to 'ringing' when receiver acknowledges)
       setActiveCall({
         callId,
         type,
         isIncoming: false,
         isCaller: true,
         remoteUser: targetUser,
-        status: 'ringing',
+        status: 'calling',
         isMuted: false,
         isVideoOff: false,
         isSpeakerOn: true,
@@ -362,11 +379,16 @@ export function useCall() {
   const acceptCall = async (overrideCall?: CallStoreState['incomingCall']) => {
     let callToAccept = overrideCall || useCallStore.getState().incomingCall;
 
-    // Wait briefly for authenticated user if cold starting
+    // Wait for authenticated user if cold starting (up to 15 seconds)
     let currentUser = user || useAuthStore.getState().user;
     if (!currentUser) {
-      for (let i = 0; i < 10; i++) {
-        await new Promise((r) => setTimeout(r, 200));
+      const waitStart = Date.now();
+      while (Date.now() - waitStart < 15000) {
+        if (!useAuthStore.getState().isLoading && useAuthStore.getState().user) {
+          currentUser = useAuthStore.getState().user;
+          break;
+        }
+        await new Promise((r) => setTimeout(r, 150));
         currentUser = useAuthStore.getState().user;
         if (currentUser) break;
       }
@@ -475,9 +497,16 @@ export function useCall() {
       let url = callToAccept.livekit?.url;
 
       if (!token || !url) {
+        if (!useAuthStore.getState().accessToken) {
+          const authWaitStart = Date.now();
+          while (Date.now() - authWaitStart < 8000) {
+            if (useAuthStore.getState().accessToken) break;
+            await new Promise((r) => setTimeout(r, 200));
+          }
+        }
         const tokenRes = await api.get(`/calls/${callToAccept.callId}/token`);
-        token = tokenRes.data.data.token;
-        url = tokenRes.data.data.url;
+        token = tokenRes.data?.data?.token || tokenRes.data?.token;
+        url = tokenRes.data?.data?.url || tokenRes.data?.url;
       }
 
       if (!token || !url) {

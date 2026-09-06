@@ -89,6 +89,14 @@ export function useMQTT() {
             }
           );
           setIncomingCall(callData);
+
+          // Instantly notify caller that receiver device has received the call and is ringing
+          const ringSignal = { type: 'CALL_RINGING', callId: callData.callId };
+          mqttClient.publish(`orbit/call/${callData.callId}/signal`, ringSignal);
+          if (callData.caller?.id) {
+            mqttClient.publish(`orbit/call/${callData.caller.id}/signal`, ringSignal);
+          }
+
           showCallBrowserNotification({
             callId: callData.callId,
             callerName: callData.caller?.display_name || 'Orbit Friend',
@@ -99,11 +107,18 @@ export function useMQTT() {
       }
     );
 
-    // 2b. Listen for direct call signals (accepted, declined, cancelled, ended) on personal channel
+    // 2b. Listen for direct call signals (ringing, accepted, declined, cancelled, ended) on personal channel
     const unsubsCallSignal = mqttClient.subscribe(
       `orbit/call/${user.id}/signal`,
       (topic, payload) => {
-        if (
+        if (payload?.type === 'CALL_RINGING') {
+          useCallStore.setState((state) => ({
+            activeCall:
+              state.activeCall && state.activeCall.status === 'calling'
+                ? { ...state.activeCall, status: 'ringing' }
+                : state.activeCall,
+          }));
+        } else if (
           payload?.type === 'CALL_ACCEPTED' ||
           (payload?.type === 'CALL_STATUS_CHANGED' && payload.status === 'ongoing')
         ) {

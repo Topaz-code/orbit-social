@@ -15,8 +15,17 @@ interface AuthState {
   initializeAuth: () => Promise<void>;
 }
 
+const getCachedUser = (): User | null => {
+  try {
+    const raw = typeof localStorage !== 'undefined' ? localStorage.getItem('orbit_user') : null;
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+};
+
 export const useAuthStore = create<AuthState>((set, get) => ({
-  user: null,
+  user: getCachedUser(),
   accessToken: null,
   isAuthenticated: false,
   isLoading: true,
@@ -25,6 +34,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     // Security: Session tokens MUST NEVER be stored in localStorage (XSS mitigation)
     localStorage.removeItem('orbit_access_token');
     localStorage.removeItem('orbit_refresh_token');
+    try {
+      localStorage.setItem('orbit_user', JSON.stringify(user));
+    } catch {}
 
     // Store in-memory token for API calls
     setAccessToken(accessToken);
@@ -87,6 +99,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         const res = await api.get('/auth/me');
         if (res.data?.success && res.data?.data) {
           const freshUser = res.data.data;
+          try {
+            localStorage.setItem('orbit_user', JSON.stringify(freshUser));
+          } catch {}
           mqttClient.connect(freshUser.id, token);
           set({
             user: freshUser,

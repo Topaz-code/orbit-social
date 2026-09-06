@@ -59,21 +59,14 @@ import {
 } from "./services/permissions";
 
 import {
-
+  buildCallAcceptUrl,
   getCachedPushTokens,
-
   handleForegroundPush,
-
   registerBackgroundNotificationTask,
-
   registerForPush,
-
   resolveLaunchRoute,
-
   routeFromNotificationResponse,
-
   type PushTokens,
-
 } from "./services/notifications";
 
 import {
@@ -615,77 +608,49 @@ export default function App() {
   useEffect(() => {
 
     setCallActionListener((action, call) => {
-
       if (action === "accept") {
-
         consumePendingRoute().then((route) => {
-
-          const acceptUrl = route ?? `${call.url}${call.url.includes("?") ? "&" : "?"}action=accept&native=1`;
-
+          const acceptUrl = route ?? buildCallAcceptUrl(call);
           navigateTo(acceptUrl);
-
         });
-
         return;
-
       }
-
       webviewRef.current?.injectJavaScript(buildCallEndedInjection());
-
       deactivateKeepAwake(KEEP_AWAKE_TAG).catch(() => undefined);
-
     });
-
-
 
     const unsubscribeNotifee = notifee.onForegroundEvent(({ type, detail }) => {
-
       handleCallNotificationEvent(type, detail).catch(() => undefined);
-
     });
-
-
 
     const receivedSub = Notifications.addNotificationReceivedListener((notification) => {
-
       handleForegroundPush(notification).catch(() => undefined);
-
     });
-
-
 
     const responseSub = Notifications.addNotificationResponseReceivedListener((response) => {
-
       const route = routeFromNotificationResponse(response);
-
       if (route) navigateTo(route);
-
     });
 
-
-
     const appStateSub = AppState.addEventListener("change", async (state: AppStateStatus) => {
-
       if (state !== "active") return;
-
       await handleCallTimeout();
 
-      const displayed = await notifee.getDisplayedNotifications();
-
-      const ringing = displayed.find((n) => n.id === CALL_NOTIFICATION_ID);
-
-      if (!ringing?.notification.data) return;
-
-      const call = parseIncomingCall(ringing.notification.data as Record<string, unknown>);
-
-      if (!call) return;
-
-      if (stripQuery(currentUrlRef.current) !== stripQuery(call.url)) {
-
-        navigateTo(call.url);
-
+      // Check if user tapped Accept on notification while app was backgrounded
+      const pending = await consumePendingRoute();
+      if (pending) {
+        navigateTo(pending);
+        return;
       }
 
+      const displayed = await notifee.getDisplayedNotifications();
+      const ringing = displayed.find((n) => n.id === CALL_NOTIFICATION_ID);
+      if (!ringing?.notification.data) return;
+      const call = parseIncomingCall(ringing.notification.data as Record<string, unknown>);
+      if (!call) return;
+      if (stripQuery(currentUrlRef.current) !== stripQuery(call.url)) {
+        navigateTo(call.url);
+      }
     });
 
 

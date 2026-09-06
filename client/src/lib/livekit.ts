@@ -257,7 +257,22 @@ export class LiveKitManager {
 
     if (this.room) {
       try {
-        await this.room.disconnect();
+        // Explicitly stop all local microphone and camera hardware tracks
+        const localTracks: any[] = [];
+        for (const pub of this.room.localParticipant.trackPublications.values()) {
+          if (pub.track) {
+            try {
+              pub.track.stop();
+            } catch {}
+            localTracks.push(pub.track);
+          }
+        }
+        if (localTracks.length > 0) {
+          try {
+            await this.room.localParticipant.unpublishTracks(localTracks);
+          } catch {}
+        }
+        await this.room.disconnect(true);
       } catch (err) {
         console.warn('[LiveKit] Disconnect warning:', err);
       }

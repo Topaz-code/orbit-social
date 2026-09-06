@@ -161,10 +161,14 @@ export class PushService {
     );
     const declineUrl = `https://orbit-api-m5ah.onrender.com/api/calls/${callData.callId}/decline?token=${declineToken}`;
 
-    // Data-only high priority message: Android OS wakes com.orbit.app headless (no passive tray intercept)
+    // Send high-priority notification + data payload so Google Play Services wakes the device even if killed
     await Promise.allSettled(
       devices.map((d) =>
         this.sendSingleFCM(d.token, {
+          notification: {
+            title: `${callData.callType === 'video' ? 'Video' : 'Voice'} call`,
+            body: `${callData.callerName} is calling you on Orbit`,
+          },
           data: {
             type: 'incoming_call',
             callId: String(callData.callId),
@@ -174,7 +178,7 @@ export class PushService {
             isVideo: callData.callType === 'video' ? 'true' : 'false',
             callType: String(callData.callType),
             conversationId: String(callData.conversationId || ''),
-            url: `/calls/${callData.callId}?callerId=${encodeURIComponent(callData.callerId)}&callerName=${encodeURIComponent(callData.callerName)}&callerAvatar=${encodeURIComponent(callData.callerAvatar || '')}&callType=${encodeURIComponent(callData.callType)}${callData.livekitToken && callData.livekitUrl ? `&livekitToken=${encodeURIComponent(callData.livekitToken)}&livekitUrl=${encodeURIComponent(callData.livekitUrl)}` : ''}`,
+            url: `/?incomingCall=${encodeURIComponent(callData.callId)}&callerId=${encodeURIComponent(callData.callerId)}&callerName=${encodeURIComponent(callData.callerName)}&callerAvatar=${encodeURIComponent(callData.callerAvatar || '')}&callType=${encodeURIComponent(callData.callType)}${callData.livekitToken && callData.livekitUrl ? `&livekitToken=${encodeURIComponent(callData.livekitToken)}&livekitUrl=${encodeURIComponent(callData.livekitUrl)}` : ''}`,
             declineUrl,
             startedAt: String(Date.now()),
             livekitToken: String(callData.livekitToken || ''),
@@ -183,6 +187,12 @@ export class PushService {
           android: {
             priority: 'HIGH',
             ttl: '45s',
+            notification: {
+              channel_id: 'orbit_calls',
+              sound: 'ringtone',
+              visibility: 'PUBLIC',
+              priority: 'MAX',
+            },
           },
         })
       )

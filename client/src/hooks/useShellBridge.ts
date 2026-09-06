@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { api } from '../lib/api.js';
 import { useAuthStore } from '../stores/authStore.js';
 import { useCallStore } from '../stores/callStore.js';
+import { mqttClient } from '../lib/mqtt.js';
 
 declare global {
   interface Window {
@@ -155,6 +156,16 @@ export function useShellBridge() {
           conversationId: payload.conversationId ? String(payload.conversationId) : undefined,
           livekit: payload.livekit as any,
         });
+
+        // Notify caller that receiver device has mounted call and is ringing
+        try {
+          const ringSignal = { type: 'CALL_RINGING', callId: String(payload.callId) };
+          mqttClient.publish(`orbit/call/${payload.callId}/signal`, ringSignal);
+          const callerId = payload.callerId || (caller as any)?.id;
+          if (callerId) {
+            mqttClient.publish(`orbit/call/${callerId}/signal`, ringSignal);
+          }
+        } catch {}
 
         // Pre-emptively request native call permissions for smooth pickup
         requestNativeCallPermissions();
