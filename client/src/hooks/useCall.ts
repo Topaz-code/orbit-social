@@ -5,7 +5,7 @@ import { getLiveKitManager, LiveKitManager } from '../lib/livekit.js';
 import { api } from '../lib/api.js';
 import { useDialogStore } from '../stores/dialogStore.js';
 import { mqttClient } from '../lib/mqtt.js';
-import { requestNativeCallPermissions, cancelNativeCallNotification, notifyNativeCallStarted } from './useShellBridge.js';
+import { requestNativeCallPermissions, cancelNativeCallNotification, notifyNativeCallStarted, notifyNativeCallEnded } from './useShellBridge.js';
 import {
   showCallBrowserNotification,
   dismissCallBrowserNotification,
@@ -30,6 +30,7 @@ export function getCallManager(): LiveKitManager {
     },
     onCallEnded: () => {
       dismissCallBrowserNotification();
+      notifyNativeCallEnded();
       useCallStore.getState().endCall();
     },
     onError: (err) => {
@@ -43,6 +44,7 @@ export { getCallManager as getPeerManager };
 
 export function hangUpCall(): void {
   dismissCallBrowserNotification();
+  notifyNativeCallEnded();
   try {
     const currentLocal = useCallStore.getState().localStream;
     if (currentLocal) {

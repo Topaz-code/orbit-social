@@ -257,10 +257,21 @@ export class LiveKitManager {
 
     if (this.room) {
       try {
+        // Explicitly disable microphone and camera in LiveKit to release hardware locks
+        try {
+          await this.room.localParticipant.setMicrophoneEnabled(false);
+        } catch {}
+        try {
+          await this.room.localParticipant.setCameraEnabled(false);
+        } catch {}
+
         // Explicitly stop all local microphone and camera hardware tracks
         const localTracks: any[] = [];
         for (const pub of this.room.localParticipant.trackPublications.values()) {
           if (pub.track) {
+            try {
+              (pub.track as any).mediaStreamTrack?.stop();
+            } catch {}
             try {
               pub.track.stop();
             } catch {}

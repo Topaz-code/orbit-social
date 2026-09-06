@@ -81,6 +81,23 @@ export function notifyNativeCallStarted(callId?: string) {
   }
 }
 
+/**
+ * Notify native Android shell that a call has ended.
+ * Deactivates keep-awake and clears any native call notifications.
+ */
+export function notifyNativeCallEnded(callId?: string) {
+  if (typeof window !== 'undefined' && window.ReactNativeWebView) {
+    window.ReactNativeWebView.postMessage(
+      JSON.stringify({ type: 'CALL_ENDED', payload: { callId } }),
+    );
+  }
+  if (typeof window !== 'undefined' && (window as any).OrbitNative?.callEnded) {
+    try {
+      (window as any).OrbitNative.callEnded(callId);
+    } catch {}
+  }
+}
+
 export function useShellBridge() {
   const { user, isAuthenticated } = useAuthStore();
   const registeredTokenRef = useRef<string | null>(null);
