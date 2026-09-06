@@ -304,12 +304,35 @@ export function buildNavigateInjection(url: string): string {
 
     var match = targetUrl.match(/callId=([^&]+)/) || targetUrl.match(/incomingCall=([^&]+)/) || targetUrl.match(/calls\/([^/?#]+)/);
     var callId = match ? decodeURIComponent(match[1]) : '';
+    var callerIdMatch = targetUrl.match(/callerId=([^&]+)/);
+    var callerId = callerIdMatch ? decodeURIComponent(callerIdMatch[1]) : '';
+    var callerNameMatch = targetUrl.match(/callerName=([^&]+)/);
+    var callerName = callerNameMatch ? decodeURIComponent(callerNameMatch[1]) : 'Orbit Friend';
+    var callerAvatarMatch = targetUrl.match(/callerAvatar=([^&]+)/);
+    var callerAvatar = callerAvatarMatch ? decodeURIComponent(callerAvatarMatch[1]) : '';
+    var callTypeMatch = targetUrl.match(/callType=([^&]+)/);
+    var callType = callTypeMatch ? decodeURIComponent(callTypeMatch[1]) : 'voice';
+
+    var callDetail = {
+      callId: callId,
+      callerId: callerId,
+      callerName: callerName,
+      callerAvatar: callerAvatar,
+      type: callType,
+      caller: {
+        id: callerId,
+        username: callerName,
+        display_name: callerName,
+        avatar_url: callerAvatar,
+      }
+    };
+
     if (callId) {
-      window.dispatchEvent(new CustomEvent('orbit:call-push', { detail: { callId: callId } }));
+      window.dispatchEvent(new CustomEvent('orbit:call-push', { detail: callDetail }));
     }
     if (targetUrl.indexOf('action=accept') !== -1 || targetUrl.indexOf('incomingCall=') !== -1) {
-      window.dispatchEvent(new CustomEvent('orbit:call-accept', { detail: { callId: callId } }));
-      window.dispatchEvent(new CustomEvent('orbit:trigger-accept-call', { detail: { callId: callId } }));
+      window.dispatchEvent(new CustomEvent('orbit:call-accept', { detail: callDetail }));
+      window.dispatchEvent(new CustomEvent('orbit:trigger-accept-call', { detail: callDetail }));
     }
 
     try {

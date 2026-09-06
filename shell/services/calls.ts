@@ -21,109 +21,62 @@ import { buildDeclineProof } from "./deviceIdentity";
 
 
 export interface IncomingCall {
-
   callId: string;
-
+  callerId?: string;
   callerName: string;
-
   callerAvatar?: string;
-
   isVideo: boolean;
-
   /** Absolute or relative URL the WebView should open to join the call. */
-
   url: string;
-
   /** Optional absolute or relative URL the shell will POST to when the user declines from the lock screen. */
-
   declineUrl?: string;
-
   /** Epoch millis when the call was placed; used to drop stale pushes. */
-
   startedAt: number;
-
 }
 
-
-
 export type CallAction = "accept" | "decline" | "timeout";
-
 type CallActionListener = (action: CallAction, call: IncomingCall) => void;
-
-
 
 let foregroundListener: CallActionListener | null = null;
 
-
-
 export function setCallActionListener(listener: CallActionListener | null): void {
-
   foregroundListener = listener;
-
 }
-
-
 
 function toAbsoluteUrl(url: string): string {
-
   if (/^https?:\/\//i.test(url)) return url;
-
   return new URL(url.replace(/^\//, ""), ORBIT_URL).toString();
-
 }
 
-
-
 /**
-
  * Normalises whatever the backend/web app sends into a strict IncomingCall.
-
  * Accepts both the FCM data payload shape and the postMessage shape from the web bridge.
-
  */
-
 export function parseIncomingCall(raw: Record<string, unknown> | undefined | null): IncomingCall | null {
-
   if (!raw) return null;
 
   const type = String(raw.type ?? raw.kind ?? "").toLowerCase();
-
   if (type !== "incoming_call" && type !== "incoming-call" && type !== "call") return null;
 
-
-
   const callId = String(raw.callId ?? raw.call_id ?? raw.roomId ?? raw.id ?? "");
-
   if (!callId) return null;
 
-
+  const callerId = String(raw.callerId ?? raw.caller_id ?? raw.fromId ?? raw.from ?? "");
 
   const startedAt = Number(raw.startedAt ?? raw.timestamp ?? Date.now());
-
   const url = String(raw.url ?? raw.callUrl ?? `${ORBIT_URL}?incomingCall=${encodeURIComponent(callId)}`);
 
-
-
   return {
-
     callId,
-
-    callerName: String(raw.callerName ?? raw.caller ?? raw.from ?? "Orbit user"),
-
+    callerId: callerId.length > 0 ? callerId : undefined,
+    callerName: String(raw.callerName ?? raw.caller ?? "Orbit user"),
     callerAvatar: typeof raw.callerAvatar === "string" && raw.callerAvatar.length > 0 ? raw.callerAvatar : undefined,
-
     isVideo: raw.isVideo === true || raw.isVideo === "true" || String(raw.callType ?? "") === "video",
-
     url: toAbsoluteUrl(url),
-
     declineUrl:
-
       typeof raw.declineUrl === "string" && raw.declineUrl.length > 0 ? toAbsoluteUrl(raw.declineUrl) : undefined,
-
     startedAt: Number.isFinite(startedAt) ? startedAt : Date.now(),
-
   };
-
 }
 
 
@@ -237,23 +190,15 @@ export async function showIncomingCall(call: IncomingCall): Promise<void> {
     body: `${call.callerName} is calling you on Orbit`,
 
     data: {
-
       type: "incoming_call",
-
       callId: call.callId,
-
+      callerId: call.callerId ?? "",
       callerName: call.callerName,
-
       callerAvatar: call.callerAvatar ?? "",
-
       isVideo: call.isVideo ? "true" : "false",
-
       url: call.url,
-
       declineUrl: call.declineUrl ?? "",
-
       startedAt: call.startedAt,
-
     },
 
     android: {
@@ -500,7 +445,8 @@ export async function handleCallNotificationEvent(type: EventType, detail: Event
 
 
 
-    const acceptUrl = `${call.url}${call.url.includes("?") ? "&" : "?"}action=accept&native=1`;
+    const connector = call.url.includes("?") ? "&" : "?";
+    const acceptUrl = `${call.url}${connector}action=accept&native=1${call.callerId ? `&callerId=${encodeURIComponent(call.callerId)}` : ""}&callerName=${encodeURIComponent(call.callerName)}${call.callerAvatar ? `&callerAvatar=${encodeURIComponent(call.callerAvatar)}` : ""}&callId=${encodeURIComponent(call.callId)}&callType=${call.isVideo ? "video" : "voice"}`;
 
     await setPendingRoute(acceptUrl);
 

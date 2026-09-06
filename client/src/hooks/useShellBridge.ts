@@ -162,10 +162,10 @@ export function useShellBridge() {
 
     // 5. Listen for call accept action from native shell notification
     const handleCallAccept = (event: Event) => {
-      const customEvent = event as CustomEvent<{ callId: string }>;
-      const callId = customEvent.detail?.callId;
-      console.log('[ShellBridge] Received call accept event:', callId);
-      window.dispatchEvent(new CustomEvent('orbit:trigger-accept-call', { detail: { callId } }));
+      const customEvent = event as CustomEvent<any>;
+      const detail = customEvent.detail;
+      console.log('[ShellBridge] Received call accept event:', detail);
+      window.dispatchEvent(new CustomEvent('orbit:trigger-accept-call', { detail }));
     };
 
     // 6. Listen for native call dismissal

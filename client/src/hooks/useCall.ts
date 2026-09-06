@@ -1,5 +1,5 @@
 import { useEffect, useRef, useCallback } from 'react';
-import { useCallStore } from '../stores/callStore.js';
+import { useCallStore, CallStoreState } from '../stores/callStore.js';
 import { useAuthStore } from '../stores/authStore.js';
 import { PeerManager, CallMetadata } from '../lib/webrtc.js';
 import { api } from '../lib/api.js';
@@ -465,33 +465,63 @@ export function useCall() {
 
 
   // Accept incoming call
-  const acceptCall = async () => {
-    let callToAccept = useCallStore.getState().incomingCall;
-    const currentUser = user || useAuthStore.getState().user;
-    if (!currentUser) return;
+  const acceptCall = async (overrideCall?: CallStoreState['incomingCall']) => {
+    let callToAccept = overrideCall || useCallStore.getState().incomingCall;
+    
+    // Wait briefly for authenticated user if cold starting
+    let currentUser = user || useAuthStore.getState().user;
+    if (!currentUser) {
+      for (let i = 0; i < 10; i++) {
+        await new Promise((r) => setTimeout(r, 200));
+        currentUser = useAuthStore.getState().user;
+        if (currentUser) break;
+      }
+    }
+    if (!currentUser) {
+      console.warn('[Call] Cannot accept call: user is not authenticated');
+      return;
+    }
 
     // Fallback: if incomingCall is not in store, check if targetCallId is in query params
     if (!callToAccept && typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       const targetCallId = params.get('incomingCall') || params.get('callId');
+      const callerId = params.get('callerId');
+      const callerName = params.get('callerName') || 'Orbit Friend';
+      const callerAvatar = params.get('callerAvatar') || '';
+      const callType = (params.get('callType') as 'voice' | 'video') || 'voice';
+
       if (targetCallId) {
-        try {
-          const res = await api.get(`/calls/${targetCallId}`);
-          const callData = res.data?.data;
-          if (callData) {
-            callToAccept = {
-              callId: targetCallId,
-              caller: callData.caller || {
-                id: callData.caller_id,
-                username: 'Orbit Friend',
-                display_name: 'Orbit Friend',
-                avatar_url: '',
-              },
-              type: callData.type || 'voice',
-              conversationId: callData.conversation_id,
-            };
-          }
-        } catch (err) {}
+        if (callerId) {
+          callToAccept = {
+            callId: targetCallId,
+            caller: {
+              id: callerId,
+              username: callerName,
+              display_name: callerName,
+              avatar_url: callerAvatar,
+            },
+            type: callType,
+          };
+        } else {
+          try {
+            const res = await api.get(`/calls/${targetCallId}`);
+            const callData = res.data?.data;
+            if (callData) {
+              callToAccept = {
+                callId: targetCallId,
+                caller: callData.caller || {
+                  id: callData.caller_id,
+                  username: 'Orbit Friend',
+                  display_name: 'Orbit Friend',
+                  avatar_url: '',
+                },
+                type: callData.type || 'voice',
+                conversationId: callData.conversation_id,
+              };
+            }
+          } catch (err) {}
+        }
       }
     }
 
@@ -576,20 +606,40 @@ export function useCall() {
     }
   };
 
-  // Listen for native shell call-accept action trigger (with cold start fetch fallback)
+  // Listen for native shell call-accept action trigger (with instant payload support)
   useEffect(() => {
     const handleTriggerAccept = async (event?: Event) => {
-      const customEvent = event as CustomEvent<{ callId?: string }>;
-      let targetCallId = customEvent?.detail?.callId;
+      const customEvent = event as CustomEvent<{
+        callId?: string;
+        callerId?: string;
+        callerName?: string;
+        callerAvatar?: string;
+        type?: 'voice' | 'video';
+        caller?: any;
+        conversationId?: string;
+      }>;
+      const detail = customEvent?.detail;
+      let targetCallId = detail?.callId;
 
       // Fallback: check query params or pathname
-      if (!targetCallId && typeof window !== 'undefined') {
+      let paramCallerId = '';
+      let paramCallerName = '';
+      let paramCallerAvatar = '';
+      let paramCallType: 'voice' | 'video' = 'voice';
+
+      if (typeof window !== 'undefined') {
         const params = new URLSearchParams(window.location.search);
-        targetCallId = params.get('incomingCall') || params.get('callId') || '';
         if (!targetCallId) {
-          const match = window.location.pathname.match(/\/calls\/([^/?#]+)/);
-          if (match) targetCallId = match[1];
+          targetCallId = params.get('incomingCall') || params.get('callId') || '';
+          if (!targetCallId) {
+            const match = window.location.pathname.match(/\/calls\/([^/?#]+)/);
+            if (match) targetCallId = match[1];
+          }
         }
+        paramCallerId = params.get('callerId') || '';
+        paramCallerName = params.get('callerName') || '';
+        paramCallerAvatar = params.get('callerAvatar') || '';
+        paramCallType = (params.get('callType') as 'voice' | 'video') || 'voice';
       }
 
       // 1. If incomingCall is already mounted in store, accept immediately
@@ -599,7 +649,30 @@ export function useCall() {
         return;
       }
 
-      // 2. If targetCallId exists, fetch call metadata from server API
+      // 2. If caller details are present from notification payload or URL, build and accept immediately!
+      const finalCallerId = detail?.callerId || detail?.caller?.id || paramCallerId;
+      const finalCallerName = detail?.callerName || detail?.caller?.display_name || paramCallerName || 'Orbit Friend';
+      const finalCallerAvatar = detail?.callerAvatar || detail?.caller?.avatar_url || paramCallerAvatar || '';
+      const finalType = detail?.type || paramCallType || 'voice';
+
+      if (targetCallId && finalCallerId) {
+        const callObj = {
+          callId: targetCallId,
+          caller: {
+            id: finalCallerId,
+            username: finalCallerName,
+            display_name: finalCallerName,
+            avatar_url: finalCallerAvatar,
+          },
+          type: finalType,
+          conversationId: detail?.conversationId,
+        };
+        useCallStore.getState().setIncomingCall(callObj);
+        acceptCall(callObj);
+        return;
+      }
+
+      // 3. If targetCallId exists but no caller info, fetch metadata from server API
       if (targetCallId) {
         try {
           const res = await api.get(`/calls/${targetCallId}`);
@@ -611,15 +684,14 @@ export function useCall() {
               display_name: 'Orbit Friend',
               avatar_url: '',
             };
-            useCallStore.getState().setIncomingCall({
+            const fetchedCall = {
               callId: targetCallId,
               caller,
               type: callData.type || 'voice',
               conversationId: callData.conversation_id,
-            });
-            setTimeout(() => {
-              acceptCall();
-            }, 50);
+            };
+            useCallStore.getState().setIncomingCall(fetchedCall);
+            acceptCall(fetchedCall);
             return;
           }
         } catch (err) {
@@ -627,12 +699,12 @@ export function useCall() {
         }
       }
 
-      // 3. Polling retry loop in case call store is populated asynchronously
+      // 4. Polling retry loop in case call store is populated asynchronously
       let attempts = 0;
       const checkAndAccept = () => {
         const incoming = useCallStore.getState().incomingCall;
         if (incoming) {
-          acceptCall();
+          acceptCall(incoming);
         } else if (attempts < 15) {
           attempts++;
           setTimeout(checkAndAccept, 300);

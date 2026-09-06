@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { ActiveCallState } from '../types/index.js';
 
-interface CallStoreState {
+export interface CallStoreState {
   activeCall: ActiveCallState | null;
   localStream: MediaStream | null;
   remoteStream: MediaStream | null;
