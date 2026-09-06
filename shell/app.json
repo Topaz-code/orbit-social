@@ -58,28 +58,43 @@
         {
           "action": "VIEW",
           "autoVerify": false,
-          "data": [{ "scheme": "orbit" }],
-          "category": ["BROWSABLE", "DEFAULT"]
+          "data": [
+            {
+              "scheme": "orbit"
+            }
+          ],
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
         },
         {
           "action": "VIEW",
           "autoVerify": false,
           "data": [
-            { "scheme": "https", "host": "orbit-web-6z3b.onrender.com" }
+            {
+              "scheme": "https",
+              "host": "orbit-web-6z3b.onrender.com"
+            }
           ],
-          "category": ["BROWSABLE", "DEFAULT"]
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
         }
       ]
     },
     "extra": {
       "eas": {
-        "projectId": "2cfe46e6-d818-47c8-a12d-55e1e5df3678"
+        "projectId": "91a24fbb-a70e-4993-a47a-bfdeb2df7304"
       }
     },
     "plugins": [
       [
         "expo-secure-store",
-        { "configureAndroidBackup": true }
+        {
+          "configureAndroidBackup": true
+        }
       ],
       [
         "expo-camera",
@@ -96,7 +111,9 @@
       ],
       [
         "expo-notifications",
-        { "color": "#D0A56A" }
+        {
+          "color": "#D0A56A"
+        }
       ],
       [
         "expo-splash-screen",
@@ -107,6 +124,7 @@
           "resizeMode": "contain"
         }
       ]
-    ]
+    ],
+    "owner": "emmy_rabs"
   }
 }
