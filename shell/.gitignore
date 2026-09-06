@@ -6,3 +6,7 @@ web-build/
 .DS_Store
 android/
 ios/
+
+# Firebase secrets — never commit, use EAS secret env vars
+google-services.json
+GoogleService-Info.plist
