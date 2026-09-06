@@ -112,7 +112,7 @@ export const callsService = {
     }
   ) {
     let call = await prisma.call.findUnique({ where: { id: callId } });
-    if (!call && callId.startsWith('call-')) {
+    if (!call) {
       call = await prisma.call.findFirst({
         where: {
           OR: [

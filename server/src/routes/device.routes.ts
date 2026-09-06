@@ -5,10 +5,11 @@ import { AuthenticatedRequest } from '../types/index.js';
 
 const router = Router();
 
-// Register or update device token
-router.post('/token', authenticateToken, async (req: AuthenticatedRequest, res) => {
+// Register or update device token (supports /token and /register)
+const handleRegisterToken = async (req: AuthenticatedRequest, res: any) => {
   try {
-    const { token, platform } = req.body;
+    const token = req.body.token || req.body.fcmToken || req.body.expoPushToken;
+    const platform = req.body.platform || 'android';
     if (!token || typeof token !== 'string') {
       return res.status(400).json({ success: false, message: 'Device token is required' });
     }
@@ -32,7 +33,10 @@ router.post('/token', authenticateToken, async (req: AuthenticatedRequest, res) 
   } catch (error: any) {
     res.status(500).json({ success: false, message: error.message });
   }
-});
+};
+
+router.post('/token', authenticateToken, handleRegisterToken);
+router.post('/register', authenticateToken, handleRegisterToken);
 
 // Remove device token on logout
 router.delete('/token', authenticateToken, async (req: AuthenticatedRequest, res) => {

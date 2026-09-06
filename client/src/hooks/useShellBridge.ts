@@ -47,6 +47,22 @@ export function requestNativePushToken() {
   }
 }
 
+/**
+ * Dismiss native Android heads-up / lock-screen call notification.
+ */
+export function cancelNativeCallNotification(callId?: string) {
+  if (typeof window !== 'undefined' && window.ReactNativeWebView) {
+    window.ReactNativeWebView.postMessage(
+      JSON.stringify({ type: 'CALL_ENDED', payload: { callId } }),
+    );
+  }
+  if (typeof window !== 'undefined' && (window as any).OrbitNative?.callEnded) {
+    try {
+      (window as any).OrbitNative.callEnded(callId);
+    } catch {}
+  }
+}
+
 export function useShellBridge() {
   const { user, isAuthenticated } = useAuthStore();
   const registeredTokenRef = useRef<string | null>(null);
@@ -127,12 +143,43 @@ export function useShellBridge() {
       }
     };
 
+    // 5. Listen for call accept action from native shell notification
+    const handleCallAccept = (event: Event) => {
+      const customEvent = event as CustomEvent<{ callId: string }>;
+      const callId = customEvent.detail?.callId;
+      console.log('[ShellBridge] Received call accept event:', callId);
+      window.dispatchEvent(new CustomEvent('orbit:trigger-accept-call', { detail: { callId } }));
+    };
+
+    // 6. Listen for native call dismissal
+    const handleCallDismissed = () => {
+      const { incomingCall, setIncomingCall } = useCallStore.getState();
+      if (incomingCall) {
+        setIncomingCall(null);
+      }
+    };
+
+    // 7. Listen for native ready token broadcast
+    const handleNativeReady = (event: Event) => {
+      const customEvent = event as CustomEvent<{ token?: string; expoPushToken?: string }>;
+      const token = customEvent.detail?.token || customEvent.detail?.expoPushToken;
+      if (token) {
+        registerToken(token);
+      }
+    };
+
     window.addEventListener('orbit:push-token', handlePushToken);
     window.addEventListener('orbit:call-push', handleCallPush);
+    window.addEventListener('orbit:call-accept', handleCallAccept);
+    window.addEventListener('orbit:native-call-dismissed', handleCallDismissed);
+    window.addEventListener('orbit:native-ready', handleNativeReady);
 
     return () => {
       window.removeEventListener('orbit:push-token', handlePushToken);
       window.removeEventListener('orbit:call-push', handleCallPush);
+      window.removeEventListener('orbit:call-accept', handleCallAccept);
+      window.removeEventListener('orbit:native-call-dismissed', handleCallDismissed);
+      window.removeEventListener('orbit:native-ready', handleNativeReady);
     };
   }, [isAuthenticated, user?.id]);
 }

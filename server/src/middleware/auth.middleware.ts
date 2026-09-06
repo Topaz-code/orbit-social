@@ -1,7 +1,53 @@
+import crypto from 'crypto';
+import jwt from 'jsonwebtoken';
 import { Response, NextFunction } from 'express';
-import { verifyAccessToken } from '../config/auth.js';
+import { verifyAccessToken, JWT_SECRET } from '../config/auth.js';
 import { AuthenticatedRequest } from '../types/index.js';
 import { prisma } from '../config/database.js';
+
+export async function authenticateTokenOrDeclineToken(
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  // 1. Signed decline token query param or body
+  const declineToken = (req.query.token || req.body?.token || req.headers['x-orbit-decline-token']) as string;
+  if (declineToken) {
+    try {
+      const decoded = jwt.verify(declineToken, JWT_SECRET) as any;
+      if (decoded && decoded.callId === req.params.id && decoded.purpose === 'decline_call') {
+        req.user = { userId: decoded.userId, role: 'USER' } as any;
+        return next();
+      }
+    } catch {
+      // Fall through
+    }
+  }
+
+  // 2. Cookieless HMAC decline proof support (from deviceIdentity)
+  const deviceHash = (req.headers['x-orbit-device-hash'] || req.query.deviceHash || req.body?.deviceHash) as string;
+  const proof = (req.headers['x-orbit-decline-proof'] || req.query.proof || req.body?.proof) as string;
+  const ts = (req.headers['x-orbit-decline-ts'] || req.query.ts || req.body?.ts) as string;
+
+  if (deviceHash && proof && ts && Math.abs(Date.now() - Number(ts)) < 5 * 60 * 1000) {
+    try {
+      const key = crypto.createHash('sha256').update(deviceHash).digest();
+      const expected = crypto.createHmac('sha256', key).update(`${req.params.id}:${ts}`).digest('hex');
+      if (crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(proof))) {
+        const call = await prisma.call.findUnique({ where: { id: req.params.id } });
+        if (call) {
+          req.user = { userId: call.receiver_id, role: 'USER' } as any;
+          return next();
+        }
+      }
+    } catch {
+      // Fall through
+    }
+  }
+
+  // 3. Fallback to standard Bearer token authentication
+  return authenticateToken(req, res, next);
+}
 
 export function authenticateToken(req: AuthenticatedRequest, res: Response, next: NextFunction): void {
   const authHeader = req.headers['authorization'];

@@ -1,189 +1,485 @@
 # Orbit — Android WebView Shell
 
-A lightweight, production-grade Android shell that embeds the Orbit web app
-(https://orbit-web-6z3b.onrender.com/) and layers native Android capabilities on
-top of it: automatic hardware permissions, an animated cold-start splash, an
-offline screen, pull-to-refresh, and deep-linking for calls and push
-notifications.
 
-**Stack:** React Native · Expo SDK 52 · `react-native-webview` 13 · NetInfo ·
-Reanimated 3 · `expo-linear-gradient` · `expo-secure-store` · `expo-camera` ·
-`expo-av` · `expo-notifications`.
 
----
+Production Android shell for **https://orbit-web-6z3b.onrender.com/** built with Expo SDK 52.
+
+
+
+| Capability | How it is delivered |
+
+| --- | --- |
+
+| Animated cold-start splash | `components/SplashScreen.tsx` (Reanimated, tracks `onLoadProgress`, fades on `onLoadEnd`) |
+
+| Render cold-start handling | 5xx / network errors during first load trigger exponential auto-retries with "Waking up the Orbit servers" copy |
+
+| Offline screen | `components/OfflineScreen.tsx` driven by NetInfo + `onError`/`onHttpError` |
+
+| Camera / mic / photos / notifications | Requested sequentially at boot (`services/permissions.ts`); WebRTC `getUserMedia` then works inside the WebView |
+
+| Pull-to-refresh, back button, file uploads | Native WebView features (`pullToRefreshEnabled`, `BackHandler`, Android file chooser) |
+
+| **Calls that wake a locked phone** | FCM high-priority *data* push → headless task → Notifee full-screen call notification (Accept / Decline) |
+
+| Push notifications when app is closed | FCM via `expo-notifications`, tap → deep link into the WebView |
+
+| Deep links | `orbit://…` and `https://orbit-web-6z3b.onrender.com/…` (App Links) |
+
+
+
+## How background calls work without draining battery
+
+
+
+The shell **does not** run a persistent background service or keep the WebView / MQTT socket alive.
+
+Instead it relies on Firebase Cloud Messaging, which is the OS-level, shared, battery-optimised push
+
+channel. The app process is asleep (0% CPU) until FCM wakes it for a few hundred milliseconds:
+
+
+
+```
+
+Orbit backend ──FCM data message (priority HIGH)──▶ Android OS
+
+                                                      │ wakes com.orbit.app (headless JS, ~300ms)
+
+                                                      ▼
+
+                       tasks/backgroundNotificationTask.ts ──▶ services/calls.ts showIncomingCall()
+
+                                                      │ Notifee: category CALL + fullScreenAction
+
+                                                      ▼
+
+                    Screen turns on over the lock screen (showWhenLocked / turnScreenOn)
+
+                    Ringtone loops, Accept / Decline buttons
+
+                                                      │ Accept
+
+                                                      ▼
+
+                    MainActivity launches → App.tsx navigates WebView to call.url?action=accept
+
+```
+
+
+
+This is the same architecture WhatsApp / Telegram use on Android. Battery cost while idle is
+
+effectively zero; the only requirement is that the **backend sends the push**.
+
+
+
+## 1. Prerequisites
+
+
+
+```bash
+
+npm install -g eas-cli
+
+cd mobile
+
+npm install
+
+npx expo install --fix          # aligns every package with SDK 52
+
+node scripts/generate-assets.mjs
+
+```
+
+
+
+### Firebase (required for push + calls)
+
+
+
+1. Create a Firebase project → add an Android app with package `com.orbit.app`.
+
+2. Download `google-services.json` into `mobile/` (path already referenced in `app.json`).
+
+3. In Firebase → Project settings → Cloud Messaging, note the **FCM HTTP v1** service account (backend).
+
+4. If you also want Expo's push service: `eas init` (adds `extra.eas.projectId`) and upload the FCM
+
+   service-account key with `eas credentials`.
+
+
+
+## 2. Build
+
+
+
+```bash
+
+npx expo prebuild --platform android --clean   # applies plugins/withOrbitCallActivity.js
+
+npx expo run:android                            # local debug build on a device
+
+eas build -p android --profile preview          # installable APK
+
+eas build -p android --profile production       # Play Store AAB
+
+```
+
+
+
+Expo Go is **not** supported (Notifee, custom manifest attributes, FCM need a dev/production build).
+
+
+
+## 3. Backend contract
+
+
+
+### 3a. Store the device token
+
+
+
+The shell hands the token to the web app three ways — implement whichever is easiest:
+
+
+
+* `window.OrbitNative.pushToken` + `window.addEventListener('orbit:native-ready', e => e.detail)`
+
+* `localStorage.getItem('orbit_native_push')` → `{ platform, provider, token, expoPushToken, deviceHash, capabilities }`
+
+* An automatic `POST /api/push/register` with the WebView's session cookies and body:
+
+
+
+```json
+
+{
+
+  "platform": "android",
+
+  "provider": "fcm",
+
+  "token": "<fcm token>",
+
+  "expoPushToken": null,
+
+  "deviceHash": "<sha256 of device secret>",
+
+  "capabilities": { "fullScreenIntent": true },
+
+  "shellVersion": "1.0.0"
+
+}
+
+```
+
+
+
+Store **`deviceHash`** alongside the FCM token — it is what authenticates cookieless
+
+declines from the headless layer (see §5).
+
+
+
+### 3b. Ring the device (FCM HTTP v1)
+
+
+
+Send a **data-only** message with `priority: HIGH` (a `notification` block would let Android render a
+
+plain banner and skip the headless task):
+
+
+
+```json
+
+{
+
+  "message": {
+
+    "token": "<fcm token>",
+
+    "android": { "priority": "HIGH", "ttl": "45s" },
+
+    "data": {
+
+      "type": "incoming_call",
+
+      "callId": "c_8f2a",
+
+      "callerName": "Ada Lovelace",
+
+      "callerAvatar": "https://orbit-web-6z3b.onrender.com/avatars/ada.png",
+
+      "isVideo": "true",
+
+      "url": "/calls/c_8f2a",
+
+      "declineUrl": "/api/calls/c_8f2a/decline",
+
+      "startedAt": "1730000000000"
+
+    }
+
+  }
+
+}
+
+```
+
+
+
+* `url` is opened in the WebView when the user accepts (the shell appends `?action=accept&native=1`).
+
+* `declineUrl` (optional) receives a POST authenticated by the cookieless device proof — see
+
+  **§5 Decline authentication (headless)** for the exact payload and server recipe.
+
+* `startedAt` lets the shell ignore pushes older than 45 s (missed call).
+
+* When the caller hangs up, send another data message with `type: "call_cancelled"` **or** simply let the
+
+  45 s `timeoutAfter` expire; the notification auto-dismisses either way.
+
+
+
+### 3c. Ordinary notifications (messages, mentions)
+
+
+
+```json
+
+{
+
+  "message": {
+
+    "token": "<fcm token>",
+
+    "android": { "priority": "HIGH", "notification": { "channel_id": "orbit_messages" } },
+
+    "notification": { "title": "Ada", "body": "See you in orbit 🚀" },
+
+    "data": { "url": "/messages/ada" }
+
+  }
+
+}
+
+```
+
+
+
+Tapping the notification opens `data.url` inside the WebView (cold or warm start).
+
+
+
+## 4. Web-app hooks (optional but recommended)
+
+
+
+```ts
+
+// Anywhere in the Orbit web client
+
+const native = (window as any).OrbitNative;
+
+if (native?.isNativeShell) {
+
+  native.ready((n) => api.registerPushToken(n.pushToken));   // token hand-off
+
+  socket.on('call:incoming', (call) => native.incomingCall({ ...call, type: 'incoming_call' }));
+
+  socket.on('call:started', (id) => native.callStarted(id)); // keeps the screen awake during the call
+
+  socket.on('call:ended',   (id) => native.callEnded(id));   // dismisses the native ringer
+
+}
+
+window.addEventListener('orbit:native-call-dismissed', () => callStore.dismiss());
+
+```
+
+
+
+If the web app never integrates, a DOM heuristic in `services/bridge.ts` still detects "Incoming call /
+
+… is calling" UI while the app is backgrounded-but-alive and rings natively.
+
+
+
+## 5. Android 14+ notes & production edge cases
+
+
+
+### Decline authentication (headless)
+
+
+
+A headless React Native `fetch` does not share the WebView's cookie jar, so a decline endpoint
+
+protected only by session cookies will 401. The shell authenticates cookielessly:
+
+
+
+1. On first launch it generates a 48-byte secret in the Android Keystore (SecureStore).
+
+2. `deviceHash = SHA-256(secret)` — the public identifier, registered to the backend alongside
+
+   the FCM token (see `POST /api/push/register` body, now includes `deviceHash`).
+
+3. On decline, the shell computes
+
+   `proof = HMAC-SHA256(key = SHA-256(deviceHash), data = \`${callId}:${ts}\`)` and sends
+
+   `callId + deviceHash + ts + proof` as query params (works with simple GET/POST endpoints)
+
+   and as JSON body + `X-Orbit-*` headers.
+
+4. The backend verifies with only what it already knows. **Use the raw 32-byte digest as the
+
+   HMAC key — not the hex string.** Inside the shell, `hmacSha256Hex(keyHex, …)` decodes the key
+
+   from hex into bytes, so the server must do the same:
+
+
+
+```js
+
+const crypto = require("crypto");
+
+// deviceHash is the 64-char hex string the shell registered with the push token.
+
+// sha256(deviceHash) as a raw Buffer — passing digest("hex") here would use 64 ASCII
+
+// bytes as the key and the proof would never match.
+
+const key = crypto.createHash("sha256").update(deviceHash).digest(); // <-- NO "hex"
+
+const expected = crypto.createHmac("sha256", key).update(`${callId}:${ts}`).digest("hex");
+
+crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(proof));
+
+```
+
+
+
+Rejects stale timestamps (> 5 min) to fence replay.
+
+
+
+### Full-screen intent (Android 14)
+
+
+
+`USE_FULL_SCREEN_INTENT` is granted by default to sideloaded / internal-track builds only.
+
+For public Play releases, declare the app as a **calling app** in the Play Console, or let
+
+users re-enable it: the shell reads the live state at boot via Notifee
+
+(`getNotificationSettings().android.fullScreenIntent`) and exposes it through the bridge as
+
+`OrbitNative.permissions.fullScreenIntent` + the `orbit:native-permissions` event. Call
+
+`OrbitNative.openNotificationSettings()` to deep-link into the exact system toggle.
+
+
+
+### OEM battery killers
+
+
+
+Aggressive OEM battery managers (Xiaomi, Huawei, Samsung "Deep sleeping apps") can delay FCM.
+
+Expose `OrbitNative.openBatterySettings()` in the web app's settings page to open the system
+
+**Ignore battery optimizations** screen.
+
+
+
+### WebRTC permissions
+
+
+
+`react-native-webview`'s native WebChromeClient grants `onPermissionRequest` automatically once
+
+OS-level `CAMERA` / `RECORD_AUDIO` are granted. `requestCorePermissions()` runs sequentially at
+
+first boot (Android silently drops overlapping dialogs), so `getUserMedia()` works with no
+
+second in-page prompt. `mediaCapturePermissionGrantType="grant"` additionally covers the
+
+iOS-shaped embedder API.
+
+
+
+## 6. Testing the call flow
+
+
+
+```bash
+
+# From a machine with a Firebase service account token:
+
+curl -X POST https://fcm.googleapis.com/v1/projects/<project-id>/messages:send \
+
+  -H "Authorization: Bearer $(gcloud auth print-access-token)" \
+
+  -H "Content-Type: application/json" \
+
+  -d @test-call.json     # payload from section 3b
+
+```
+
+
+
+Lock the phone, send the request: the screen lights up with the ringing notification; **Accept** opens
+
+the call inside the WebView, **Decline** dismisses it and POSTs to `declineUrl`.
+
+
 
 ## Project layout
 
-```
-orbit-shell/
-├── App.tsx                      # Entry point: WebView + NetInfo + permissions + deep links
-├── app.json                     # Expo / Android configuration & permissions
-├── package.json                 # Pinned SDK 52 dependency versions
-├── babel.config.js              # babel-preset-expo (auto-includes reanimated plugin)
-├── tsconfig.json
-├── google-services.json         # Firebase (package com.orbit.app, project orbit-social-c90ed)
-├── assets/
-│   ├── icon.png                 # 1024×1024 launcher icon
-│   ├── adaptive-icon.png        # Adaptive icon foreground (safe-zone scaled)
-│   └── splash-icon.png          # Native splash image
-└── components/
-    ├── SplashScreen.tsx         # Animated space-themed cold-start screen
-    ├── OfflineScreen.tsx        # "You are out of Orbit" screen
-    └── PullToRefresh.tsx        # Gesture-driven Android pull-to-refresh
+
+
 ```
 
-## Run it
+mobile/
 
-```bash
-npm install
-npx expo prebuild -p android        # generates the android/ project (needed for custom packages)
-npx expo run:android                # build + install on a device/emulator
+├── App.tsx                          # WebView container, NetInfo, cold-start loader, offline screen, bridge
+
+├── index.ts                         # Registers headless task + Notifee background handler
+
+├── app.json                         # Expo / Android config, permissions, intent filters, plugins
+
+├── eas.json
+
+├── components/
+
+│   ├── SplashScreen.tsx             # Animated Orbit splash (Reanimated + LinearGradient)
+
+│   └── OfflineScreen.tsx            # "You are out of Orbit" screen
+
+├── constants/config.ts
+
+├── services/
+
+│   ├── bridge.ts                    # window.OrbitNative + injected scripts
+
+│   ├── calls.ts                     # Notifee full-screen call notification + Accept/Decline handling
+
+│   ├── notifications.ts             # FCM token, background task registration, launch routing
+
+│   └── permissions.ts               # Camera / mic / media / notifications + audio session
+
+├── tasks/backgroundNotificationTask.ts
+
+├── plugins/withOrbitCallActivity.js # showWhenLocked / turnScreenOn / USE_FULL_SCREEN_INTENT
+
+├── scripts/generate-assets.mjs
+
+└── assets/                          # icon, adaptive-icon, splash, notification-icon, sounds/ringtone.wav
+
 ```
-
-For a release build:
-
-```bash
-cd android && ./gradlew assembleRelease
-# or build with EAS:
-npx eas build -p android --profile preview
-```
-
-> The package id `com.orbit.app` matches the `google-services.json` you
-> provided, so FCM push will bind correctly during `expo prebuild`.
-
----
-
-## How the requirements are implemented
-
-### 1. Animated splash & cold-start screen (`components/SplashScreen.tsx`)
-- Deep slate background `#0f172a`, gold/tan planet with a tilted orbital ring
-  and an orbiting satellite, twinkling starfield, "ORBIT" wordmark and a
-  pulsing "Connecting to Orbit…" line (all Reanimated).
-- A thin gold progress bar at the bottom tracks `onLoadProgress` (width is
-  animated from a measured track, so it's pixel-accurate).
-- `onLoadEnd` calls `splashRef.hide()`, which fades the overlay out and then
-  unmounts it via `onHidden`.
-- **Cold-start handling:** Render's free tier returns `503` while the backend
-  boots. `onHttpError` detects `status >= 500`, keeps the splash visible and
-  auto-retries with exponential backoff (2.5s → ~35s, 5 attempts) before
-  falling back to the offline screen.
-
-### 2. WebView & hardware permissions (`App.tsx`)
-The WebView is configured with `javaScriptEnabled`, `domStorageEnabled`,
-`allowFileAccess`, `allowsInlineMediaPlayback`,
-`mediaPlaybackRequiresUserAction={false}`, `thirdPartyCookiesEnabled`,
-`allowsFullscreenVideo`, `setSupportMultipleWindows={false}` (so OAuth/popup
-windows load in the same WebView) and `originWhitelist={['*']}`.
-
-> **Important API note:** `react-native-webview` v13 **removed the
-> `onPermissionRequest` JS prop** (the `event.grant()` API from v12). In v13,
-> WebRTC permission is handled natively by `RNCWebChromeClient.onPermissionRequest`,
-> which maps `RESOURCE_VIDEO_CAPTURE → CAMERA` and
-> `RESOURCE_AUDIO_CAPTURE → RECORD_AUDIO` and shows the Android runtime dialog
-> automatically — then grants the WebView request. So the correct v13 recipe is:
->
-> 1. Declare `CAMERA` / `RECORD_AUDIO` in the manifest (done in `app.json`), and
-> 2. Pre-grant them from JS so the WebView path sees "already granted" and
->    grants synchronously with **no** double-prompt.
->
-> `ensureCallPermissions()` (via `expo-av` + `expo-camera`) runs automatically
-> when a call/room deep link is opened. If the user starts a call directly in
-> the web UI, the WebView's native permission flow still prompts correctly.
-
-- **File uploads** are handled natively in v13 as well — tapping an
-  `<input type="file">` in the web chat opens the Android system file
-  picker / photo picker automatically (no `onShowFileChooser` JS wiring or
-  `expo-image-picker` needed).
-
-### 3. Offline screen (`components/OfflineScreen.tsx`)
-- `useNetInfo()` monitors connectivity. When `isConnected === false` — or the
-  WebView raises `onError` / a non-5xx `onHttpError` while the device is online
-  — the WebView is hidden and the dark, space-themed offline screen is shown.
-- "Try Again" refreshes NetInfo and calls `webviewRef.current.reload()`.
-- The app auto-reloads when connectivity returns (no tap required).
-
-### 4. Pull-to-refresh (`components/PullToRefresh.tsx`)
-`react-native-webview`'s `pullToRefreshEnabled` prop is **iOS-only**, so Android
-gets a real native-feeling implementation: a Reanimated + Gesture Handler pan
-that only activates while the WebView is scrolled to the very top (tracked via
-the WebView's native `onScroll`). Pull past the threshold and it reloads; any
-other scroll is left completely untouched.
-
-### 5. Deep linking & push
-- Custom scheme `orbit://…` is registered (`app.json` `scheme` + intent filter).
-  `orbit://call/<roomId>` opens the web app, pre-requests camera/mic, and
-  navigates the WebView to the matching URL.
-- `https://orbit-web-6z3b.onrender.com/…` links are also registered. To make
-  them real Android **App Links** (open the app instead of the browser), publish
-  `/.well-known/assetlinks.json` on that host and flip `autoVerify` to `true`.
-- Push: with `google-services.json` in place, `expo-notifications` receives FCM
-  messages. Tapping a notification reads `data.url` (or `data.deepLink`) and
-  deep-links into the app. The raw FCM device token is logged from
-  `Notifications.getDevicePushTokenAsync()`.
-
-### 6. System chrome
-Status bar and Android navigation bar are forced to `#0f172a` with light
-content (via `expo-status-bar`, `expo-navigation-bar`, and `app.json`
-`androidStatusBar` / `androidNavigationBar`) for a seamless full-screen look.
-
----
-
-## Testing deep links
-
-```bash
-# cold start via a link
-adb shell am start -W -a android.intent.action.VIEW -d "orbit://call/room-123" com.orbit.app
-# push notification tap is exercised by sending an FCM message with data.url
-```
-
-## Incoming calls / push notifications
-
-Calls ring **in-app** when the app is open (the web app's socket handles that).
-When the app is **backgrounded or killed**, the WebView's JavaScript is frozen,
-so the only way to alert the user is a native FCM push. That requires three
-pieces:
-
-1. **Shell (done):** registers the FCM device token and hands it to the web app
-   by dispatching a `window` event named `orbit:push-token` on every load (plus
-   whenever FCM rotates the token). It also creates a `calls` notification
-   channel with `MAX` importance (heads-up + sound + vibration) and suppresses
-   the duplicate banner while the app is open.
-2. **Web app:** listen for `orbit:push-token` and POST the token to your
-   backend (see `server/push-example.js` for the snippet).
-3. **Backend:** when a call starts, send an FCM **notification** message to the
-   callee's tokens targeting the `calls` channel (see `server/push-example.js`).
-   It must use the same Firebase project (`orbit-social-c90ed`) as the
-   `google-services.json` in the APK.
-
-Android 14+ also gates "wake the screen" behind the full-screen-notifications
-toggle; the shell asks for it once (and declares `USE_FULL_SCREEN_INTENT`).
-Heads-up + sound works regardless; fully lighting the screen requires that
-toggle to be on.
-
-### Foreground fallback + missed calls
-
-- **Foreground fallback:** if a push arrives while the app is *open*, the shell
-  suppresses the duplicate system banner and instead forwards the payload to
-  the web app via a `orbit:call-push` window event. That way an incoming call
-  still rings in-app even when the web app's socket is dead or reconnecting.
-  The web app should **dedup by `callId`** so a live socket + forwarded push
-  don't double-ring (snippet in `server/push-example.js`).
-- **Missed calls:** when a call is never answered, the backend sends a second
-  `type: "missed_call"` push on the normal-priority `default` channel, which
-  taps through to the chat/conversation. See `sendMissedCallPush()` in
-  `server/push-example.js`.
-
-All FCM `data` values arrive as **strings** (e.g. `type`, `callId`,
-`callerName`, `url`).
-
-> Push is the one feature that does **not** work in Expo Go (Expo Go uses its
-> own Firebase config). It works in the real `eas build` APK.
-
-## Notes
-
-- `expo-av` is the SDK 52 audio/permission module (it's replaced by
-  `expo-audio`/`expo-video` from SDK 53 onward — this project pins SDK 52).
-- If any legacy dependency misbehaves on the new architecture, flip
-  `"newArchEnabled": false` in `app.json` and rebuild.
-- The native splash (`assets/splash-icon.png`) shows the Orbit logo centered on
-  `#0f172a` before React loads, so there's no white flash at launch.

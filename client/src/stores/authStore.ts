@@ -16,12 +16,40 @@ interface AuthState {
   initializeAuth: () => void;
 }
 
+const getInitialAuth = () => {
+  try {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('orbit_access_token') : null;
+    const refreshToken = typeof window !== 'undefined' ? localStorage.getItem('orbit_refresh_token') : null;
+    const userStr = typeof window !== 'undefined' ? localStorage.getItem('orbit_user') : null;
+
+    if (token && userStr) {
+      const user = JSON.parse(userStr);
+      return {
+        user,
+        accessToken: token,
+        refreshToken,
+        isAuthenticated: true,
+        isLoading: false,
+      };
+    }
+  } catch {}
+  return {
+    user: null,
+    accessToken: null,
+    refreshToken: null,
+    isAuthenticated: false,
+    isLoading: false,
+  };
+};
+
+const initialAuth = getInitialAuth();
+
 export const useAuthStore = create<AuthState>((set, get) => ({
-  user: null,
-  accessToken: null,
-  refreshToken: null,
-  isAuthenticated: false,
-  isLoading: true,
+  user: initialAuth.user,
+  accessToken: initialAuth.accessToken,
+  refreshToken: initialAuth.refreshToken,
+  isAuthenticated: initialAuth.isAuthenticated,
+  isLoading: initialAuth.isLoading,
 
   setAuth: (user, accessToken, refreshToken) => {
     localStorage.setItem('orbit_access_token', accessToken);

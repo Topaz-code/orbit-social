@@ -1,5 +1,7 @@
 import { GoogleAuth } from 'google-auth-library';
 import { prisma } from '../config/database.js';
+import jwt from 'jsonwebtoken';
+import { JWT_SECRET } from '../config/auth.js';
 
 export interface PushNotificationPayload {
   title: string;
@@ -149,34 +151,33 @@ export class PushService {
     const devices = await prisma.deviceToken.findMany({ where: { user_id: userId } });
     if (!devices.length) return;
 
-    // High-priority Heads-Up Notification targeting 'calls' channel (Importance: MAX)
+    // Generate signed one-time decline token (valid for 3 minutes) for cookieless lockscreen decline
+    const declineToken = jwt.sign(
+      { callId: callData.callId, userId, purpose: 'decline_call' },
+      JWT_SECRET,
+      { expiresIn: '3m' }
+    );
+    const declineUrl = `https://orbit-api-m5ah.onrender.com/api/calls/${callData.callId}/decline?token=${declineToken}`;
+
+    // Data-only high priority message: Android OS wakes com.orbit.app headless (no passive tray intercept)
     await Promise.allSettled(
       devices.map((d) =>
         this.sendSingleFCM(d.token, {
-          notification: {
-            title: `Incoming ${callData.callType === 'video' ? 'Video' : 'Voice'} Call`,
-            body: `${callData.callerName} is calling you...`,
-          },
           data: {
-            type: 'call',
+            type: 'incoming_call',
             callId: String(callData.callId),
-            callerId: String(callData.callerId),
             callerName: String(callData.callerName),
             callerAvatar: String(callData.callerAvatar || ''),
+            isVideo: callData.callType === 'video' ? 'true' : 'false',
             callType: String(callData.callType),
             conversationId: String(callData.conversationId || ''),
-            url: `orbit://call/${callData.callId}`,
+            url: `/calls/${callData.callId}`,
+            declineUrl,
+            startedAt: String(Date.now()),
           },
           android: {
             priority: 'HIGH',
             ttl: '45s',
-            notification: {
-              channel_id: 'calls',
-              notification_priority: 'PRIORITY_MAX',
-              default_sound: true,
-              default_vibrate_timings: true,
-              visibility: 'PUBLIC',
-            },
           },
         })
       )

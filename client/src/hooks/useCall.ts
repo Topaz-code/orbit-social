@@ -6,7 +6,7 @@ import { api } from '../lib/api.js';
 import { MediaConnection } from 'peerjs';
 import { useDialogStore } from '../stores/dialogStore.js';
 import { mqttClient } from '../lib/mqtt.js';
-import { requestNativeCallPermissions } from './useShellBridge.js';
+import { requestNativeCallPermissions, cancelNativeCallNotification } from './useShellBridge.js';
 import {
   showCallBrowserNotification,
   dismissCallBrowserNotification,
@@ -129,6 +129,7 @@ export function useCall() {
     const callData = useCallStore.getState().incomingCall;
     if (callData) {
       dismissCallBrowserNotification(callData.callId);
+      cancelNativeCallNotification(callData.callId);
 
       // 1. Instantly broadcast decline signal over MQTT so caller stops ringing immediately
       const payload = {
@@ -164,12 +165,14 @@ export function useCall() {
 
     const currentIncoming = useCallStore.getState().incomingCall;
     if (currentIncoming) {
+      cancelNativeCallNotification(currentIncoming.callId);
       rejectCall();
       return;
     }
 
     const currentActive = useCallStore.getState().activeCall;
     if (currentActive) {
+      cancelNativeCallNotification(currentActive.callId);
       const isRinging = currentActive.status === 'ringing';
       const newStatus = isRinging ? 'missed' : 'completed';
       const signalType = isRinging ? 'CALL_CANCELLED' : 'CALL_ENDED';
@@ -433,6 +436,7 @@ export function useCall() {
       });
 
       dismissCallBrowserNotification(incomingCall.callId);
+      cancelNativeCallNotification(incomingCall.callId);
       setIncomingCall(null);
 
       // Update call status to ongoing in DB
@@ -442,6 +446,28 @@ export function useCall() {
       rejectCall();
     }
   };
+
+  // Listen for native shell call-accept action trigger
+  useEffect(() => {
+    const handleTriggerAccept = () => {
+      let attempts = 0;
+      const checkAndAccept = () => {
+        const incoming = useCallStore.getState().incomingCall;
+        if (incoming) {
+          acceptCall();
+        } else if (attempts < 10) {
+          attempts++;
+          setTimeout(checkAndAccept, 300);
+        }
+      };
+      checkAndAccept();
+    };
+
+    window.addEventListener('orbit:trigger-accept-call', handleTriggerAccept);
+    return () => {
+      window.removeEventListener('orbit:trigger-accept-call', handleTriggerAccept);
+    };
+  }, [acceptCall]);
 
 
 

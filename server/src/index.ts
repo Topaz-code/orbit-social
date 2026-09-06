@@ -224,6 +224,7 @@ app.use('/api/friends', friendsRoutes);
 app.use('/api/notifications', notificationsRoutes);
 app.use('/api/calls', callsRoutes);
 app.use('/api/device', deviceRoutes);
+app.use('/api/push', deviceRoutes);
 app.use('/api/search', searchRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/reports', reportsRoutes);

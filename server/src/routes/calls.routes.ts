@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { callsController } from '../controllers/calls.controller.js';
-import { authenticateToken } from '../middleware/auth.middleware.js';
+import { authenticateToken, authenticateTokenOrDeclineToken } from '../middleware/auth.middleware.js';
 import { validateBody } from '../middleware/validation.middleware.js';
 import { initiateCallSchema, updateCallSchema } from '../validators/calls.validator.js';
 
@@ -11,7 +11,7 @@ router.delete('/history/clear', authenticateToken, callsController.clearCallHist
 router.get('/:id', authenticateToken, callsController.getCallById);
 router.post('/', authenticateToken, validateBody(initiateCallSchema), callsController.initiateCall);
 router.put('/:id', authenticateToken, validateBody(updateCallSchema), callsController.updateCall);
-router.post('/:id/decline', authenticateToken, callsController.declineCall);
+router.post('/:id/decline', authenticateTokenOrDeclineToken, callsController.declineCall);
 router.post('/:id/cancel', authenticateToken, callsController.cancelCall);
 router.delete('/:id', authenticateToken, callsController.deleteCall);
 

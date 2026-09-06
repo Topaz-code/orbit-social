@@ -1,193 +1,535 @@
-import React, { useEffect } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import React, { useEffect } from "react";
+
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
+
+import { LinearGradient } from "expo-linear-gradient";
+
+import { Ionicons } from "@expo/vector-icons";
+
 import Animated, {
-  cancelAnimation,
+
   Easing,
-  Extrapolation,
-  interpolate,
+
+  cancelAnimation,
+
   useAnimatedStyle,
+
   useSharedValue,
+
   withRepeat,
+
   withSequence,
+
+  withSpring,
+
   withTiming,
-} from 'react-native-reanimated';
 
-import { THEME } from '../src/config/theme';
+} from "react-native-reanimated";
 
-const GOLD = THEME.colors.gold;
-const GOLD_LIGHT = THEME.colors.goldLight;
-const GOLD_DARK = THEME.colors.goldDark;
-const SLATE = THEME.colors.textSecondary;
+import { COLORS } from "../constants/config";
 
-type Props = {
+
+
+export type OfflineReason = "offline" | "server" | "timeout";
+
+
+
+interface OfflineScreenProps {
+
+  reason: OfflineReason;
+
+  retrying: boolean;
+
   onRetry: () => void;
-  retrying?: boolean;
+
+  attempt?: number;
+
+}
+
+
+
+const COPY: Record<OfflineReason, { title: string; description: string; icon: keyof typeof Ionicons.glyphMap }> = {
+
+  offline: {
+
+    title: "You are out of Orbit",
+
+    description: "Check your internet connection. We'll reconnect you the moment you're back in range.",
+
+    icon: "cloud-offline-outline",
+
+  },
+
+  server: {
+
+    title: "Orbit is out of reach",
+
+    description: "The Orbit servers didn't respond. They may be waking up — give it a moment and try again.",
+
+    icon: "planet-outline",
+
+  },
+
+  timeout: {
+
+    title: "Lost signal to Orbit",
+
+    description: "The connection took too long. Your network may be slow or the server is still spinning up.",
+
+    icon: "radio-outline",
+
+  },
+
 };
 
-const OfflineScreen = ({ onRetry, retrying = false }: Props) => {
-  const glow = useSharedValue(0);
+
+
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
+
+
+
+export default function OfflineScreen({ reason, retrying, onRetry, attempt = 0 }: OfflineScreenProps) {
+
+  const copy = COPY[reason];
+
+
+
+  const float = useSharedValue(0);
+
+  const orbitSpin = useSharedValue(0);
+
+  const signalPulse = useSharedValue(0.3);
+
+  const buttonScale = useSharedValue(1);
+
+  const enter = useSharedValue(0);
+
+
 
   useEffect(() => {
-    glow.value = withRepeat(
-      withSequence(
-        withTiming(1, { duration: 1800, easing: Easing.inOut(Easing.quad) }),
-        withTiming(0, { duration: 1800, easing: Easing.inOut(Easing.quad) }),
-      ),
-      -1,
-      true,
-    );
-    return () => cancelAnimation(glow);
-  }, [glow]);
 
-  const glowStyle = useAnimatedStyle(() => ({
-    opacity: interpolate(glow.value, [0, 1], [0.12, 0.3], Extrapolation.CLAMP),
-    transform: [
-      { scale: interpolate(glow.value, [0, 1], [0.94, 1.12], Extrapolation.CLAMP) },
-    ],
+    enter.value = withTiming(1, { duration: 500, easing: Easing.out(Easing.cubic) });
+
+    float.value = withRepeat(
+
+      withSequence(
+
+        withTiming(-8, { duration: 2400, easing: Easing.inOut(Easing.sin) }),
+
+        withTiming(8, { duration: 2400, easing: Easing.inOut(Easing.sin) }),
+
+      ),
+
+      -1,
+
+      true,
+
+    );
+
+    orbitSpin.value = withRepeat(withTiming(360, { duration: 14000, easing: Easing.linear }), -1, false);
+
+    signalPulse.value = withRepeat(
+
+      withSequence(withTiming(1, { duration: 900 }), withTiming(0.3, { duration: 900 })),
+
+      -1,
+
+      false,
+
+    );
+
+    return () => {
+
+      cancelAnimation(float);
+
+      cancelAnimation(orbitSpin);
+
+      cancelAnimation(signalPulse);
+
+    };
+
+  }, [enter, float, orbitSpin, signalPulse]);
+
+
+
+  const containerStyle = useAnimatedStyle(() => ({
+
+    opacity: enter.value,
+
+    transform: [{ translateY: (1 - enter.value) * 16 }],
+
   }));
 
+  const satelliteStyle = useAnimatedStyle(() => ({ transform: [{ translateY: float.value }] }));
+
+  const orbitStyle = useAnimatedStyle(() => ({
+
+    transform: [{ rotateX: "70deg" }, { rotateZ: `${orbitSpin.value}deg` }],
+
+  }));
+
+  const signalStyle = useAnimatedStyle(() => ({ opacity: signalPulse.value }));
+
+  const buttonStyle = useAnimatedStyle(() => ({ transform: [{ scale: buttonScale.value }] }));
+
+
+
   return (
-    <View style={styles.container}>
-      <View style={styles.iconWrap}>
-        <Animated.View style={[styles.glow, glowStyle]} />
-        <View style={[styles.ring, styles.ringBack]} />
-        <LinearGradient
-          colors={[GOLD_LIGHT, GOLD, '#8a5a1e']}
-          start={{ x: 0.2, y: 0.1 }}
-          end={{ x: 0.85, y: 0.9 }}
-          style={styles.planet}
-        />
-        <View style={[styles.ring, styles.ringFront]} />
-        <View style={styles.satellite} />
-        <View style={styles.badge}>
-          <Text style={styles.badgeText}>!</Text>
+
+    <View style={styles.root}>
+
+      <LinearGradient
+
+        colors={["#0f172a", "#0a1024", "#0f172a"]}
+
+        start={{ x: 0, y: 0 }}
+
+        end={{ x: 1, y: 1 }}
+
+        style={StyleSheet.absoluteFill}
+
+      />
+
+
+
+      <Animated.View style={[styles.content, containerStyle]}>
+
+        <View style={styles.stage}>
+
+          <Animated.View style={[styles.orbitPath, orbitStyle]} />
+
+          <Animated.View style={[styles.satelliteWrap, satelliteStyle]}>
+
+            <View style={styles.satelliteHalo}>
+
+              <Ionicons name={copy.icon} size={64} color={COLORS.gold} />
+
+            </View>
+
+          </Animated.View>
+
+          <Animated.View style={[styles.signal, styles.signalLeft, signalStyle]} />
+
+          <Animated.View style={[styles.signal, styles.signalRight, signalStyle]} />
+
+          <View style={styles.dot} />
+
         </View>
-      </View>
 
-      <Text style={styles.title}>You are out of Orbit</Text>
-      <Text style={styles.subtitle}>Check your internet connection and try again.</Text>
 
-      <Pressable
-        onPress={onRetry}
-        disabled={retrying}
-        accessibilityRole="button"
-        accessibilityLabel="Try again"
-        style={({ pressed }) => [styles.buttonWrap, pressed && styles.buttonPressed]}
-      >
-        <LinearGradient
-          colors={[GOLD_LIGHT, GOLD]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.button}
+
+        <Text style={styles.title}>{copy.title}</Text>
+
+        <Text style={styles.description}>{copy.description}</Text>
+
+
+
+        <AnimatedPressable
+
+          accessibilityRole="button"
+
+          accessibilityLabel="Retry connection"
+
+          disabled={retrying}
+
+          onPressIn={() => {
+
+            buttonScale.value = withSpring(0.96, { damping: 18, stiffness: 260 });
+
+          }}
+
+          onPressOut={() => {
+
+            buttonScale.value = withSpring(1, { damping: 18, stiffness: 260 });
+
+          }}
+
+          onPress={onRetry}
+
+          style={[styles.button, retrying && styles.buttonDisabled, buttonStyle]}
+
         >
-          {retrying ? (
-            <ActivityIndicator color={THEME.colors.void} />
-          ) : (
-            <Text style={styles.buttonText}>Try Again</Text>
-          )}
-        </LinearGradient>
-      </Pressable>
 
-      <Text style={styles.hint}>We'll reconnect automatically when you're back online.</Text>
+          <LinearGradient
+
+            colors={[COLORS.goldLight, COLORS.gold, COLORS.goldDeep]}
+
+            start={{ x: 0, y: 0 }}
+
+            end={{ x: 1, y: 1 }}
+
+            style={styles.buttonGradient}
+
+          >
+
+            {retrying ? (
+
+              <ActivityIndicator color={COLORS.bg} />
+
+            ) : (
+
+              <>
+
+                <Ionicons name="refresh" size={18} color={COLORS.bg} style={styles.buttonIcon} />
+
+                <Text style={styles.buttonLabel}>Try Again</Text>
+
+              </>
+
+            )}
+
+          </LinearGradient>
+
+        </AnimatedPressable>
+
+
+
+        <Text style={styles.footnote}>
+
+          {retrying
+
+            ? "Retrying connection…"
+
+            : attempt > 0
+
+              ? `We'll keep trying automatically • ${attempt} ${attempt === 1 ? "attempt" : "attempts"} so far`
+
+              : "Orbit reconnects automatically when your network returns."}
+
+        </Text>
+
+      </Animated.View>
+
     </View>
+
   );
-};
+
+}
+
+
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: THEME.colors.void,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 32,
-  },
-  iconWrap: { width: 190, height: 190, alignItems: 'center', justifyContent: 'center' },
-  glow: {
-    position: 'absolute',
-    top: 30,
-    left: 30,
-    width: 130,
-    height: 130,
-    borderRadius: 65,
-    backgroundColor: GOLD,
-  },
-  ring: {
-    position: 'absolute',
-    top: 53,
-    left: -15,
-    width: 220,
-    height: 84,
-    borderRadius: 42,
-  },
-  ringBack: {
-    borderWidth: 1.5,
-    borderColor: 'rgba(212,162,78,0.5)',
-    transform: [{ rotate: '18deg' }],
-  },
-  ringFront: {
-    borderWidth: 1,
-    borderColor: 'rgba(212,162,78,0.28)',
-    transform: [{ rotate: '-14deg' }],
-  },
-  planet: { width: 110, height: 110, borderRadius: 55, opacity: 0.92 },
-  satellite: {
-    position: 'absolute',
-    top: 22,
-    right: 14,
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    backgroundColor: GOLD_LIGHT,
-    opacity: 0.9,
-  },
-  badge: {
-    position: 'absolute',
-    top: 8,
-    right: 2,
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    backgroundColor: THEME.colors.card,
-    borderWidth: 1.5,
-    borderColor: GOLD,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  badgeText: { color: GOLD, fontSize: 16, fontWeight: '800' },
-  title: {
-    marginTop: 26,
-    fontSize: 26,
-    fontWeight: '800',
-    color: THEME.colors.textPrimary,
-    textAlign: 'center',
-  },
-  subtitle: {
-    marginTop: 10,
-    fontSize: 15,
-    color: SLATE,
-    textAlign: 'center',
-    lineHeight: 22,
-  },
-  buttonWrap: {
-    marginTop: 32,
-    borderRadius: 26,
-    shadowColor: GOLD,
-    shadowOpacity: 0.4,
-    shadowRadius: 12,
-    elevation: 8,
-  },
-  buttonPressed: { opacity: 0.85, transform: [{ scale: 0.97 }] },
-  button: {
-    minWidth: 190,
-    paddingVertical: 14,
-    paddingHorizontal: 40,
-    borderRadius: 26,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  buttonText: { color: THEME.colors.void, fontWeight: '800', fontSize: 16, letterSpacing: 0.4 },
-  hint: { marginTop: 28, fontSize: 13, color: THEME.colors.textMuted, textAlign: 'center' },
-});
 
-export default OfflineScreen;
+  root: {
+
+    ...StyleSheet.absoluteFillObject,
+
+    backgroundColor: COLORS.bg,
+
+    zIndex: 10,
+
+    elevation: 10,
+
+  },
+
+  content: {
+
+    flex: 1,
+
+    alignItems: "center",
+
+    justifyContent: "center",
+
+    paddingHorizontal: 32,
+
+  },
+
+  stage: {
+
+    width: 220,
+
+    height: 220,
+
+    alignItems: "center",
+
+    justifyContent: "center",
+
+    marginBottom: 24,
+
+  },
+
+  orbitPath: {
+
+    position: "absolute",
+
+    width: 210,
+
+    height: 210,
+
+    borderRadius: 105,
+
+    borderWidth: 1.5,
+
+    borderColor: "rgba(148, 163, 184, 0.22)",
+
+    borderStyle: "dashed",
+
+  },
+
+  satelliteWrap: {
+
+    alignItems: "center",
+
+    justifyContent: "center",
+
+  },
+
+  satelliteHalo: {
+
+    width: 128,
+
+    height: 128,
+
+    borderRadius: 64,
+
+    alignItems: "center",
+
+    justifyContent: "center",
+
+    backgroundColor: "rgba(212, 162, 76, 0.08)",
+
+    borderWidth: 1,
+
+    borderColor: "rgba(212, 162, 76, 0.28)",
+
+  },
+
+  signal: {
+
+    position: "absolute",
+
+    width: 8,
+
+    height: 8,
+
+    borderRadius: 4,
+
+    backgroundColor: COLORS.danger,
+
+  },
+
+  signalLeft: { left: 28, top: 60 },
+
+  signalRight: { right: 34, bottom: 52 },
+
+  dot: {
+
+    position: "absolute",
+
+    top: 8,
+
+    width: 6,
+
+    height: 6,
+
+    borderRadius: 3,
+
+    backgroundColor: COLORS.goldLight,
+
+  },
+
+  title: {
+
+    color: COLORS.text,
+
+    fontSize: 26,
+
+    fontWeight: "800",
+
+    textAlign: "center",
+
+    letterSpacing: 0.3,
+
+  },
+
+  description: {
+
+    color: COLORS.slate,
+
+    fontSize: 15,
+
+    lineHeight: 22,
+
+    textAlign: "center",
+
+    marginTop: 12,
+
+    maxWidth: 320,
+
+  },
+
+  button: {
+
+    marginTop: 32,
+
+    borderRadius: 999,
+
+    overflow: "hidden",
+
+    minWidth: 200,
+
+    shadowColor: COLORS.gold,
+
+    shadowOpacity: 0.35,
+
+    shadowRadius: 18,
+
+    shadowOffset: { width: 0, height: 8 },
+
+    elevation: 8,
+
+  },
+
+  buttonDisabled: {
+
+    opacity: 0.7,
+
+  },
+
+  buttonGradient: {
+
+    flexDirection: "row",
+
+    alignItems: "center",
+
+    justifyContent: "center",
+
+    paddingVertical: 15,
+
+    paddingHorizontal: 28,
+
+    minHeight: 52,
+
+  },
+
+  buttonIcon: {
+
+    marginRight: 8,
+
+  },
+
+  buttonLabel: {
+
+    color: COLORS.bg,
+
+    fontSize: 16,
+
+    fontWeight: "800",
+
+    letterSpacing: 0.4,
+
+  },
+
+  footnote: {
+
+    color: COLORS.slateDark,
+
+    fontSize: 12,
+
+    marginTop: 20,
+
+    textAlign: "center",
+
+  },
+
+});
