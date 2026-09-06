@@ -75,18 +75,35 @@ export class PeerManager {
       this.peer.on('call', (incomingCall) => {
         console.log('[PeerJS] Received incoming call from:', incomingCall.peer);
         const metadata = (incomingCall.metadata || {}) as CallMetadata;
+
+        // If an active media connection is already open, do not replace it with duplicate offer
+        if (this.currentCall && this.currentCall.open) {
+          console.log('[PeerJS] Already have an active open call, rejecting duplicate offer');
+          try {
+            incomingCall.close();
+          } catch {}
+          return;
+        }
+
         this.currentCall = incomingCall;
 
         // Bind close & error listeners immediately so if the caller cuts/cancels
         // while it's still ringing, the receiver terminates ringing right away.
         incomingCall.on('close', () => {
           console.log('[PeerJS] Incoming call closed/cancelled by remote peer');
+          if (this.currentCall && this.currentCall !== incomingCall) {
+            console.log('[PeerJS] Ignored close from superseded incoming connection');
+            return;
+          }
           this.cleanupCurrentCall();
           this.callbacks.onCallEnded();
         });
 
         incomingCall.on('error', (err) => {
           console.error('[PeerJS] Incoming call media connection error:', err);
+          if (this.currentCall && this.currentCall !== incomingCall) {
+            return;
+          }
           this.cleanupCurrentCall();
           this.callbacks.onCallEnded();
         });
@@ -171,12 +188,19 @@ export class PeerManager {
 
     call.on('close', () => {
       console.log('[PeerJS] Call closed by peer');
+      if (this.currentCall && this.currentCall !== call) {
+        console.log('[PeerJS] Ignored close from superseded call connection');
+        return;
+      }
       this.cleanupCurrentCall();
       this.callbacks.onCallEnded();
     });
 
     call.on('error', (err) => {
       console.error('[PeerJS] MediaConnection error:', err);
+      if (this.currentCall && this.currentCall !== call) {
+        return;
+      }
       this.cleanupCurrentCall();
       this.callbacks.onCallEnded();
     });

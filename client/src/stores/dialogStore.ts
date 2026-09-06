@@ -41,6 +41,16 @@ interface DialogState {
   removeToast: (id: string) => void;
 }
 
+const lastToastTimes = new Map<string, number>();
+
+function canToast(message: string, cooldownMs = 3000): boolean {
+  const now = Date.now();
+  const last = lastToastTimes.get(message) || 0;
+  if (now - last < cooldownMs) return false;
+  lastToastTimes.set(message, now);
+  return true;
+}
+
 export const useDialogStore = create<DialogState>((set, get) => ({
   confirmDialog: null,
   alertDialog: null,
@@ -54,6 +64,7 @@ export const useDialogStore = create<DialogState>((set, get) => ({
 
   toast: {
     success: (message: string) => {
+      if (!canToast(message)) return;
       const id = Math.random().toString(36).substring(2, 9);
       set((state) => ({
         toasts: [...state.toasts, { id, type: 'success', message }],
@@ -61,6 +72,7 @@ export const useDialogStore = create<DialogState>((set, get) => ({
       setTimeout(() => get().removeToast(id), 4000);
     },
     error: (message: string) => {
+      if (!canToast(message)) return;
       const id = Math.random().toString(36).substring(2, 9);
       set((state) => ({
         toasts: [...state.toasts, { id, type: 'error', message }],
@@ -68,6 +80,7 @@ export const useDialogStore = create<DialogState>((set, get) => ({
       setTimeout(() => get().removeToast(id), 5000);
     },
     info: (message: string) => {
+      if (!canToast(message)) return;
       const id = Math.random().toString(36).substring(2, 9);
       set((state) => ({
         toasts: [...state.toasts, { id, type: 'info', message }],
@@ -75,6 +88,7 @@ export const useDialogStore = create<DialogState>((set, get) => ({
       setTimeout(() => get().removeToast(id), 4000);
     },
     warning: (message: string) => {
+      if (!canToast(message)) return;
       const id = Math.random().toString(36).substring(2, 9);
       set((state) => ({
         toasts: [...state.toasts, { id, type: 'warning', message }],

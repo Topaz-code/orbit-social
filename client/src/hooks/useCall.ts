@@ -22,6 +22,16 @@ export function getPeerManager(): PeerManager {
     peerManagerInstance = new PeerManager({
       onIncomingCall: (mediaConn, metadata) => {
         requestNativeCallPermissions();
+        const active = useCallStore.getState().activeCall;
+        if (active && active.status === 'connected') {
+          console.log('[Call] Active call already connected, answering duplicate offer in background');
+          const localStream = useCallStore.getState().localStream;
+          if (localStream && (!peerManagerInstance?.getCurrentCall() || !peerManagerInstance.getCurrentCall()?.open)) {
+            peerManagerInstance?.answerCall(mediaConn, localStream);
+          }
+          return;
+        }
+
         currentIncomingMediaConnection = mediaConn;
         const callId = metadata.callId || `call-${Date.now()}`;
         const caller = metadata.caller || {
@@ -456,40 +466,42 @@ export function useCall() {
 
   // Accept incoming call
   const acceptCall = async () => {
-    const callToAccept = useCallStore.getState().incomingCall;
-    if (!callToAccept || !user) return;
+    let callToAccept = useCallStore.getState().incomingCall;
+    const currentUser = user || useAuthStore.getState().user;
+    if (!currentUser) return;
+
+    // Fallback: if incomingCall is not in store, check if targetCallId is in query params
+    if (!callToAccept && typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const targetCallId = params.get('incomingCall') || params.get('callId');
+      if (targetCallId) {
+        try {
+          const res = await api.get(`/calls/${targetCallId}`);
+          const callData = res.data?.data;
+          if (callData) {
+            callToAccept = {
+              callId: targetCallId,
+              caller: callData.caller || {
+                id: callData.caller_id,
+                username: 'Orbit Friend',
+                display_name: 'Orbit Friend',
+                avatar_url: '',
+              },
+              type: callData.type || 'voice',
+              conversationId: callData.conversation_id,
+            };
+          }
+        } catch (err) {}
+      }
+    }
+
+    if (!callToAccept) return;
 
     try {
       requestNativeCallPermissions();
 
-      const constraints: MediaStreamConstraints = {
-        audio: AUDIO_CONSTRAINTS,
-        video: callToAccept.type === 'video' ? { width: { ideal: 1280 }, height: { ideal: 720 } } : false,
-      };
-
-      const stream = await navigator.mediaDevices.getUserMedia(constraints);
-      setLocalStream(stream);
-
-      const pm = getPeerManager();
-      if (currentIncomingMediaConnection) {
-        pm.answerCall(currentIncomingMediaConnection, stream);
-      } else if (callToAccept.caller?.id && callToAccept.caller.id !== 'unknown') {
-        // Reverse dial if incoming PeerJS connection was not initialized while device was asleep
-        const metadata: CallMetadata = {
-          callId: callToAccept.callId,
-          caller: {
-            id: user.id,
-            username: user.username,
-            display_name: user.display_name,
-            avatar_url: user.avatar_url || '',
-          },
-          type: callToAccept.type,
-          conversationId: callToAccept.conversationId,
-        };
-        pm.makeCall(callToAccept.caller.id, stream, metadata);
-      }
-
-      setActiveCall({
+      // Immediately switch UI to active call so the screen does not lag or show feed
+      useCallStore.getState().setActiveCall({
         callId: callToAccept.callId,
         type: callToAccept.type,
         isIncoming: true,
@@ -505,14 +517,51 @@ export function useCall() {
       dismissCallBrowserNotification(callToAccept.callId);
       cancelNativeCallNotification(callToAccept.callId);
       notifyNativeCallStarted(callToAccept.callId);
-      setIncomingCall(null);
+      useCallStore.getState().setIncomingCall(null);
+
+      // Clean up URL query parameters
+      if (typeof window !== 'undefined' && window.history?.replaceState) {
+        const url = new URL(window.location.href);
+        url.searchParams.delete('action');
+        url.searchParams.delete('native');
+        url.searchParams.delete('incomingCall');
+        url.searchParams.delete('callId');
+        window.history.replaceState({}, '', url.pathname + (url.search ? url.search : ''));
+      }
+
+      const constraints: MediaStreamConstraints = {
+        audio: AUDIO_CONSTRAINTS,
+        video: callToAccept.type === 'video' ? { width: { ideal: 1280 }, height: { ideal: 720 } } : false,
+      };
+
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      useCallStore.getState().setLocalStream(stream);
+
+      const pm = getPeerManager();
+      if (currentIncomingMediaConnection) {
+        pm.answerCall(currentIncomingMediaConnection, stream);
+      } else if (callToAccept.caller?.id && callToAccept.caller.id !== 'unknown') {
+        // Reverse dial if incoming PeerJS connection was not initialized while device was asleep
+        const metadata: CallMetadata = {
+          callId: callToAccept.callId,
+          caller: {
+            id: currentUser.id,
+            username: currentUser.username,
+            display_name: currentUser.display_name,
+            avatar_url: currentUser.avatar_url || '',
+          },
+          type: callToAccept.type,
+          conversationId: callToAccept.conversationId,
+        };
+        pm.makeCall(callToAccept.caller.id, stream, metadata);
+      }
 
       // 1. Broadcast instant CALL_ACCEPTED signal over MQTT so caller stops ringing
       const payload = {
         type: 'CALL_ACCEPTED',
         callId: callToAccept.callId,
         callerId: callToAccept.caller?.id,
-        by: user.id,
+        by: currentUser.id,
       };
       mqttClient.publish(`orbit/call/${callToAccept.callId}/signal`, payload);
       if (callToAccept.caller?.id) {
@@ -591,6 +640,14 @@ export function useCall() {
       };
       checkAndAccept();
     };
+
+    // On mount, if URL has action=accept from cold launch, auto-trigger
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('action') === 'accept') {
+        handleTriggerAccept();
+      }
+    }
 
     window.addEventListener('orbit:trigger-accept-call', handleTriggerAccept);
     window.addEventListener('orbit:call-accept', handleTriggerAccept);

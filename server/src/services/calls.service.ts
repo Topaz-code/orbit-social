@@ -150,7 +150,7 @@ export const callsService = {
       },
     });
 
-    // Notify participants of status change
+    // Notify the call room and counterpart of status change (avoid duplicate echoes)
     const otherUserId = call.caller_id === userId ? call.receiver_id : call.caller_id;
     const signalPayload = {
       type: 'CALL_STATUS_CHANGED',
@@ -163,10 +163,8 @@ export const callsService = {
     if (callId !== realCallId) {
       mqttService.sendCallSignal(callId, signalPayload);
     }
-    mqttService.sendUserCallSignal(call.caller_id, signalPayload);
-    mqttService.sendUserCallSignal(call.receiver_id, signalPayload);
 
-    // Also send explicit CALL_DECLINED / CALL_CANCELLED / CALL_ACCEPTED / CALL_ENDED signal for instant client reaction
+    // Also send explicit CALL_DECLINED / CALL_CANCELLED / CALL_ACCEPTED / CALL_ENDED signal to counterpart
     const explicitType =
       data.status === 'rejected'
         ? 'CALL_DECLINED'
@@ -181,12 +179,7 @@ export const callsService = {
       status: data.status,
       by: userId,
     };
-    mqttService.sendCallSignal(realCallId, explicitPayload);
-    if (callId !== realCallId) {
-      mqttService.sendCallSignal(callId, explicitPayload);
-    }
-    mqttService.sendUserCallSignal(call.caller_id, explicitPayload);
-    mqttService.sendUserCallSignal(call.receiver_id, explicitPayload);
+    mqttService.sendUserCallSignal(otherUserId, explicitPayload);
 
     // Remote push cancellation: dismiss heads-up notification and stop ringing on all devices
     if (data.status === 'rejected' || data.status === 'missed' || data.status === 'completed' || data.status === 'ongoing') {
