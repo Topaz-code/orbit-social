@@ -439,7 +439,10 @@ export function useCall() {
       }
     } catch (error: any) {
       console.error('[Call] Failed to start call:', error);
-      useDialogStore.getState().toast.error(error.message || 'Could not access microphone/camera');
+      const msg = error?.message?.includes('is taken')
+        ? 'Signaling connection refreshed. Please try calling again.'
+        : error?.message || 'Could not connect call';
+      useDialogStore.getState().toast.error(msg);
       endCall();
     }
   };

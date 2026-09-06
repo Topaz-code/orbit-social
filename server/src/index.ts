@@ -195,6 +195,8 @@ app.use('/peerjs', (req, res, next) => {
 const peerServer = ExpressPeerServer(server, {
   path: '/',
   allow_discovery: false, // PREVENT ENUMERATION
+  alive_timeout: 30000,   // Clean up zombie sockets in 30s instead of default 90s
+  expire_timeout: 5000,
 });
 app.use('/peerjs', peerServer);
 

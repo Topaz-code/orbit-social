@@ -66,6 +66,18 @@ export class PeerManager {
       };
 
       const onError = (err: any) => {
+        if (err?.type === 'unavailable-id') {
+          console.warn('[PeerJS] ID taken during waitForReady, retrying in 1.5s...');
+          setTimeout(() => {
+            if (this.currentUserId) {
+              this.init(this.currentUserId);
+              this.waitForReady().then(resolve).catch(reject);
+            } else {
+              reject(err);
+            }
+          }, 1500);
+          return;
+        }
         clearTimeout(timeout);
         this.peer?.off('open', onOpen);
         this.peer?.off('error', onError);
@@ -97,6 +109,7 @@ export class PeerManager {
         port: PEERJS_PORT,
         path: PEERJS_PATH,
         secure: PEERJS_SECURE,
+        token: `orbit_${userId}`,
         debug: 1,
         config: {
           iceServers: ICE_SERVERS,
@@ -166,7 +179,15 @@ export class PeerManager {
       this.peer.on('error', (err: any) => {
         console.error('[PeerJS] Peer error:', err);
         if (err.type === 'unavailable-id') {
-          console.warn('[PeerJS] Peer ID already active on server');
+          console.warn('[PeerJS] Peer ID already active on server. Scheduling re-init in 2s...');
+          if (!this.reconnectTimer) {
+            this.reconnectTimer = setTimeout(() => {
+              this.reconnectTimer = null;
+              if (this.currentUserId) {
+                this.init(this.currentUserId);
+              }
+            }, 2000);
+          }
         } else {
           this.callbacks.onError(err);
         }
